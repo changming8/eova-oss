@@ -87,16 +87,16 @@ public class MetadataController extends BaseController {
 			String columnName = columnDetailList.get(i).get("FIELD_CODE");
 			String fieldType = columnDetailList.get(i).get("FIELD_TYPE");
 			String length = columnDetailList.get(i).get("FIELD_LENGTH");
-			String keyFlag = columnDetailList.get(i).get("KEY_FLAG");
+			boolean keyFlag = columnDetailList.get(i).get("KEY_FLAG");
 			// 默认值
-			String nullFlag = columnDetailList.get(i).get("NULL_FLAG");// 空值标识——0：能为空；1：不能为空
+			boolean nullFlag = columnDetailList.get(i).get("NULL_FLAG");// 空值标识——0：能为空；1：不能为空
 			tempColumnSql.append(columnName + " " + fieldType);
 			if (null != length && !"".equals(length.trim())) {
 				tempColumnSql.append(" (" + length + ")");
 			}
-			if (keyFlag !=null && keyFlag.equals("1")) {
+			if (keyFlag) {
 				tempColumnSql.append(" not null primary key");
-			} else if (nullFlag.equals("1")) {
+			} else if (nullFlag) {
 				tempColumnSql.append(" not null");
 			} else if ("TIMESTAMP".equals(fieldType)) {
 				tempColumnSql.append(" null");// mysql中TIMESTAMP类型默认为非空

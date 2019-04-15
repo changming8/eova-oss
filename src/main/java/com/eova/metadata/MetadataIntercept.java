@@ -20,7 +20,8 @@ public class MetadataIntercept extends SingleIntercept {
 	@Override
 	public void importBefore(AopContext ac) throws Exception {
 		//新增默认主表描述 返回id到子表 
-		String mid = insertMetadata();
+		String mid = UUID.getUnqionPk();
+		insertMetadata(mid);
 		for (Record record : ac.records) {
 			//处理主键 更换主键
 			record.set("id", UUID.getUnqionPk());
@@ -28,11 +29,10 @@ public class MetadataIntercept extends SingleIntercept {
 		}
 	}
 
-	public String insertMetadata() {
+	public String insertMetadata(String id) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("system_").append(System.currentTimeMillis());
-		String id = UUID.getUnqionPk();
-		String sql = " INSERT INTO  eova.cd_metadata set  id= '"+id+"' ,data_code='"+sb.toString()+"', data_name='"+sb.toString()+"' ;";
+		String sql = " INSERT INTO  bs_metadata set  id= '"+id+"' ,data_code='"+sb.toString()+"', data_name='"+sb.toString()+"' ;";
 		Db.use(xx.DS_EOVA).update(sql);
 		return id;
 	}
