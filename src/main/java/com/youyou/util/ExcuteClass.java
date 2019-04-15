@@ -51,7 +51,6 @@ public class ExcuteClass {
 		} catch (IllegalArgumentException | InvocationTargetException e) {
 			e.printStackTrace();
 		}
-		System.out.println("========================="+returnValue);
 		return returnValue;
 	}
 }
