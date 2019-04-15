@@ -1,0 +1,88 @@
+<body class="easyui-layout">
+<div data-options="region:'center',fit:false,border:false,split:false">
+    <div id="contentLayout" class="easyui-layout" data-options="fit:true">
+    	<div data-options="region:'north',title:'数据关系定义',split:true" style="height:200px;">
+    		<table id="dataRelationMaintenance"  class="easyui-datagrid">
+    			
+    		</table>
+    	</div>
+    	<div data-options="region:'center',fit:false,border:false">
+        	<div id="master_grid_toolbar" style="display: block;">
+                <table id="master">
+                    
+                </table>
+            </div>
+        </div>
+        <div data-options="region:'south',fit:false,border:false,split:true" style="height:200px">
+
+            <div id="sonTab" class="easyui-tabs" data-options="fit:true,border:false">
+                <div title="son">
+                	<div id="_toolbar" style="display: block;">
+		                <table id="slave">
+		                    
+		                </table>
+		            </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" src="/eova/ui/js/jquery.min.js"></script>
+<script type="text/javascript" src="/eova/plugins/easyui/jquery.easyui.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/eova/plugins/easyui/themes/gray/easyui.css">
+<script type="text/javascript">
+var columns_field=[];
+column("bs_md_def");
+function column(code){
+	$.ajax({
+		url:"/meta/fields/"+code,
+		type:"get",
+		dataType:"json",
+		async:false,
+		success:function(data){
+			var fields=[];
+			for(var i=0;i<data.length;i++){
+				var isTrue=false;
+				if(data[i].is_show==0){
+					isTrue=true;
+				}
+				var field={
+					"field":data[i].en,
+					"title":data[i].cn,
+					"width":data[i].width,
+					"hidden":isTrue
+				}
+				fields.push(field);
+			}
+			columns_field.push(fields);
+		}
+	});
+}
+table("dataRelationMaintenance","bs_md_def");
+function table(tableName,code){
+	$("#"+tableName).datagrid({
+	    url:'/grid/query/'+code+"-"+code,
+	    columns:columns_field,
+	    fitColumns:true,
+	    striped:true,
+	    idField:"id",
+	    pagination:true,
+	    singleSelect:true,
+	    rownumbers:true,
+	    pageNumber:1,
+	    pageSize:10,
+	    pageList:[10,20,30,40],
+	    onLoadSuccess:function(data){
+	    	columns_field.splice(0,columns_field.length);
+	    	//console.info(columns_field);
+	    },
+	    onCheck:function(rowIndex,rowData){
+	    	var id=rowData.id;
+	    	column("bs_style");
+	    	table("master","bs_style-bs_style");
+	    }
+	});
+}
+
+</script>
+</body>
