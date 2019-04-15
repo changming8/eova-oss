@@ -14,7 +14,7 @@ import com.yonyou.model.MdDefModel;
 import com.yonyou.util.UUID;
 
 public class MdDEFController extends BaseController {
-	public void test() {
+	public void init() {
 		System.out.println("Test.............");
 		String[] type = new String[] { "template", "output", "input", "mobile" };
 //		存放 映射关系定义里面维护的 对照表名 和 被对照表名
