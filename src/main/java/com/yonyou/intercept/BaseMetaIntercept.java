@@ -4,7 +4,11 @@ import com.eova.aop.AopContext;
 import com.eova.aop.MetaObjectIntercept;
 import com.yonyou.util.UUID;
 
-
+/**
+ * 通用新增拦截器 处理主键生成
+ * @author changjr
+ *
+ */
 public class BaseMetaIntercept extends MetaObjectIntercept {
 	@Override
 	public String addBefore(AopContext ac) throws Exception {
