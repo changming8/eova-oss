@@ -1,9 +1,4 @@
-/**
- * Copyright (c) 2013-2016, Jieven. All rights reserved.
- *
- * Licensed under the GPL license: http://www.gnu.org/licenses/gpl.txt
- * To use it on other terms please contact us at 1623736450@qq.com
- */
+
 package com.yonyou.config;
 
 import java.util.HashMap;
@@ -24,7 +19,6 @@ import com.oss.model.UserInfo;
 import com.oss.model.Users;
 import com.oss.product.ProductController;
 import com.oss.test.TestController;
-import com.yonyou.controller.DataRelationMaintenanceController;
 import com.yonyou.controller.MdDEFController;
 /**
  * 甜橙金融 配置文件 后续将OSS演示文件 移除 暂时保留演示功能
@@ -47,7 +41,7 @@ public class OFConfig extends EovaConfig {
 		me.add("/test", TestController.class);
 		me.add("/product", ProductController.class);
 		me.add("/mddef", MdDEFController.class);
-		me.add("/dataRelationMaintenance",DataRelationMaintenanceController.class);
+
 		// 排除不需要登录拦截的URI 语法同SpringMVC拦截器配置 @see com.eova.common.utils.util.AntPathMatcher
 		LoginInterceptor.excludes.add("/test/**");
 
