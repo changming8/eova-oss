@@ -1,0 +1,28 @@
+<a href="javascript:void(0);" class="easyui-linkbutton" data-options="iconCls:'eova-icon1063',plain:true" onclick="singleImport()">${button.name!'导入'} </a>
+<script type="text/javascript">
+	var singleImport = function() {
+		var $grid = $('#grid');
+		
+		var $widget = $('#${gridId}');
+		var rows = $widget.datagrid("getRows");
+        console.log(rows.length);
+		importDialog($grid, '${I18N(button.name)}${object.name} ${I18N('数据')}', '/metadata/importXls/${menu.code}');
+	};
+	
+	var importDialog = function($grid, name, url) {
+		console.log(url);
+		// 弹出窗口
+		var dialog = parent.sy.modalDialog({
+			id : 'import_dialog',
+			title : name,
+			url : url,
+			buttons : [ {
+				id : 'eovaImport',
+				text : $.I18N('确定'),
+				handler : function() {
+					dialog.find('iframe').get(0).contentWindow.btnSaveCallback(dialog, $grid, parent.$);
+				}
+			} ]
+		}, 420, 200);
+	};
+</script>
