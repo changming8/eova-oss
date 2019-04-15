@@ -6,13 +6,14 @@
  */
 package com.eova.metadata;
 
-import java.util.UUID;
+
 
 import com.eova.aop.AopContext;
 import com.eova.common.utils.xx;
 import com.eova.template.single.SingleIntercept;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
+import com.yonyou.util.UUID;
 
 public class MetadataIntercept extends SingleIntercept {
 
@@ -22,7 +23,7 @@ public class MetadataIntercept extends SingleIntercept {
 		String mid = insertMetadata();
 		for (Record record : ac.records) {
 			//处理主键 更换主键
-			record.set("id", UUID.randomUUID().toString());
+			record.set("id", UUID.getUnqionPk());
 			record.set("metadata_id", mid);
 		}
 	}
@@ -30,7 +31,7 @@ public class MetadataIntercept extends SingleIntercept {
 	public String insertMetadata() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("system_").append(System.currentTimeMillis());
-		String id = UUID.randomUUID().toString();
+		String id = UUID.getUnqionPk();
 		String sql = " INSERT INTO  eova.cd_metadata set  id= '"+id+"' ,data_code='"+sb.toString()+"', data_name='"+sb.toString()+"' ;";
 		Db.use(xx.DS_EOVA).update(sql);
 		return id;
