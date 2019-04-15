@@ -3,7 +3,7 @@ package com.eova.metadata;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
+import com.yonyou.util.UUID;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -46,11 +46,11 @@ public class MetadataController extends BaseController {
 		System.out.print(json.getString("id"));
 		// 复制元数据
 		// 先查询 先复制以时间戳为结尾复制到元数据主表中 子表直接复制
-		String metadataSql = "select * from cd_metadata where dr=0 and  id ='" + json.getString("id")+"'";
-		String metadatadetailSql = "select * from cd_metadata_detail where dr=0 and  metadata_id ='"+ json.getString("id")+"'";
+		String metadataSql = "select * from bs_metadata where dr=0 and  id ='" + json.getString("id")+"'";
+		String metadatadetailSql = "select * from bs_metadata_detail where dr=0 and  metadata_id ='"+ json.getString("id")+"'";
 		List<Record> metadataList = Db.use(xx.DS_EOVA).find(metadataSql);
 		List<Record> metadataDetailList = Db.use(xx.DS_EOVA).find(metadatadetailSql);
-		String id = UUID.randomUUID().toString();
+		String id = UUID.getUnqionPk();
 		Record record = new Record();
 		record = metadataList.get(0).remove("ID");
 		record.set("ID", id);
@@ -59,14 +59,14 @@ public class MetadataController extends BaseController {
 		String serialCode = code + "_" + System.currentTimeMillis();
 		record.set("DATA_CODE", serialCode);
 		// 插入
-		Db.use(xx.DS_EOVA).save("CD_METADATA", record);
+		Db.use(xx.DS_EOVA).save("bs_metadata", record);
 		// 复制子表字段信息
 
 		for (int i = 0; i < metadataDetailList.size(); i++) {
 			metadataDetailList.get(i).set("METADATA_ID", id);
-			metadataDetailList.get(i).set("ID", UUID.randomUUID().toString());
+			metadataDetailList.get(i).set("ID", UUID.getUnqionPk());
 		}
-		Db.use(xx.DS_EOVA).batchSave("CD_METADATA_DETAIL", metadataDetailList, 30);
+		Db.use(xx.DS_EOVA).batchSave("bs_metadata_detail", metadataDetailList, 30);
 		renderJson(Easy.sucess());
 	}
 
@@ -78,7 +78,7 @@ public class MetadataController extends BaseController {
 		System.out.print(json.getString("id"));
 
 		// 获取key获取数据库类型字段 从MYSQL_DATEBASE_TYPE获取
-		String columnSql = "select* from cd_metadata_detail where dr=0 and  metadata_id ='" + json.getString("id")+"'";
+		String columnSql = "select* from bs_metadata_detail where dr=0 and  metadata_id ='" + json.getString("id")+"'";
 		List<Record> columnDetailList = Db.use(xx.DS_EOVA).find(columnSql);
 		StringBuffer tempColumnSql = new StringBuffer(" CREATE TABLE ");
 		String tableName = json.getString("data_code");
@@ -94,7 +94,7 @@ public class MetadataController extends BaseController {
 			if (null != length && !"".equals(length.trim())) {
 				tempColumnSql.append(" (" + length + ")");
 			}
-			if (keyFlag.equals("1")) {
+			if (keyFlag !=null && keyFlag.equals("1")) {
 				tempColumnSql.append(" not null primary key");
 			} else if (nullFlag.equals("1")) {
 				tempColumnSql.append(" not null");
@@ -142,13 +142,24 @@ public class MetadataController extends BaseController {
 		List<Record> updateRecord = new ArrayList<Record>();
 		for(int i=0;i<jsonlist.size();i++) {
 			JSONObject obj =jsonlist.getJSONObject(i);
+			if(obj.getBoolean("key_flag")!= null && obj.getBoolean("key_flag")) {
+				obj.put("key_flag", "1");
+			}else {
+				obj.put("key_flag", "0");
+			}
+			if(obj.getBoolean("null_flag")) {
+				obj.put("null_flag", "1");
+			}else {
+				obj.put("null_flag", "0");
+			}
+			
 			Record re = new Record();
 			Map<String, Object> map = obj;
 			re.setColumns(map);
 			re.remove("pk_val");
 			if(obj.getString("id") ==null || obj.getString("id").equals("")) {
 				//新增
-				re.set("id", UUID.randomUUID().toString());
+				re.set("id", UUID.getUnqionPk());
 				re.set("metadata_id", pid);
 				insertRecord.add(re);
 			}else {
@@ -156,8 +167,8 @@ public class MetadataController extends BaseController {
 				updateRecord.add(re);
 			}
 		}
-		Db.use(xx.DS_EOVA).batchSave("CD_METADATA_DETAIL", insertRecord, 50);
-		Db.use(xx.DS_EOVA).batchUpdate("CD_METADATA_DETAIL", updateRecord, 50);
+		Db.use(xx.DS_EOVA).batchSave("bs_metadata_detail", insertRecord, 50);
+		Db.use(xx.DS_EOVA).batchUpdate("bs_metadata_detail", updateRecord, 50);
 		renderJson(Easy.sucess());
 	}
 	
@@ -169,7 +180,7 @@ public class MetadataController extends BaseController {
 	
 	public void doImportXls() throws Exception {
 		
-		String menuCode = "cd_metadata_detail";
+		String menuCode = "bs_metadata_detail";
 		
 		// 获取元数据
 		Menu menu = Menu.dao.findByCode(menuCode);
@@ -193,8 +204,8 @@ public class MetadataController extends BaseController {
 			uploadCallback(false, I18NBuilder.get("请导入.xls格式的Excel文件"));
 			return;
 		}
-		//object.set("code", "cd_metadata_detail");
-		//object.set("table_name", "cd_metadata_detail");
+		//object.set("code", "bs_metadata_detail");
+		//object.set("table_name", "bs_metadata_detail");
 		// 事务(默认为TRANSACTION_READ_COMMITTED)
 		SingleAtom atom = new SingleAtom(file.getFile(), object, intercept, ctrl);
 		
