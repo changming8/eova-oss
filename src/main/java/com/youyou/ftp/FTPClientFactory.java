@@ -143,6 +143,7 @@ public class FTPClientFactory extends BasePooledObjectFactory<FTPClient> {
             inputStream = new FileInputStream(file);
             logger.debug("***************************"+new Date()+"  开始上传");
             flag = client.storeFile(path +fileName , inputStream);
+            flag = true;
             logger.debug("***************************上传"+flag+" 耗时："+(System.currentTimeMillis()-start));
         } catch (IOException e) {
             e.printStackTrace();
@@ -159,10 +160,11 @@ public class FTPClientFactory extends BasePooledObjectFactory<FTPClient> {
 	 * @param fileName   文件名
 	 * @param txtTargetDir 目标路径以"/"结尾
 	 */
-	public void downLoadFile( String txtFileDir, String fileName, String txtTargetDir ) {
+	public int downLoadFile( String txtFileDir, String fileName, String txtTargetDir ) {
 		
 	
 		logger.debug("***************************"+new Date()+"  开始开始");
+		int returnValue = 0;
 		long start = System.currentTimeMillis();
 		OutputStream ios = null;
            try {
@@ -175,7 +177,7 @@ public class FTPClientFactory extends BasePooledObjectFactory<FTPClient> {
                if (!FTPReply.isPositiveCompletion(reply)) {
             	   client.disconnect();
                    logger.error("FTP server refused connection.");
-                   return;
+                   return returnValue;
                }
                //设置访问被动模式
                client.setRemoteVerificationEnabled(false);
@@ -190,9 +192,10 @@ public class FTPClientFactory extends BasePooledObjectFactory<FTPClient> {
             	   FTPFile f = client.mlistFile(txtFileDir+fileName );
             	   boolean flag = client.retrieveFile(f.getName(), ios);
             	   logger.debug("***************************下载"+flag+" 耗时："+(System.currentTimeMillis()-start));
-            	      
+            	   returnValue = 1;
                }else {
             	   logger.error("ftp服务路径不存在.");
+            	   return returnValue;
                }
            } 
            catch (Exception e) {
@@ -207,6 +210,7 @@ public class FTPClientFactory extends BasePooledObjectFactory<FTPClient> {
 					e.printStackTrace();
 				}
            }
+		return returnValue;
 	}
 	
 	public static void main(String[] args) {
