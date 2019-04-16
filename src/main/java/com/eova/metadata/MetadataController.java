@@ -35,6 +35,7 @@ import com.jfinal.plugin.activerecord.tx.Tx;
 import com.jfinal.plugin.activerecord.tx.TxConfig;
 import com.jfinal.upload.UploadFile;
 import com.oss.model.Metadata;
+import com.oss.model.MetadataDetail;
 import com.yonyou.util.UUID;
 
 /**
@@ -134,12 +135,12 @@ public class MetadataController extends BaseController {
 					// 执行 drop
 					Db.use(xx.DS_EOVA).update(" DROP TABLE " + tableName);
 					Db.use(xx.DS_EOVA).update(tempColumnSql.toString());
-					renderJson(Easy.sucess());
 				}
 			} else {
 				Db.use(xx.DS_EOVA).update(tempColumnSql.toString());
-				renderJson(Easy.sucess());
 			}
+			renderJson(Easy.sucess());
+			return;
 		} catch (Exception e) {
 			renderJson(Easy.fail("保存失败, 请联系管理员"));
 		}
@@ -307,6 +308,12 @@ public class MetadataController extends BaseController {
 		}
 		// 导入元数据主表  保存table主信息 到主表 
 		//importMetaObject(ds, type, table, name, code, pk);
+		//check 元数据是否存在,存在更改编码_1
+		String countSql = "select * from bs_metadata where dr=0 and data_code='" + code+"'";
+		List<Record> countList = Db.use(xx.DS_EOVA).find(countSql);
+		if(countList.size()>0) {
+			code = code+"_1";
+		}
 		Metadata metadata = new Metadata();
 		String id = UUID.getUnqionPk();
 		metadata.set("id", id);
@@ -319,7 +326,7 @@ public class MetadataController extends BaseController {
 		boolean bo = metadata.save();
 		if(bo) {
 			// 导入元字段到子表
-			// importMetaField(ds, table, code);
+			importMetaField(ds, table, code,id);
 			
 			
 		}
@@ -337,15 +344,16 @@ public class MetadataController extends BaseController {
 	 * @param ds    数据源
 	 * @param table 表名
 	 */
-	private void importMetaField(String ds, String table, String code) {
+	private void importMetaField(String ds, String table, String code,String pid) {
 		JSONArray list = DsUtil.getColumnInfoByConfigName(ds, table);
 
 		for (int i = 0; i < list.size(); i++) {
 			JSONObject o = list.getJSONObject(i);
 			// 获取每个字段的属性 批量保存到业务数据表中
 			ColumnMeta col = new ColumnMeta(ds, table, o);
-			Metadata mi = new Metadata(code, col);
-			mi.save();
+			MetadataDetail metadataDetail = new MetadataDetail(code, col);
+			metadataDetail.set("metadata_id", pid);
+			metadataDetail.save();
 			//autoBindDict(table, code, o.getString("REMARKS"), mi.getEn());
 		}
 	}

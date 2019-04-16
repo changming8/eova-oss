@@ -15,6 +15,7 @@ import com.oss.global.BaseMetaObjectIntercept;
 import com.oss.global.GlobalEovaIntercept;
 import com.oss.model.Address;
 import com.oss.model.Metadata;
+import com.oss.model.MetadataDetail;
 import com.oss.model.Orders;
 import com.oss.model.UserInfo;
 import com.oss.model.Users;
@@ -68,6 +69,7 @@ public class OFConfig extends EovaConfig {
 		main.addMapping("address", Address.class);
 		main.addMapping("orders", Orders.class);
 		main.addMapping("bs_metadata", Metadata.class);
+		main.addMapping("bs_metadata_detail", MetadataDetail.class);
 		// 获取其它数据源的ARP
 		// ActiveRecordPlugin xxx = arps.get("xxx");
 	}
