@@ -30,12 +30,12 @@ public class MdDEFController extends BaseController {
 
 		List<Record> hlist = MdDefModel.dao.getDefInfoById(id);
 //		对照表
-		String source = hlist.get(0).getStr("source");
+		String source = hlist.get(0).getStr("md_table");
 		tableList.add(source);
 //		获取被对照表-begin
 		List<Record> blist = Db.find("select * from bs_md_def_b where dr= 0 and pid = ?", id);
 		for (Record r : blist) {
-			tableList.add(r.getStr("dest"));
+			tableList.add(r.getStr("dest_table"));
 		}
 //		获取被对照表-end
 //		进行保存 样式主表 begin
@@ -49,7 +49,7 @@ public class MdDEFController extends BaseController {
 				Record record = new Record();
 				record.set("id", UUID.getUnqionPk());
 				record.set("sid", id);
-				record.set("stable", t);
+				record.set("md_table", t);
 				record.set("type", type[i]);
 				record.set("smeta", "主数据关系定义");
 				slist.add(record);
@@ -77,7 +77,7 @@ public class MdDEFController extends BaseController {
 	 * @throws BussnissException
 	 */
 	private Boolean checkHasInit(String meta, String sid) {
-		List res = Db.find("select * from bs_style where dr = 0 and sid = ? and stable = ?", sid, meta);
+		List res = Db.find("select * from bs_style where dr = 0 and sid = ? and md_table = ?", sid, meta);
 		return !res.isEmpty();
 	}
 
@@ -118,7 +118,7 @@ public class MdDEFController extends BaseController {
 	 */
 	private String queryId(String meta, String sid, String type) {
 
-		List<Record> res = Db.find("select id from bs_style where dr = 0 and sid = ? and stable = ? and type = ?", sid,
+		List<Record> res = Db.find("select id from bs_style where dr = 0 and sid = ? and md_table = ? and type = ?", sid,
 				meta, type);
 		return res.get(0).getStr("id");
 	}
