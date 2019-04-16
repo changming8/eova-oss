@@ -1,5 +1,6 @@
 package com.eova.metadata;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -30,11 +31,13 @@ import com.jfinal.core.Controller;
 import com.jfinal.kit.JsonKit;
 import com.jfinal.kit.LogKit;
 import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.IAtom;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import com.jfinal.plugin.activerecord.tx.TxConfig;
 import com.jfinal.upload.UploadFile;
 import com.oss.model.Metadata;
+import com.oss.model.MetadataDetail;
 import com.yonyou.util.UUID;
 
 /**
@@ -88,13 +91,14 @@ public class MetadataController extends BaseController {
 		JSONArray jsonlist = JSONArray.parseArray(j.toString());
 		JSONObject json = (JSONObject) jsonlist.get(0);
 		System.out.print(json.getString("id"));
-
+		final Object[] objs = new Object[2];
 		// 获取key获取数据库类型字段 从MYSQL_DATEBASE_TYPE获取
 		String columnSql = "select* from bs_metadata_detail where dr=0 and  metadata_id ='" + json.getString("id")
 				+ "'";
 		List<Record> columnDetailList = Db.use(xx.DS_EOVA).find(columnSql);
 		StringBuffer tempColumnSql = new StringBuffer(" CREATE TABLE ");
 		String tableName = json.getString("data_code");
+		objs[0]=tableName;
 		tempColumnSql.append(tableName + " ( ");
 		for (int i = 0; i < columnDetailList.size(); i++) {
 			String columnName = columnDetailList.get(i).get("FIELD_CODE");
@@ -119,7 +123,7 @@ public class MetadataController extends BaseController {
 			}
 		}
 		tempColumnSql.append(" )");
-
+		objs[1]=tempColumnSql.toString();
 		// 建标动作
 		// 存在的确认有没有数据,无数据才可以drop 重新执行建标 否则返回异常提示
 		try {
@@ -131,15 +135,26 @@ public class MetadataController extends BaseController {
 					renderJson(Easy.fail("表已存在数据,无法重新创建"));
 					return;
 				} else {
-					// 执行 drop
-					Db.use(xx.DS_EOVA).update(" DROP TABLE " + tableName);
-					Db.use(xx.DS_EOVA).update(tempColumnSql.toString());
-					renderJson(Easy.sucess());
+					// 执行 drop  回滚测试
+					boolean succeed = Db.tx(new IAtom() {
+						@Override
+						public boolean run() throws SQLException {
+							Db.use(xx.DS_EOVA).update(" DROP TABLE " + objs[0].toString()+";");
+							Db.use(xx.DS_EOVA).update(objs[1].toString()+";");
+							//xx.info("sql语句执行结果: "+a+"===="+b);
+							return true;
+						}
+					});
+					if(!succeed){
+						renderJson(Easy.fail("创建失败,请检查字段是否含有数据库关键字!"));
+						return;
+					}
 				}
 			} else {
 				Db.use(xx.DS_EOVA).update(tempColumnSql.toString());
-				renderJson(Easy.sucess());
 			}
+			renderJson(Easy.sucess());
+			return;
 		} catch (Exception e) {
 			renderJson(Easy.fail("保存失败, 请联系管理员"));
 		}
@@ -160,7 +175,7 @@ public class MetadataController extends BaseController {
 			} else {
 				obj.put("key_flag", "0");
 			}
-			if (obj.getBoolean("null_flag")) {
+			if (null!= obj.getBoolean("null_flag") && obj.getBoolean("null_flag")) {
 				obj.put("null_flag", "1");
 			} else {
 				obj.put("null_flag", "0");
@@ -307,10 +322,17 @@ public class MetadataController extends BaseController {
 		}
 		// 导入元数据主表  保存table主信息 到主表 
 		//importMetaObject(ds, type, table, name, code, pk);
+		//check 元数据是否存在,存在更改编码_1
+		String countSql = "select * from bs_metadata where dr=0 and data_code='" + code+"'";
+		List<Record> countList = Db.use(xx.DS_EOVA).find(countSql);
+		if(countList.size()>0) {
+			code = code+"_1";
+		}
 		Metadata metadata = new Metadata();
 		String id = UUID.getUnqionPk();
 		metadata.set("id", id);
 		metadata.set("data_code", code);
+		metadata.set("code", code);
 		metadata.set("data_name", name);
 		metadata.set("data_disname", name);
 		metadata.set("data_resource", ds);
@@ -319,7 +341,7 @@ public class MetadataController extends BaseController {
 		boolean bo = metadata.save();
 		if(bo) {
 			// 导入元字段到子表
-			// importMetaField(ds, table, code);
+			importMetaField(ds, table, code,id);
 			
 			
 		}
@@ -337,15 +359,16 @@ public class MetadataController extends BaseController {
 	 * @param ds    数据源
 	 * @param table 表名
 	 */
-	private void importMetaField(String ds, String table, String code) {
+	private void importMetaField(String ds, String table, String code,String pid) {
 		JSONArray list = DsUtil.getColumnInfoByConfigName(ds, table);
 
 		for (int i = 0; i < list.size(); i++) {
 			JSONObject o = list.getJSONObject(i);
 			// 获取每个字段的属性 批量保存到业务数据表中
 			ColumnMeta col = new ColumnMeta(ds, table, o);
-			Metadata mi = new Metadata(code, col);
-			mi.save();
+			MetadataDetail metadataDetail = new MetadataDetail(code, col);
+			metadataDetail.set("metadata_id", pid);
+			metadataDetail.save();
 			//autoBindDict(table, code, o.getString("REMARKS"), mi.getEn());
 		}
 	}

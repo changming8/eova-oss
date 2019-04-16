@@ -7,7 +7,7 @@ public class UUID {
 		if (flowNum > 999) {
 			flowNum = 0;
 		}
-		String flow = String.format("%02d", flowNum++);
+		String flow = String.format("%03d", flowNum++);
 		String id = DateUtil.getNowTimestamp() + flow;
 		return id;
 
