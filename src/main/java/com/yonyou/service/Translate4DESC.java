@@ -16,18 +16,11 @@ import com.yonyou.util.FileStatus;
 import com.yonyou.util.UUID;
 
 public class Translate4DESC {
-	public List<String> execute(String fileName) {
+	public List<String> execute(String fileName) throws Exception {
 		List<String> context = new ArrayList<>();
-		try {
 			context = readFile(fileName);
 			saveInfo4DESC(context, fileName);
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+
 		return context;
 	}
 
@@ -62,7 +55,7 @@ public class Translate4DESC {
 		return context;
 	}
 
-	public List<String> saveInfo4DESC(List<String> context, String fileName) throws UnsupportedEncodingException {
+	public List<String> saveInfo4DESC(List<String> context, String fileName) throws Exception {
 
 //		fileName = "D:\\soft\\M002-COMPANY001-FMP-20190313-1-001-A.DESC";
 
@@ -140,9 +133,10 @@ public class Translate4DESC {
 
 	/**
 	 * 更新数据文件状态 fileName 文件名称 status 稳健状态
+	 * @throws Exception 
 	 **/
 
-	public int updataFileStatus(String fileName, String status) {
+	public int updataFileStatus(String fileName, String status) throws Exception {
 
 		int flag = 0;
 
@@ -157,7 +151,7 @@ public class Translate4DESC {
 	/**
 	 * 检查数据文件是否存在 文件名
 	 */
-	public boolean checkFileExist(String fileName) {
+	public boolean checkFileExist(String fileName) throws Exception{
 		String sql = "select 1 from bs_filemanage where  dataname = ?";
 		List<Record> res = Db.find(sql, fileName);
 		return !res.isEmpty();
@@ -167,7 +161,7 @@ public class Translate4DESC {
 	/**
 	 * 检查Desc文件是否存在 文件名
 	 */
-	public boolean checkDescExist(String descName) {
+	public boolean checkDescExist(String descName) throws Exception{
 		String sql = "select 1 from bs_filemanage where  allname = ?";
 		List<Record> res = Db.find(sql, descName);
 		return !res.isEmpty();
@@ -177,13 +171,13 @@ public class Translate4DESC {
 	/**
 	 * 查询desc文件所有状态的数据文件 descName 文件名称 status 对应的状态 返回 对应状态的文件名
 	 */
-	public List<Record> queryFileByStatus(String descName, String status) {
+	public List<Record> queryFileByStatus(String descName, String status) throws Exception{
 		String sql = "select dataname from bs_filemanage where  allname = ? and status = ? and did is not null";
 		List<Record> res = Db.find(sql, descName,status);
 		return res;
 	}
 
-	public int UpdateDescFileStatus(String fileName) {
+	public int UpdateDescFileStatus(String fileName) throws Exception {
 		int flag = 0;
 		String sql = "select 1 from bs_filemanage where allname =(select allname from bs_filemanage where dataname = ?) and status = '0' and did is not null";
 		List<Record> res = Db.find(sql, fileName);
