@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.eova.common.utils.xx;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.yonyou.util.FileStatus;
@@ -171,22 +172,34 @@ public class Translate4DESC {
 	/**
 	 * 查询desc文件所有状态的数据文件 descName 文件名称 status 对应的状态 返回 对应状态的文件名
 	 */
-	public List<Record> queryFileByStatus(String descName, String status) throws Exception{
-		String sql = "select dataname from bs_filemanage where  allname = ? and status = ? and did is not null";
-		List<Record> res = Db.find(sql, descName,status);
+	public List<Record> queryDataFileByDesc(List<String> descNames, String status) throws Exception{
+		String sql = "select * from bs_filemanage where  allname "+List2WhereIn(descNames)+" and status = ? and did is not null";
+		List<Record> res = Db.find(sql,status);
 		return res;
 	}
 
 	public int UpdateDescFileStatus(String fileName) throws Exception {
 		int flag = 0;
-		String sql = "select 1 from bs_filemanage where allname =(select allname from bs_filemanage where dataname = ?) and status = '0' and did is not null";
+		String sql = "select 1 from bs_filemanage where allname =(select allname from bs_filemanage where dataname = ?) and status <> '2' and did is not null";
 		List<Record> res = Db.find(sql, fileName);
 		if (res.isEmpty()) {
-			String sql1 = "update bs_filemanage set status = '1'"
+			String sql1 = "update bs_filemanage set status = '2'"
 					+ "where allname =(select allname from bs_filemanage where dataname = ? ) and did is null";
 			flag = Db.update(sql1, fileName);
 		}
 		return flag;
 
+	}
+	private String List2WhereIn(List<String> descNames) {
+		if(descNames.isEmpty()) {
+			return "<> 1";
+		}
+		String sql = "in ('";
+		for(String s:descNames) {
+			sql = sql+s+"',";
+		}
+		sql = xx.delEnd(sql.toString(), ",")+")";
+		return sql;
+		
 	}
 }
