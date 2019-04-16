@@ -8,11 +8,12 @@ import com.jfinal.kit.LogKit;
 
 
 /**
+ *  * 
  * 抽象JOB父类
- * 
- * @author Jieven
- * @date 2014-7-10
+ * @author changjr
+ *
  */
+
 public abstract class AbsJob implements Job {
 
 	@Override

@@ -35,7 +35,7 @@ public class ExcuteClass {
 					for (int j = 0; j < methods.length; j++) {
 						if (methods[j].getName().equals(methodName) && methods[j].getParameterCount()==objValue.length) {
 							Method meth=clazz.getMethod( methodName, methods[j].getParameterTypes());
-							returnValue = meth.invoke(obj, objValue).toString();
+							returnValue = meth.invoke(obj, objValue);
 							break;
 						}
 					}
