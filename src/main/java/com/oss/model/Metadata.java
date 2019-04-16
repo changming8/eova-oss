@@ -36,9 +36,9 @@ public class Metadata extends BaseModel<Metadata> {
 		this.set("data_code", objectCode);
 		this.set("data_name", col.name);
 		this.set("data_disname", col.name);
-		this.set("data_resource", col.position * 10);
+		this.set("data_resource", col.ds);
 		this.set("data_type", col.dataType);
-		
+		this.set("code", objectCode);
 		//this.set("is_required", !col.isNull);
 		//this.set("data_type_name", col.dataTypeName);
 		//this.set("data_size", col.dataSize);
