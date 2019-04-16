@@ -14,11 +14,14 @@ import com.oss.OSSController;
 import com.oss.global.BaseMetaObjectIntercept;
 import com.oss.global.GlobalEovaIntercept;
 import com.oss.model.Address;
+import com.oss.model.Metadata;
+import com.oss.model.MetadataDetail;
 import com.oss.model.Orders;
 import com.oss.model.UserInfo;
 import com.oss.model.Users;
 import com.oss.product.ProductController;
 import com.oss.test.TestController;
+import com.yonyou.controller.DataRelationMaintenanceController;
 import com.yonyou.controller.MdDEFController;
 /**
  * 甜橙金融 配置文件 后续将OSS演示文件 移除 暂时保留演示功能
@@ -41,7 +44,7 @@ public class OFConfig extends EovaConfig {
 		me.add("/test", TestController.class);
 		me.add("/product", ProductController.class);
 		me.add("/mddef", MdDEFController.class);
-
+		me.add("/dataRelationMaintenance",DataRelationMaintenanceController.class);
 		// 排除不需要登录拦截的URI 语法同SpringMVC拦截器配置 @see com.eova.common.utils.util.AntPathMatcher
 		LoginInterceptor.excludes.add("/test/**");
 
@@ -65,7 +68,8 @@ public class OFConfig extends EovaConfig {
 		main.addMapping("users", Users.class);
 		main.addMapping("address", Address.class);
 		main.addMapping("orders", Orders.class);
-
+		main.addMapping("bs_metadata", Metadata.class);
+		main.addMapping("bs_metadata_detail", MetadataDetail.class);
 		// 获取其它数据源的ARP
 		// ActiveRecordPlugin xxx = arps.get("xxx");
 	}
