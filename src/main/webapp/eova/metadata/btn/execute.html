@@ -1,0 +1,9 @@
+<%// 后台执行逻辑并刷新通用按钮 %>
+<a href="javascript:void(0);" class="easyui-linkbutton" data-options="iconCls:'${button.icon!}',plain:true" onclick="eova_btn_${button.id}()">${button.name!}</a>
+<script type="text/javascript">
+	var eova_btn_${button.id} = function(){
+		var $widget = $('#${gridId}');
+		var selectrow = $('#master_grid').datagrid('getSelected');
+		window.location.href = "/metadata/export/bs_metadata_detail?pid="+selectrow.id+"&menuCode=bs_metadata_detail";
+	};
+</script>
