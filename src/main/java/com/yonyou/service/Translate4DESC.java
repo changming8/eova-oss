@@ -60,8 +60,8 @@ public class Translate4DESC {
 
 //		fileName = "D:\\soft\\M002-COMPANY001-FMP-20190313-1-001-A.DESC";
 
-		String[] arr = fileName.split("\\\\");
-		String descName = arr[arr.length - 1];
+		String descName = fileName.substring(fileName.lastIndexOf("/")+1, fileName.length());
+//		String descName = arr[arr.length - 1];
 		String[] values = descName.split("-");
 //		系统编码
 		String sys_code = values[0];
@@ -104,7 +104,7 @@ public class Translate4DESC {
 				record.set("field_2", field_2);
 				record.set("plat_code", plat_code);
 				record.set("date_code", date_code);
-				 Db.save("bs_manage", record);
+				 Db.save("bs_filemanage", record);
 				System.out.println(did);
 			} else {
 				Record record =new Record();
@@ -128,7 +128,7 @@ public class Translate4DESC {
 				System.out.println(did);
 			}
 		}
-		Db.batchSave("bs_filemamage", slist, 1000);
+		Db.batchSave("bs_filemanage", slist, 1000);
 		return context;
 	}
 
@@ -141,7 +141,7 @@ public class Translate4DESC {
 
 		int flag = 0;
 
-		Db.update("update bs_filemanage set status = ? where dataname =?", status,fileName);
+		flag = Db.update("update bs_filemanage set status = ? where dataname =?", status,fileName);
 		if (status.equals(FileStatus.FINISH)) {
 		UpdateDescFileStatus(fileName);
 	}
