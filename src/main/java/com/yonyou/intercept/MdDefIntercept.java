@@ -24,7 +24,7 @@ public class MdDefIntercept extends BaseMetaIntercept {
 	public String deleteSucceed(AopContext ac) throws Exception {
 		// TODO Auto-generated method stub
 		for (Record r : ac.records) {
-			String table = ac.record.get("mid_table");
+			String table = r.get("mid_table");
 			String sql = "drop table " + table + "";
 			Db.update(sql, table);
 		}
