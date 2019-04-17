@@ -84,7 +84,7 @@ public class Translate4DESC {
 		}
 		String field_1 = context.get(0);
 		String field_2 = "null";
-		String table = "BS_FILEMANAGE";
+		String table = "bs_filemanager";
 		String did = null;
 		List<Record> slist = new ArrayList<>();
 		for (int i = 0; i < context.size(); i++) {
@@ -104,7 +104,7 @@ public class Translate4DESC {
 				record.set("field_2", field_2);
 				record.set("plat_code", plat_code);
 				record.set("date_code", date_code);
-				 Db.save("bs_filemanage", record);
+				 Db.save("bs_filemanager", record);
 				System.out.println(did);
 			} else {
 				Record record =new Record();
@@ -128,7 +128,7 @@ public class Translate4DESC {
 				System.out.println(did);
 			}
 		}
-		Db.batchSave("bs_filemanage", slist, 1000);
+		Db.batchSave("bs_filemanager", slist, 1000);
 		return context;
 	}
 
@@ -141,7 +141,7 @@ public class Translate4DESC {
 
 		int flag = 0;
 
-		flag = Db.update("update bs_filemanage set status = ? where dataname =?", status,fileName);
+		flag = Db.update("update bs_filemanager set status = ? where dataname =?", status,fileName);
 		if (status.equals(FileStatus.FINISH)) {
 		UpdateDescFileStatus(fileName);
 	}
@@ -153,7 +153,7 @@ public class Translate4DESC {
 	 * 检查数据文件是否存在 文件名
 	 */
 	public boolean checkFileExist(String fileName) throws Exception{
-		String sql = "select 1 from bs_filemanage where  dataname = ?";
+		String sql = "select 1 from bs_filemanager where  dataname = ?";
 		List<Record> res = Db.find(sql, fileName);
 		return !res.isEmpty();
 
@@ -163,7 +163,7 @@ public class Translate4DESC {
 	 * 检查Desc文件是否存在 文件名
 	 */
 	public boolean checkDescExist(String descName) throws Exception{
-		String sql = "select 1 from bs_filemanage where  allname = ?";
+		String sql = "select 1 from bs_filemanager where  allname = ?";
 		List<Record> res = Db.find(sql, descName);
 		return !res.isEmpty();
 
@@ -173,18 +173,18 @@ public class Translate4DESC {
 	 * 查询desc文件所有状态的数据文件 descName 文件名称 status 对应的状态 返回 对应状态的文件名
 	 */
 	public List<Record> queryDataFileByDesc(List<String> descNames, String status) throws Exception{
-		String sql = "select * from bs_filemanage where  allname "+List2WhereIn(descNames)+" and status = ? and did is not null";
+		String sql = "select * from bs_filemanager where  allname "+List2WhereIn(descNames)+" and status = ? and did is not null";
 		List<Record> res = Db.find(sql,status);
 		return res;
 	}
 
 	public int UpdateDescFileStatus(String fileName) throws Exception {
 		int flag = 0;
-		String sql = "select 1 from bs_filemanage where allname =(select allname from bs_filemanage where dataname = ?) and status <> '2' and did is not null";
+		String sql = "select 1 from bs_filemanager where allname =(select allname from bs_filemanager where dataname = ?) and status <> '2' and did is not null";
 		List<Record> res = Db.find(sql, fileName);
 		if (res.isEmpty()) {
-			String sql1 = "update bs_filemanage set status = '2'"
-					+ "where allname =(select allname from bs_filemanage where dataname = ? ) and did is null";
+			String sql1 = "update bs_filemanager set status = '2'"
+					+ "where allname =(select allname from bs_filemanager where dataname = ? ) and did is null";
 			flag = Db.update(sql1, fileName);
 		}
 		return flag;

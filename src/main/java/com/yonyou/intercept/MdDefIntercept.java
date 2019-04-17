@@ -15,7 +15,7 @@ public class MdDefIntercept extends BaseMetaIntercept {
 	public String addAfter(AopContext ac) throws Exception {
 		// TODO Auto-generated method stub
 		String table = ac.record.get("mid_table");
-		String sql = "create table " + table + "(id VARCHAR(20) primary key,mdid VARCHAR(20),destid VARCHAR(20))";
+		String sql = "create table " + table + "(id VARCHAR(20) primary key,mdid VARCHAR(200),destid VARCHAR(200))";
 		Db.update(sql);
 		return super.addAfter(ac);
 	}
