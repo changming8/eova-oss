@@ -1,0 +1,20 @@
+<a href="javascript:void(0);" class="easyui-linkbutton" data-options="iconCls:'eova-icon724',plain:true" onclick="slave_${object.code}_delRow()">${button.name!'删行'}</a>
+<script type="text/javascript">
+		var slave_${object.code}_delRow = function () {
+			var rowIndex="";
+			var select_row = $('#bs_metadata_detail_grid').datagrid('getSelected');
+			console.log(select_row);
+		        if ( null==select_row || select_row.length == "0") {
+		        	console.log(1111111111);
+		        	rowIndex = $('#bs_metadata_detail_grid').datagrid('getRowIndex',$('#bs_metadata_detail_grid').datagrid('getFooterRows'));
+		        }else{
+		        	rowIndex=$('#bs_metadata_detail_grid').datagrid('getRowIndex',$('#bs_metadata_detail_grid').datagrid('getSelected'));
+		        }
+		        $("#bs_metadata_detail_grid").datagrid('deleteRow',rowIndex);
+				var rows=$("#bs_metadata_detail_grid").datagrid('getRows');
+				console.log(rows);
+				$("#bs_metadata_detail_grid").datagrid('loadData',rows);
+		};
+		
+
+</script>
