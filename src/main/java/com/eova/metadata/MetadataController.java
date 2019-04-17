@@ -2,6 +2,7 @@ package com.eova.metadata;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -10,6 +11,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.eova.aop.AopContext;
 import com.eova.common.Easy;
 import com.eova.common.base.BaseController;
+import com.eova.common.render.XlsRender;
 import com.eova.common.utils.xx;
 import com.eova.common.utils.db.DsUtil;
 import com.eova.common.utils.io.FileUtil;
@@ -26,6 +28,7 @@ import com.eova.service.sm;
 import com.eova.template.common.util.TemplateUtil;
 import com.eova.template.single.SingleAtom;
 import com.eova.template.single.SingleIntercept;
+import com.eova.widget.WidgetManager;
 import com.jfinal.aop.Before;
 import com.jfinal.core.Controller;
 import com.jfinal.kit.JsonKit;
@@ -211,7 +214,48 @@ public class MetadataController extends BaseController {
 		setAttr("dataSources", EovaConfig.getDataSources());
 		render("/eova/metadata/import.html");
 	}
+	public void export() throws Exception {
+		//导出
+		String pid = getPara("pid");
+		String menuCode = getPara("menuCode");
 
+		MetaObject object = sm.meta.getMeta(menuCode);
+		Menu menu = Menu.dao.findByCode(menuCode);
+
+		//intercept = TemplateUtil.initMetaObjectIntercept(object.getBizIntercept());
+
+		// 构建查询
+		List<Object> parmList = new ArrayList<Object>();
+		String sql = WidgetManager.buildQuerySQL(ctrl, menu, object, null, parmList, true);
+		sql= sql+"	where  metadata_id="+pid;
+		// 转换SQL参数
+		Object[] paras = new Object[parmList.size()];
+		parmList.toArray(paras);
+		List<Record> data = Db.use(object.getDs()).find("select *" + sql, paras);
+		
+		// 查询后置任务
+//		if (intercept != null) {
+//			AopContext ac = new AopContext(ctrl, data);
+//			ac.object = object;
+//			intercept.queryAfter(ac);
+//		}
+
+		List<MetaField> fields = object.getFields();
+		
+		// 根据表达式将数据中的值翻译成汉字
+		WidgetManager.convertValueByExp(this, fields, data);
+
+		Iterator<MetaField> it = fields.iterator();
+		while (it.hasNext()) {
+			MetaField f = it.next();
+			if (!f.getBoolean("is_show")) {
+				it.remove();
+			}
+		}
+
+		render(new XlsRender(data, fields, object));
+		
+	}
 	public void doImportXls() throws Exception {
 
 		String menuCode = "bs_metadata_detail";
@@ -512,7 +556,7 @@ public class MetadataController extends BaseController {
 		json = "{\"total\":" + tableArray.size() + ",\"rows\":" + json + "}";
 		renderJson(json);
 	}
-
+	
 	// ajax 上传回调
 	public void uploadCallback(boolean succeed, String msg) {
 		renderHtml("<script>parent.callback(\"" + msg + "\", " + succeed + ");</script>");
