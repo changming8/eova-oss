@@ -64,8 +64,7 @@ public class MetadataController extends BaseController {
 		// 复制元数据
 		// 先查询 先复制以时间戳为结尾复制到元数据主表中 子表直接复制
 		String metadataSql = "select * from bs_metadata where dr=0 and  id ='" + json.getString("id") + "'";
-		String metadatadetailSql = "select * from bs_metadata_detail where dr=0 and  metadata_id ='"
-				+ json.getString("id") + "'";
+		String metadatadetailSql = "select * from bs_metadata_b where dr=0 and  metadata_id ='"+ json.getString("id") + "'";
 		List<Record> metadataList = Db.use(xx.DS_EOVA).find(metadataSql);
 		List<Record> metadataDetailList = Db.use(xx.DS_EOVA).find(metadatadetailSql);
 		String id = UUID.getUnqionPk();
@@ -84,7 +83,7 @@ public class MetadataController extends BaseController {
 			metadataDetailList.get(i).set("METADATA_ID", id);
 			metadataDetailList.get(i).set("ID", UUID.getUnqionPk());
 		}
-		Db.use(xx.DS_EOVA).batchSave("bs_metadata_detail", metadataDetailList, 30);
+		Db.use(xx.DS_EOVA).batchSave("bs_metadata_b", metadataDetailList, 30);
 		renderJson(Easy.sucess());
 	}
 
@@ -96,7 +95,7 @@ public class MetadataController extends BaseController {
 		System.out.print(json.getString("id"));
 		final Object[] objs = new Object[2];
 		// 获取key获取数据库类型字段 从MYSQL_DATEBASE_TYPE获取
-		String columnSql = "select* from bs_metadata_detail where dr=0 and  metadata_id ='" + json.getString("id")
+		String columnSql = "select* from bs_metadata_b where dr=0 and  metadata_id ='" + json.getString("id")
 				+ "'";
 		List<Record> columnDetailList = Db.use(xx.DS_EOVA).find(columnSql);
 		StringBuffer tempColumnSql = new StringBuffer(" CREATE TABLE ");
@@ -198,8 +197,8 @@ public class MetadataController extends BaseController {
 				updateRecord.add(re);
 			}
 		}
-		Db.use(xx.DS_EOVA).batchSave("bs_metadata_detail", insertRecord, 50);
-		Db.use(xx.DS_EOVA).batchUpdate("bs_metadata_detail", updateRecord, 50);
+		Db.use(xx.DS_EOVA).batchSave("bs_metadata_b", insertRecord, 50);
+		Db.use(xx.DS_EOVA).batchUpdate("bs_metadata_b", updateRecord, 50);
 		renderJson(Easy.sucess());
 	}
 
@@ -258,7 +257,7 @@ public class MetadataController extends BaseController {
 	}
 	public void doImportXls() throws Exception {
 
-		String menuCode = "bs_metadata_detail";
+		String menuCode = "bs_metadata_b";
 
 		// 获取元数据
 		Menu menu = Menu.dao.findByCode(menuCode);
@@ -282,8 +281,8 @@ public class MetadataController extends BaseController {
 			uploadCallback(false, I18NBuilder.get("请导入.xls格式的Excel文件"));
 			return;
 		}
-		// object.set("code", "bs_metadata_detail");
-		// object.set("table_name", "bs_metadata_detail");
+		// object.set("code", "bs_metadata_b");
+		// object.set("table_name", "bs_metadata_b");
 		// 事务(默认为TRANSACTION_READ_COMMITTED)
 		SingleAtom atom = new SingleAtom(file.getFile(), object, intercept, ctrl);
 
