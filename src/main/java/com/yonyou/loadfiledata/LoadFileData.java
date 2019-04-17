@@ -6,19 +6,20 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.jfinal.plugin.activerecord.DbPro;
+import com.jfinal.plugin.activerecord.Db;
 
 /**
  * 通过数据文件load数据到Mysql
  * @author changming
  * @version v.0.1
  */
-public class LoadFileData extends DbPro {
+public class LoadFileData {
 	
 	private static Logger logger = LoggerFactory.getLogger(LoadFileData.class);
 
@@ -33,11 +34,14 @@ public class LoadFileData extends DbPro {
 	public int loadFile(String filePath, String tableName, String colums ) {
 		
 		int result = 0;
+		if (!colums.equals(getColumnNames(tableName)))
+			return result;
+		
 		Connection con = null;
 		PreparedStatement pstmt = null;
 		com.mysql.jdbc.PreparedStatement mysqlStatement = null;
 	   	try {
-			con = config.getConnection();
+			con = Db.use().getConfig().getConnection();
 			String sql = "LOAD DATA INFILE '"+filePath+"' INTO TABLE "+tableName+" FIELDS TERMINATED BY '`' ENCLOSED BY '\"' "+"("+colums+")";
 			pstmt = con.prepareStatement(sql);
 			if (pstmt.isWrapperFor(com.mysql.jdbc.Statement.class)) {
@@ -69,9 +73,12 @@ public class LoadFileData extends DbPro {
 	 * @return 载入数据量
 	 */
 	public int loadLocalFile(String filePath, String tableName, String colums ) {
-
-		Connection conn = null;
+		
 		int result = 0;
+		if (!colums.equals(getColumnNames(tableName)))
+			return result;
+		
+		Connection conn = null;
 		com.mysql.jdbc.PreparedStatement mysqlStatement = null;
 		PreparedStatement statement = null;
 		InputStream dataStream = null;
@@ -87,7 +94,7 @@ public class LoadFileData extends DbPro {
 			return 0;
 		}
 		try {
-			conn = config.getConnection();
+			conn = Db.use().getConfig().getConnection();
 			statement = conn.prepareStatement(sql);
 			if (statement.isWrapperFor(com.mysql.jdbc.Statement.class)) {
 				mysqlStatement = statement.unwrap(com.mysql.jdbc.PreparedStatement.class);
@@ -107,4 +114,36 @@ public class LoadFileData extends DbPro {
 		}
 		return result;
 	}
+	
+	/**
+     * 获取表中所有字段名称
+     * @param tableName 表名
+     * @return
+     */
+    private  String getColumnNames(String tableName) {
+        //与数据库的连接
+        Connection conn = null;
+        StringBuilder results = new StringBuilder();
+		try {
+			conn = Db.use().getConfig().getConnection();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+        PreparedStatement pStemt = null;
+        String tableSql = "select * from " + tableName;
+        try {
+            pStemt = conn.prepareStatement(tableSql);
+            //结果集元数据
+            ResultSetMetaData rsmd = pStemt.getMetaData();
+            //表列数
+            int size = rsmd.getColumnCount();
+            for (int i = 0; i < size; i++) {
+                results.append(rsmd.getColumnName(i + 1)).append(",");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return results.toString();
+        } 
+        return results.substring(0, results.lastIndexOf(",")).toString().toUpperCase();
+    }
 }

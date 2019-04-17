@@ -1,38 +1,127 @@
+<link rel="stylesheet" type="text/css" href="/eova/plugins/easyui1.7/jquery-easyui-1.7.0/themes/gray/easyui.css">
+<link rel="stylesheet" type="text/css" href="/eova/plugins/easyui1.7/jquery-easyui-1.7.0/themes/icon.css">
 <body class="easyui-layout">
 <div data-options="region:'center',fit:false,border:false,split:false">
     <div id="contentLayout" class="easyui-layout" data-options="fit:true">
-    	<div data-options="region:'north',title:'数据关系定义',split:true" style="height:200px;">
-    		<table id="dataRelationMaintenance"  class="easyui-datagrid">
+    	<div data-options="region:'north',title:'数据关系定义-对照',split:true" style="height:400px;">
+    		<div id="tb" style="background-color:#fafafa">
+				<input id="master_ss" class="easyui-searchbox" style="width:300px"
+				    data-options="searcher:doSearchMaster,prompt:'',menu:'#master_t'"></input>
+				<div id="master_t" style="width:120px">
+				    <div data-options="name:'sportsall'">模糊查询</div>
+				</div>
+				<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-tip',plain:true" onclick="blockDataModal()">数据定义</a>
+				<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="save()">保存对照</a>
+				<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-lock',plain:true" onclick="startUp()">启用被对照</a>
+			</div>	
+    		<table id="master_"  class="easyui-datagrid" toolbar="#tb">
     			
     		</table>
     	</div>
-    	<div data-options="region:'center',fit:false,border:false">
-        	<div id="master_grid_toolbar" style="display: block;">
-                <table id="master">
+    	<div data-options="region:'center',fit:false,border:false,collapsible:true,title:'数据关系定义-被对照'">
+	    	<div id="tb2" style="background-color:#fafafa">
+				<select id="slaveSelect" class="easyui-combobox" name="dept" style="width:200px;"></select>
+			</div>
+           	<table id="slave_" class="easyui-datagrid" toolbar="#tb2">
                     
-                </table>
-            </div>
+            </table>
         </div>
-        <div data-options="region:'south',fit:false,border:false,split:true" style="height:200px">
-
-            <div id="sonTab" class="easyui-tabs" data-options="fit:true,border:false">
-                <div title="son">
-                	<div id="_toolbar" style="display: block;">
-		                <table id="slave">
-		                    
-		                </table>
-		            </div>
-                </div>
-            </div>
-        </div>
+        <div id="data" class="easyui-dialog" title="数据关系定义" style="width:600px;height:500px;"
+		    data-options="iconCls:'icon-filter',modal:false,collapsible:true,buttons:'#bb'">
+		    <div id="tb3" style="background-color:#fafafa">
+		    	<input id="dataRelationSearch" class="easyui-searchbox" style="width:100%"
+						    data-options="searcher:doSearch,prompt:'',menu:'#slave_s'"></input>
+						<div id="slave_s" style="width:120px">
+						    <div data-options="name:'sport'">模糊查询</div>
+						</div>
+			</div>
+		    <table id="dataRelation" class="easyui-datagrid" toolbar="#tb3">
+                    
+            </table>
+		</div>
+		<div id="bb">
+			<a href="#" class="easyui-linkbutton" onclick="selectOneData()">确定</a>
+			<a href="#" class="easyui-linkbutton" onclick="closeDataRelation()">取消</a>
+		</div>
     </div>
 </div>
-<script type="text/javascript" src="/eova/ui/js/jquery.min.js"></script>
-<script type="text/javascript" src="/eova/plugins/easyui/jquery.easyui.min.js"></script>
-<link rel="stylesheet" type="text/css" href="/eova/plugins/easyui/themes/gray/easyui.css">
+<div id="hide" style="display:none">
+	<table id="master_col"  class="easyui-datagrid">
+    			
+    </table>
+</div>
+<script type="text/javascript" src="/eova/plugins/easyui1.7/jquery-easyui-1.7.0/jquery.min.js"></script>
+<script type="text/javascript" src="/eova/plugins/easyui1.7/jquery-easyui-1.7.0/jquery.easyui.min.js"></script>
+<!-- <script type="text/javascript" src="/eova/dataRelationMaintenance/js/dataRelationMaintenance.js"></script> -->
 <script type="text/javascript">
 var columns_field=[];
-column("bs_md_def");
+var globalDataId="";
+var globalDataName="";
+var isMasterSlave="";
+var isStartUp=false;
+var increment=0;
+$(function(){
+	closeDataRelation();
+})
+
+function startUp(){
+	if(increment%2==0){
+		$.messager.show({
+			title:'操作提示',
+			msg:'已启用被对照',
+			timeout:1000,
+			width:260,
+			height:100,
+			showType:'slide'
+		});
+		isStartUp=true;
+	}else{
+		$.messager.show({
+			title:'操作提示',
+			msg:'已关闭被对照.',
+			timeout:1000,
+			width:260,
+			height:100,
+			showType:'slide'
+		});
+		isStartUp=false;
+	}
+	increment++;
+}
+function save(){
+	if(isStartUp){
+		
+	}else{
+		$.messager.show({
+			title:'操作提示',
+			msg:'请启用被对照.',
+			timeout:1000,
+			width:260,
+			height:100,
+			showType:'slide'
+		});
+	}
+}
+function doSearch(value,name){
+	column("bs_md_def");
+	table("dataRelation","/grid/query/bs_md_def-bs_md_def",value);
+}
+function doSearchMaster(value,name){
+	
+}
+function closeDataRelation(){
+	$("#data").dialog("close");
+}
+function blockDataModal(){
+	$("#data").dialog("open");
+	column("bs_md_def");
+	table("dataRelation","/grid/query/bs_md_def-bs_md_def",null);
+}
+function selectOneData(){
+	column("bs_style");
+	table_master_col("master_col","/dataRelationMaintenance/queryBsStyle/bs_style-bs_style-table_master_col-"+globalDataId+"-"+globalDataName);
+	$("#data").dialog("close");
+}
 function column(code){
 	$.ajax({
 		url:"/meta/fields/"+code,
@@ -40,28 +129,60 @@ function column(code){
 		dataType:"json",
 		async:false,
 		success:function(data){
-			var fields=[];
-			for(var i=0;i<data.length;i++){
-				var isTrue=false;
-				if(data[i].is_show==0){
-					isTrue=true;
-				}
-				var field={
-					"field":data[i].en,
-					"title":data[i].cn,
-					"width":data[i].width,
-					"hidden":isTrue
-				}
-				fields.push(field);
-			}
-			columns_field.push(fields);
+			//console.info(data);
+			splice_column(data)
 		}
 	});
 }
-table("dataRelationMaintenance","bs_md_def");
-function table(tableName,code){
+function splice_column(data){
+	var fields=[];
+	for(var i=0;i<data.length;i++){
+		var isTrue=false;
+		if(data[i].en.indexOf("def_")>=0){
+			continue;
+		}
+		if(data[i].is_show==0){
+			isTrue=true;
+		}
+		var field={
+			"field":data[i].en,
+			"title":data[i].cn,
+			"width":data[i].width,
+			"hidden":isTrue
+		}
+		fields.push(field);
+	}
+	columns_field.push(fields);
+}
+function table(tableName,url,wheres){
 	$("#"+tableName).datagrid({
-	    url:'/grid/query/'+code+"-"+code,
+	    url:url,
+	    columns:columns_field,
+	    fitColumns:true,
+	    striped:true,
+	    idField:"id",
+	    pagination:true,
+	    singleSelect:true,
+	    rownumbers:true,
+	    pageNumber:1,
+	    pageSize:10,
+	    queryParams:{
+	    	"query_name":wheres
+	    },
+	    pageList:[10,20,30,40],
+	    onLoadSuccess:function(data){
+	    	columns_field.splice(0,columns_field.length);
+	    	
+	    },
+	    onCheck:function(rowIndex,rowData){
+	    	globalDataId=rowData.id;
+	    	globalDataName=rowData.md_table;
+	    }
+	});
+}
+function table_master_col(tableName,url,where){
+	$("#"+tableName).datagrid({
+	    url:url,
 	    columns:columns_field,
 	    fitColumns:true,
 	    striped:true,
@@ -74,15 +195,125 @@ function table(tableName,code){
 	    pageList:[10,20,30,40],
 	    onLoadSuccess:function(data){
 	    	columns_field.splice(0,columns_field.length);
-	    	//console.info(columns_field);
+	    	if(data.rows.length<1){
+	    		return;
+	    	}
+	    	column("bs_style_b");
+	    	table_master("master_col","/dataRelationMaintenance/queryBsStyle/bs_style_b-bs_style_b-bs_style_b-"+data.rows[0].id+"-"+globalDataName);
+	    	isMasterSlave="master";
 	    },
 	    onCheck:function(rowIndex,rowData){
-	    	var id=rowData.id;
-	    	column("bs_style");
-	    	table("master","bs_style-bs_style");
+	    	
 	    }
 	});
 }
-
+function table_master(tableName,url){
+	$("#"+tableName).datagrid({
+	    url:url,
+	    columns:columns_field,
+	    fitColumns:true,
+	    striped:true,
+	    idField:"id",
+	    pagination:true,
+	    singleSelect:true,
+	    rownumbers:true,
+	    resizeHandle:"both",
+	    pageNumber:1,
+	    pageSize:10,
+	    pageList:[10,20,30,40],
+	    onLoadSuccess:function(data){
+	    	columns_field.splice(0,columns_field.length);
+	    	if("master"==isMasterSlave){
+	    		isMasterSlave="slave";
+	    		var fields=[];
+	    		for(var i=0;i<data.rows.length;i++){
+	    			var field={
+	    				"field":data.rows[i].col_code,
+	    				"title":data.rows[i].col_name,
+	    				"width":data.rows[i].col_length
+	    			}
+	    			fields.push(field);
+	    		}
+	    		columns_field.push(fields);
+	    		table_master("master_","/grid/query/"+globalDataName+"-"+globalDataName);
+	    		ajaxSelect();
+	    	}
+	    },
+	    onCheck:function(rowIndex,rowData){
+	    	
+	    }
+	});
+}
+function ajaxSelect(){
+	$.ajax({
+		url:"/dataRelationMaintenance/queryBsStyle/bs_style-bs_style-select-"+globalDataId+"-"+globalDataName,
+		type:"get",
+		dataType:"json",
+		async:false,
+		success:function(data){
+			//console.info(data);
+			if(data.length<1){
+				$("#slaveSelect").combobox("loadData", "");
+				return;
+			}
+			var str=[];
+			var strNames="";
+			var strId="";
+			for(var i=0;i<data.rows.length;i++){
+				globalDataName=data.rows[0].stable;
+				strId=data.rows[0].id;
+				strNames=data.rows[0].stable;
+				str.push({"valueField":data.rows[i].id,"textField":data.rows[i].stable});
+			}
+			$("#slaveSelect").combobox("loadData", str);
+			$("#slaveSelect").combobox("select", strNames);
+			setTimeout(function(){
+				column("bs_style_b");
+				table_slave_col("master_col","/dataRelationMaintenance/queryBsStyle/bs_style_b-bs_style_b-bs_style_b-"+strId);
+			},1000);
+		}
+	});
+}
+function table_slave_col(tableName,url){
+	$("#"+tableName).datagrid({
+	    url:url,
+	    columns:columns_field,
+	    fitColumns:true,
+	    striped:true,
+	    idField:"id",
+	    pagination:true,
+	    singleSelect:true,
+	    rownumbers:true,
+	    resizeHandle:"both",
+	    pageNumber:1,
+	    pageSize:10,
+	    pageList:[10,20,30,40],
+	    onLoadSuccess:function(data){
+	    	columns_field.splice(0,columns_field.length);
+	    	if("slave"==isMasterSlave){
+	    		isMasterSlave="master";
+	    		var fields=[];
+		    	for(var i=0;i<data.rows.length;i++){
+		    		var field={
+		    			"field":data.rows[i].col_code,
+		    			"title":data.rows[i].col_name,
+		    			"width":data.rows[i].col_length
+		    		}
+		    		fields.push(field);
+		    	}
+		    	columns_field.push(fields);
+		    	table_slave_col("slave_","/grid/query/"+globalDataName+"-"+globalDataName);
+	    	}
+	    },
+	    onCheck:function(rowIndex,rowData){
+	    	
+	    }
+	});
+}
+$("#slaveSelect").combobox({
+	onSelect:function(record){
+		alert(record);
+	}
+});
 </script>
 </body>
