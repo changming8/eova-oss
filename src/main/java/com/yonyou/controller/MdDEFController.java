@@ -83,7 +83,9 @@ public class MdDEFController extends BaseController {
 
 	private void initStyleBody(String meta, String sid, String[] type) {
 		List<Record> slist = new ArrayList<>();
-		List<MetaField> fields = MetaField.dao.queryFields(meta);
+//		List<MetaField> fields = MetaField.dao.queryFields(meta);
+		String sql = "select * from bs_metadata_b b where b.metadata_id = (select a.id from bs_metadata a where a.data_code = ? and dr = 0) and dr = 0"; 
+		List<Record> fields = Db.find(sql, meta);
 		for (String t : type) {
 //			获取 pid
 			String pid = this.queryId(meta, sid, t);
@@ -91,15 +93,15 @@ public class MdDEFController extends BaseController {
 				Record record = new Record();
 				record.set("id", UUID.getUnqionPk());
 				record.set("pid", pid);
-				record.set("col_code", fields.get(i).getStr("en"));
-				record.set("col_name", fields.get(i).getStr("cn"));
+				record.set("col_code", fields.get(i).getStr("field_code"));
+				record.set("col_name", fields.get(i).getStr("field_name"));
 				record.set("col_align", "align");
-				record.set("col_length", fields.get(i).getStr("width"));
+				record.set("col_length", fields.get(i).getStr("field_length"));
 
-				record.set("col_decimal", fields.get(i).getStr("data_decimal"));
+				record.set("col_decimal", 0);
 				record.set("isshow", "0");
-				record.set("input_type", fields.get(i).getStr("type"));
-				record.set("input_format", "");
+				record.set("input_type", fields.get(i).getStr("input_type"));
+				record.set("input_format", fields.get(i).getStr("input_format"));
 				record.set("pid", pid);
 				slist.add(record);
 			}
