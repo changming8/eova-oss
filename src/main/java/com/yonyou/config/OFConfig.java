@@ -23,8 +23,10 @@ import com.oss.product.ProductController;
 import com.oss.test.TestController;
 import com.yonyou.controller.DataRelationMaintenanceController;
 import com.yonyou.controller.MdDEFController;
+
 /**
  * 甜橙金融 配置文件 后续将OSS演示文件 移除 暂时保留演示功能
+ * 
  * @author changjr
  *
  */
@@ -44,8 +46,9 @@ public class OFConfig extends EovaConfig {
 		me.add("/test", TestController.class);
 		me.add("/product", ProductController.class);
 		me.add("/mddef", MdDEFController.class);
-		me.add("/dataRelationMaintenance",DataRelationMaintenanceController.class);
-		// 排除不需要登录拦截的URI 语法同SpringMVC拦截器配置 @see com.eova.common.utils.util.AntPathMatcher
+		me.add("/dataRelationMaintenance", DataRelationMaintenanceController.class);
+		// 排除不需要登录拦截的URI 语法同SpringMVC拦截器配置 @see
+		// com.eova.common.utils.util.AntPathMatcher
 		LoginInterceptor.excludes.add("/test/**");
 
 		LoginInterceptor.excludes.add("/init");
@@ -92,6 +95,9 @@ public class OFConfig extends EovaConfig {
 		exps.put("selectAreaByLv2AndPid", "select id ID,name CN from area where lv = 2 and pid = ?");
 		exps.put("selectAreaByLv3AndPid", "select id ID,name CN from area where lv = 3 and pid = ?");
 		exps.put("selectEovaMenu", "select id,parent_id pid, name, iconskip from eova_menu;ds=eova");
+		exps.put("selectEovaMenu", "select id,parent_id pid, name, iconskip from eova_menu;ds=eova");
+		String sql = "select field_code 编码 ,field_name 名称 from bs_metadata_b where metadata_id =( select id from bs_metadata where data_code  =( select md_table from bs_md_def where id = ? ))";
+		exps.put("md_ref", sql);
 		// 用法，级联动态在页面改变SQL和参数
 		// $xxx.eovacombo({exp : 'selectAreaByLv2AndPid,aaa,10'}).reload();
 		// $xxx.eovafind({exp : 'selectAreaByLv2AndPid,aaa,10'});
@@ -103,33 +109,31 @@ public class OFConfig extends EovaConfig {
 		super.authUri();
 
 		// 放行所有角色,所有URI(我是小白,我搞不明白URI配置,请使用这招,得了懒癌也可以这样搞后果自负.)
-		//		authUris.put(0, new HashSet<String>(){
-		//			{
-		//				add("/**/**");
-		//			}
-		//		});
+		// authUris.put(0, new HashSet<String>(){
+		// {
+		// add("/**/**");
+		// }
+		// });
 
 		// 放行指定角色
-		//		authUris.put(角色ID, new HashSet<String>(){
-		//			{
-		//				add("/xxx/**");
-		// 				URI配置语法咋么写?
-		// 				@see AntPathMatcher
-		//			}
-		//		});
+		// authUris.put(角色ID, new HashSet<String>(){
+		// {
+		// add("/xxx/**");
+		// URI配置语法咋么写?
+		// @see AntPathMatcher
+		// }
+		// });
 
 	}
 
 	@Override
 	public void configEova() {
 		/*
-		 * 自定义Eova全局拦截器
-		 * 全局的查询拦截,可快速集中解决系统的查询数据权限,严谨,高效!
+		 * 自定义Eova全局拦截器 全局的查询拦截,可快速集中解决系统的查询数据权限,严谨,高效!
 		 */
 		setEovaIntercept(new GlobalEovaIntercept());
 		/*
-		 * 默认元对象业务拦截器:未配置元对象业务拦截器会默认命中此拦截器
-		 * 自定义元对象拦截器时自行考虑是否需要继承默认拦截器
+		 * 默认元对象业务拦截器:未配置元对象业务拦截器会默认命中此拦截器 自定义元对象拦截器时自行考虑是否需要继承默认拦截器
 		 */
 		setDefaultMetaObjectIntercept(new BaseMetaObjectIntercept());
 	}
