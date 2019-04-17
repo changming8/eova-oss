@@ -22,7 +22,7 @@ public class CoreExecute {
 		System.out.println(taskid);
 		List<Record> flows = Db.use(xx.DS_MAIN)
 				.find("select * from bs_data_flow where dr =0 and task_id = ? and task_state = 1", taskid);
-		String sql = "select t.flowtype_executionclass ,b.flow_id from bs_flow_type t inner  join bs_data_flow_b b on t.id = b.flow_type_id where b.p_id =?";
+		String sql = "select t.flowtype_executionclass ,b.flow_id from bs_flow_type t inner  join bs_data_flow_b b on t.id = b.flow_type_id where b.pid =?";
 		System.out.println(flows);
 		for (Record r : flows) {
 			List<Record> records = Db.find(sql, r.getStr("id"));

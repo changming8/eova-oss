@@ -3,6 +3,7 @@ package com.yonyou.quartz;
 import java.util.List;
 
 import com.jfinal.plugin.activerecord.Record;
+import com.yonyou.base.ResponseBody;
 import com.youyou.util.ExcuteClass;
 
 /**
@@ -24,9 +25,9 @@ public class ExecuteThread implements Runnable {
 	public void run() {
 		// TODO Auto-generated method stub
 		for (Record r : this.record) {
-			Boolean flag = (Boolean) ExcuteClass.excuet(r.getStr("flowtype_executionclass"), null, "process",
+			ResponseBody res = (ResponseBody) ExcuteClass.excuet(r.getStr("flowtype_executionclass"), null, "process",
 					r.getStr("flow_id"));
-			if (!flag) {
+			if (res.getStatus() != 0) {
 				break;
 			}
 		}
