@@ -184,7 +184,7 @@ public class Translate4DESC {
 		List<Record> res = Db.find(sql, fileName);
 		if (res.isEmpty()) {
 			String sql1 = "update bs_filemanager set status = '2'"
-					+ "where allname =(select allname from bs_filemanager where dataname = ? ) and did is null";
+					+ " where allname =(select * from (SELECT allname FROM bs_filemanager WHERE dataname = ? ) a  ) and did is null";
 			flag = Db.update(sql1, fileName);
 		}
 		return flag;
