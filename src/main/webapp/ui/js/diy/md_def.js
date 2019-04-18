@@ -11,7 +11,18 @@ $(document).ready(function() {
 
 	// 初始禁用
 	$dest_column.mask();
-
+ 	// 省级联市
+	$dest_table.eovafind({onChange: function (oldValue, newValue) {
+		$dest_column.eovafind().setValue("");
+        if (newValue == "") {
+        	$dest_column.mask();
+            return;
+        }
+        
+        $dest_column.unmask();
+        $dest_column.eovafind({exp : 'md_dest_column_ref,' + newValue});
+    }});
+	
 	$md_column.eovafind({
 		exp : 'md_ref,' + pid
 	});
