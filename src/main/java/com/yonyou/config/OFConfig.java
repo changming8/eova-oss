@@ -97,9 +97,9 @@ public class OFConfig extends EovaConfig {
 		exps.put("selectEovaMenu", "select id,parent_id pid, name, iconskip from eova_menu;ds=eova");
 		exps.put("selectEovaMenu", "select id,parent_id pid, name, iconskip from eova_menu;ds=eova");
 //		主数据列 参照联动 参照联动
-		String sql = "select field_code 编码 ,field_name 名称 from bs_metadata_b where metadata_id =( select id from bs_metadata where data_code  =( select md_table from bs_md_def where id = ? )) and  key_flag = 1";
+		String sql = "select field_code 编码 ,field_name 名称 from bs_metadata_b where metadata_id =( select id from bs_metadata where data_code  =( select md_table from bs_md_def where id = ? )) and  unique_constraint = 1";
 		exps.put("md_ref", sql);
-		exps.put("md_dest_column_ref", "select  field_code 编码 ,field_name 名称  from bs_metadata_b where metadata_id = (select id from bs_metadata where data_code = ? ) and key_flag = 1");
+		exps.put("md_dest_column_ref", "select  field_code 编码 ,field_name 名称  from bs_metadata_b where metadata_id = (select id from bs_metadata where data_code = ? ) and unique_constraint = 1");
 		// 用法，级联动态在页面改变SQL和参数
 		// $xxx.eovacombo({exp : 'selectAreaByLv2AndPid,aaa,10'}).reload();
 		// $xxx.eovafind({exp : 'selectAreaByLv2AndPid,aaa,10'});
