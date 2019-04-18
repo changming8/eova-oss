@@ -245,7 +245,7 @@ public class MetadataController extends BaseController {
 		List<MetaField> fields = object.getFields();
 		
 		// 根据表达式将数据中的值翻译成汉字
-		WidgetManager.convertValueByExp(this, fields, data);
+		//WidgetManager.convertValueByExp(this, fields, data);
 
 		Iterator<MetaField> it = fields.iterator();
 		while (it.hasNext()) {

@@ -170,31 +170,33 @@ public class WidgetController extends BaseController {
 		// 解析表达式
 		EovaExp se = new EovaExp(exp);
 		List<Record> txts = null;
-		//元数据开始exp属性后 编辑操作同不解析exp表达式 
-		MetaObject object = sm.meta.getMeta(code);
-		if(null != object.get("is_enable_exp")&&object.getBoolean("is_enable_exp")==true) {
-			
-			String ds = se.ds;
-
-			// 查询本次所有翻译值
-			StringBuilder sb = new StringBuilder();
-			if (!xx.isEmpty(value)) {
-				sb.append(se.pk);
-				sb.append(" in(");
-				// 根据当前页数据value列查询外表name列
-				for (String id : value.split(",")) {
-					// TODO There might be a sb injection risk warning
-					sb.append(xx.format(id)).append(",");
-				}
-				sb.deleteCharAt(sb.length() - 1);
-				sb.append(")");
+		//元数据开始exp属性后 编辑操作同不解析exp表达式
+		String ds = se.ds;
+		// 查询本次所有翻译值
+		StringBuilder sb = new StringBuilder();
+		if (!xx.isEmpty(value)) {
+			sb.append(se.pk);
+			sb.append(" in(");
+			// 根据当前页数据value列查询外表name列
+			for (String id : value.split(",")) {
+				// TODO There might be a sb injection risk warning
+				sb.append(xx.format(id)).append(",");
 			}
-			// System.out.println(sb.toString());
+			sb.deleteCharAt(sb.length() - 1);
+			sb.append(")");
+		}
 
-			// 根据表达式查询获得翻译的值
-			String sql = WidgetManager.addWhere(se, sb.toString());
+		// 根据表达式查询获得翻译的值
+		String sql = WidgetManager.addWhere(se, sb.toString());
+		if(code!=null) {
+			MetaObject object = sm.meta.getMeta(code);
+			if(null != object.get("is_enable_exp")&&object.getBoolean("is_enable_exp")==true) {
+				txts = Db.use(ds).find(sql, xx.toArray(paras));
+			}
+		}else {
 			txts = Db.use(ds).find(sql, xx.toArray(paras));
-		}		
+		}
+
 		
 		// 没有翻译值，直接返回原值
 		if (xx.isEmpty(txts)) {
