@@ -5,8 +5,12 @@ $(document).ready(function(){
     $link_column.mask();
  	//
     $link_table.eovafind({onChange: function (oldValue, newValue) {
-    	$link_column.eovafind().setValue("");
-    	//newValue = $("input[name='link_table']")[0].value;
+    	//$link_column.eovafind().setValue("");
+    	$("#link_column input[type=text]").each(function () {
+    		console.log(this.value);
+    		this.value='';
+    		
+    	})
     	console.log('选中值:'+newValue);
     	if (newValue == "") {
     		$link_column.mask();
