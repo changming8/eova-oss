@@ -188,6 +188,8 @@ public class MetadataController extends BaseController {
 			re.setColumns(map);
 			re.remove("pk_val");
 			re.remove("link_column_val");
+			re.remove("link_table_val");
+			
 			if (obj.getString("id") == null || obj.getString("id").equals("")) {
 				// 新增
 				re.set("id", UUID.getUnqionPk());
