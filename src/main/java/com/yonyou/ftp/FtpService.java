@@ -15,6 +15,7 @@ import com.jfinal.plugin.activerecord.Record;
 import com.yonyou.base.ResponseBody;
 import com.yonyou.service.Translate4DESC;
 import com.yonyou.util.FileStatus;
+import com.yonyou.util.ServiceUtil;
 
 public class FtpService {
 
@@ -25,7 +26,6 @@ public class FtpService {
 	 * @return
 	 */
 	public ResponseBody File_Name(String id) {
-		FtpWorkutil ftpWorkutil = new FtpWorkutil();
 		Translate4DESC translate4DESC = new Translate4DESC();
 		String sqlStringProduct = "select * from bs_ftp_flow where id ='" + id
 				+ "'";
@@ -55,7 +55,7 @@ public class FtpService {
 					.get("description_file");
 			// 获取ftp信息
 			System.out.println("ftp_id:" + ftp_id);
-			List<Record> ftpList = ftpWorkutil.getFtpPath(ftp_id);
+			List<Record> ftpList = new ServiceUtil().getFtpById(ftp_id);
 			String ftp_path = "";// 路径
 			int ftp_port = 0;// 端口
 			String ftp_address = "";// 地址
@@ -373,12 +373,16 @@ public class FtpService {
 		// IUA
 		String file_name6a = IUA(file_name6);
 		// 获取目录名
-		String work_name = new FtpWorkutil().getWorkPath(work_directory_id);
+		List<Record> listDirectory = new ServiceUtil().getWorkDirectoryById(work_directory_id);
+		String workName = "";
+		for (int i = 0; i < listDirectory.size(); i++) {
+			workName = listDirectory.get(i).get("working_path");
+		}
 		if (standard_type.equals("2")) {
 			for (String str : listWorkDirectory) {
 				String directoryName = "";
 				String search_path = str.substring(0, 6);
-				directoryName = work_name + search_path1 + "/"
+				directoryName = workName + search_path1 + "/"
 						+ search_path + "/" + file_name1 + "-" + file_name2
 						+ "-" + file_name3 + "-" + str + "-" + file_name5 + "-"
 						+ file_name6a + description_file;

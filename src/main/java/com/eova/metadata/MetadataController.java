@@ -187,6 +187,9 @@ public class MetadataController extends BaseController {
 			Map<String, Object> map = obj;
 			re.setColumns(map);
 			re.remove("pk_val");
+			re.remove("link_column_val");
+			re.remove("link_table_val");
+			
 			if (obj.getString("id") == null || obj.getString("id").equals("")) {
 				// 新增
 				re.set("id", UUID.getUnqionPk());
@@ -242,7 +245,7 @@ public class MetadataController extends BaseController {
 		List<MetaField> fields = object.getFields();
 		
 		// 根据表达式将数据中的值翻译成汉字
-		WidgetManager.convertValueByExp(this, fields, data);
+		//WidgetManager.convertValueByExp(this, fields, data);
 
 		Iterator<MetaField> it = fields.iterator();
 		while (it.hasNext()) {
