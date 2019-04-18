@@ -95,8 +95,6 @@ public class FileUtil {
 		    line = line.replaceAll(windows, replaceStr).replaceAll(moc, replaceStr);  
 		    // 将该行写入内存  
 		    tempStream.write(line);  
-//		    // 添加换行符  
-//		    tempStream.append(System.getProperty("line.separator"));  
 		    i++;
 		}  
 		// 关闭 输入流  

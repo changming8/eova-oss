@@ -1,4 +1,4 @@
-package com.youyou.ftp;
+package com.yonyou.ftp;
 
 import org.apache.commons.net.ftp.FTPClientConfig;
 

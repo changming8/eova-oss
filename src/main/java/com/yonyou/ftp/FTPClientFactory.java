@@ -1,4 +1,4 @@
-package com.youyou.ftp;
+package com.yonyou.ftp;
 
 import java.io.File;
 import java.io.FileInputStream;

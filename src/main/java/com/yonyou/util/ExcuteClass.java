@@ -1,4 +1,4 @@
-package com.youyou.util;
+package com.yonyou.util;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;

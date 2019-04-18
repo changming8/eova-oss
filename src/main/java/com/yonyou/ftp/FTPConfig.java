@@ -1,4 +1,4 @@
-package com.youyou.ftp;
+package com.yonyou.ftp;
 
 /**
  * FTP属性相关的配置
