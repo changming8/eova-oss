@@ -11,7 +11,7 @@ import org.quartz.JobExecutionContext;
 import com.eova.common.utils.xx;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
-import com.youyou.util.ExcuteClass;
+import com.yonyou.util.ExcuteClass;
 
 /**
  * 每5s执行

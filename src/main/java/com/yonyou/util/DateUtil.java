@@ -99,7 +99,7 @@ public class DateUtil {
 		if (date_pattern.equals("")) {
 			date_pattern = "yyyy-MM-dd hh:mm:ss";
 		}
-		if (date.equals("")) {
+		if (date == null) {
 			return "";
 		}
 		SimpleDateFormat sdf = new SimpleDateFormat(date_pattern);
