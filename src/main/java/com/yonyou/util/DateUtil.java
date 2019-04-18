@@ -9,7 +9,6 @@ import java.util.Date;
 /**
 取页面选择的月份，自动加上日期，天数
  * 
- * @author zengq
  * 
  */
 public class DateUtil {

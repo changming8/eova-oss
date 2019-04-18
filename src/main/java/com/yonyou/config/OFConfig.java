@@ -23,6 +23,7 @@ import com.oss.product.ProductController;
 import com.oss.test.TestController;
 import com.yonyou.controller.DataRelationMaintenanceController;
 import com.yonyou.controller.MdDEFController;
+import com.yonyou.model.FileManagerModel;
 
 /**
  * 甜橙金融 配置文件 后续将OSS演示文件 移除 暂时保留演示功能
@@ -71,6 +72,8 @@ public class OFConfig extends EovaConfig {
 		main.addMapping("users", Users.class);
 		main.addMapping("address", Address.class);
 		main.addMapping("orders", Orders.class);
+		
+		main.addMapping("bs_filemanager", FileManagerModel.class);
 		main.addMapping("bs_metadata", Metadata.class);
 		main.addMapping("bs_metadata_b", MetadataDetail.class);
 		// 获取其它数据源的ARP

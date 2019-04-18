@@ -19,8 +19,8 @@ import com.yonyou.util.UUID;
 public class Translate4DESC {
 	public List<String> execute(String fileName) throws Exception {
 		List<String> context = new ArrayList<>();
-			context = readFile(fileName);
-			saveInfo4DESC(context, fileName);
+		context = readFile(fileName);
+		saveInfo4DESC(context, fileName);
 
 		return context;
 	}
@@ -59,8 +59,8 @@ public class Translate4DESC {
 	public List<String> saveInfo4DESC(List<String> context, String fileName) throws Exception {
 
 //		fileName = "D:\\soft\\M002-COMPANY001-FMP-20190313-1-001-A.DESC";
-
-		String descName = fileName.substring(fileName.lastIndexOf("/")+1, fileName.length());
+		String workpath = fileName.substring(0, fileName.lastIndexOf("/"));
+		String descName = fileName.substring(fileName.lastIndexOf("/") + 1, fileName.length());
 //		String descName = arr[arr.length - 1];
 		String[] values = descName.split("-");
 //		系统编码
@@ -89,9 +89,9 @@ public class Translate4DESC {
 		List<Record> slist = new ArrayList<>();
 		for (int i = 0; i < context.size(); i++) {
 			if (i == 0) {
-				Record record =new Record();
+				Record record = new Record();
 				did = UUID.getUnqionPk();
-				record.set("id",did);
+				record.set("id", did);
 				record.set("sys_code", sys_code);
 				record.set("itf_code", itf_code);
 				record.set("plat_code", plat_code);
@@ -104,13 +104,14 @@ public class Translate4DESC {
 				record.set("field_2", field_2);
 				record.set("plat_code", plat_code);
 				record.set("date_code", date_code);
-				 Db.save("bs_filemanager", record);
+				record.set("workpath", workpath);				
+				Db.save("bs_filemanager", record);
 				System.out.println(did);
 			} else {
-				Record record =new Record();
+				Record record = new Record();
 				String[] txt = context.get(i).split(",");
 				Map<String, Object> fileManage = new HashMap<>();
-				record.set("id",UUID.getUnqionPk());
+				record.set("id", UUID.getUnqionPk());
 				record.set("sys_code", sys_code);
 				record.set("itf_code", itf_code);
 				record.set("plat_code", plat_code);
@@ -124,6 +125,7 @@ public class Translate4DESC {
 				record.set("dataname", txt[0]);
 				record.set("datasize", txt[1]);
 				record.set("filenum", i);
+				record.set("workpath", workpath);	
 				slist.add(record);
 				System.out.println(did);
 			}
@@ -134,17 +136,18 @@ public class Translate4DESC {
 
 	/**
 	 * 更新数据文件状态 fileName 文件名称 status 稳健状态
-	 * @throws Exception 
+	 * 
+	 * @throws Exception
 	 **/
 
 	public int updataFileStatus(String fileName, String status) throws Exception {
 
 		int flag = 0;
 
-		flag = Db.update("update bs_filemanager set status = ? where dataname =?", status,fileName);
+		flag = Db.update("update bs_filemanager set status = ? where dataname =?", status, fileName);
 		if (status.equals(FileStatus.FINISH)) {
-		UpdateDescFileStatus(fileName);
-	}
+			UpdateDescFileStatus(fileName);
+		}
 		return flag;
 
 	}
@@ -152,7 +155,7 @@ public class Translate4DESC {
 	/**
 	 * 检查数据文件是否存在 文件名
 	 */
-	public boolean checkFileExist(String fileName) throws Exception{
+	public boolean checkFileExist(String fileName) throws Exception {
 		String sql = "select 1 from bs_filemanager where  dataname = ?";
 		List<Record> res = Db.find(sql, fileName);
 		return !res.isEmpty();
@@ -162,7 +165,7 @@ public class Translate4DESC {
 	/**
 	 * 检查Desc文件是否存在 文件名
 	 */
-	public boolean checkDescExist(String descName) throws Exception{
+	public boolean checkDescExist(String descName) throws Exception {
 		String sql = "select 1 from bs_filemanager where  allname = ?";
 		List<Record> res = Db.find(sql, descName);
 		return !res.isEmpty();
@@ -172,9 +175,10 @@ public class Translate4DESC {
 	/**
 	 * 查询desc文件所有状态的数据文件 descName 文件名称 status 对应的状态 返回 对应状态的文件名
 	 */
-	public List<Record> queryDataFileByDesc(List<String> descNames, String status) throws Exception{
-		String sql = "select * from bs_filemanager where  allname "+List2WhereIn(descNames)+" and status = ? and did is not null";
-		List<Record> res = Db.find(sql,status);
+	public List<Record> queryDataFileByDesc(List<String> descNames, String status) throws Exception {
+		String sql = "select * from bs_filemanager where  allname " + List2WhereIn(descNames)
+				+ " and status = ? and did is not null";
+		List<Record> res = Db.find(sql, status);
 		return res;
 	}
 
@@ -190,16 +194,17 @@ public class Translate4DESC {
 		return flag;
 
 	}
+
 	private String List2WhereIn(List<String> descNames) {
-		if(descNames.isEmpty()) {
+		if (descNames.isEmpty()) {
 			return "<> 1";
 		}
 		String sql = "in ('";
-		for(String s:descNames) {
-			sql = sql+s+"',";
+		for (String s : descNames) {
+			sql = sql + s + "',";
 		}
-		sql = xx.delEnd(sql.toString(), ",")+")";
+		sql = xx.delEnd(sql.toString(), ",") + ")";
 		return sql;
-		
+
 	}
 }

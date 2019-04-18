@@ -15,6 +15,7 @@ import com.jfinal.plugin.activerecord.Record;
  */
 public class CoreExecute {
 
+	@SuppressWarnings("unused")
 	public void exe(JobExecutionContext context) {
 		String name = this.getClass().getName();
 		List<Record> res = Db.find("select id from eova_task where clazz = ?", context.getJobInstance().getClass().getName());
@@ -22,7 +23,7 @@ public class CoreExecute {
 		System.out.println(taskid);
 		List<Record> flows = Db.use(xx.DS_MAIN)
 				.find("select * from bs_data_flow where dr =0 and task_id = ? and task_state = 1", taskid);
-		String sql = "select t.flowtype_executionclass ,b.flow_id from bs_flow_type t inner  join bs_data_flow_b b on t.id = b.flowtype_id where b.pid =?";
+		String sql = "select t.flowtype_executionclass ,b.flow_id ,b.flow_code,b.flow_name,b.flow_sort,b.pid ,t.flowtype_code,t.flowtype_name  from bs_flow_type t inner  join bs_data_flow_b b on t.id = b.flowtype_id where b.pid =?  order by b.flow_sort";
 		System.out.println(flows);
 		for (Record r : flows) {
 			List<Record> records = Db.find(sql, r.getStr("id"));

@@ -23,6 +23,7 @@ import com.oss.model.UserInfo;
 import com.oss.model.Users;
 import com.oss.product.ProductController;
 import com.oss.test.TestController;
+import com.yonyou.controller.MdDEFController;
 
 public class OSSConfig extends EovaConfig {
 
@@ -39,6 +40,7 @@ public class OSSConfig extends EovaConfig {
 		me.add("/", OSSController.class);
 		me.add("/test", TestController.class);
 		me.add("/product", ProductController.class);
+		me.add("/mddef", MdDEFController.class);
 
 		// 排除不需要登录拦截的URI 语法同SpringMVC拦截器配置 @see com.eova.common.utils.util.AntPathMatcher
 		LoginInterceptor.excludes.add("/test/**");
