@@ -96,6 +96,7 @@ public class OFConfig extends EovaConfig {
 		exps.put("selectAreaByLv3AndPid", "select id ID,name CN from area where lv = 3 and pid = ?");
 		exps.put("selectEovaMenu", "select id,parent_id pid, name, iconskip from eova_menu;ds=eova");
 		exps.put("selectEovaMenu", "select id,parent_id pid, name, iconskip from eova_menu;ds=eova");
+//		主数据列 参照联动 参照联动
 		String sql = "select field_code 编码 ,field_name 名称 from bs_metadata_b where metadata_id =( select id from bs_metadata where data_code  =( select md_table from bs_md_def where id = ? ))";
 		exps.put("md_ref", sql);
 		// 用法，级联动态在页面改变SQL和参数
