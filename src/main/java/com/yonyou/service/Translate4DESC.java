@@ -134,11 +134,11 @@ public class Translate4DESC {
 		return context;
 	}
 
-	/**
+/*	*//**
 	 * 更新数据文件状态 fileName 文件名称 status 稳健状态
 	 * 
 	 * @throws Exception
-	 **/
+	 **//*
 
 	public int updataFileStatus(String fileName, String status) throws Exception {
 
@@ -152,9 +152,9 @@ public class Translate4DESC {
 
 	}
 
-	/**
+	*//**
 	 * 检查数据文件是否存在 文件名
-	 */
+	 *//*
 	public boolean checkFileExist(String fileName) throws Exception {
 		String sql = "select 1 from bs_filemanager where  dataname = ?";
 		List<Record> res = Db.find(sql, fileName);
@@ -162,9 +162,9 @@ public class Translate4DESC {
 
 	}
 
-	/**
+	*//**
 	 * 检查Desc文件是否存在 文件名
-	 */
+	 *//*
 	public boolean checkDescExist(String descName) throws Exception {
 		String sql = "select 1 from bs_filemanager where  allname = ?";
 		List<Record> res = Db.find(sql, descName);
@@ -172,9 +172,9 @@ public class Translate4DESC {
 
 	}
 
-	/**
+	*//**
 	 * 查询desc文件所有状态的数据文件 descName 文件名称 status 对应的状态 返回 对应状态的文件名
-	 */
+	 *//*
 	public List<Record> queryDataFileByDesc(List<String> descNames, String status) throws Exception {
 		String sql = "select * from bs_filemanager where  allname " + List2WhereIn(descNames)
 				+ " and status = ? and did is not null";
@@ -206,5 +206,5 @@ public class Translate4DESC {
 		sql = xx.delEnd(sql.toString(), ",") + ")";
 		return sql;
 
-	}
+	}*/
 }
