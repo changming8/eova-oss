@@ -28,8 +28,8 @@ public class FileManagerModel extends BaseModel<FileManagerModel> {
 		int flag = 0;
 
 		flag = Db.update("update bs_filemanager set status = ? where dataname =?", status, fileName);
-		if (status.equals(FileStatus.FINISH)) {
-			UpdateDescFileStatus(fileName);
+		if (true) {
+			UpdateDescFileStatus(fileName,status);
 		}
 		return flag;
 
@@ -80,14 +80,14 @@ public class FileManagerModel extends BaseModel<FileManagerModel> {
 		return res;
 	}
 
-	public int UpdateDescFileStatus(String fileName) throws Exception {
+	private  int UpdateDescFileStatus(String fileName,String status ) throws Exception {
 		int flag = 0;
-		String sql = "select 1 from bs_filemanager where allname =(select allname from bs_filemanager where dataname = ?) and status <> '2' and did is not null";
-		List<Record> res = Db.find(sql, fileName);
+		String sql = "select 1 from bs_filemanager where allname =(select allname from bs_filemanager where dataname = ?) and status <> ? and did is not null";
+		List<Record> res = Db.find(sql, fileName,status);
 		if (res.isEmpty()) {
-			String sql1 = "update bs_filemanager set status = '2'"
+			String sql1 = "update bs_filemanager set status = ?"
 					+ " where allname =(select * from (SELECT allname FROM bs_filemanager WHERE dataname = ? ) a  ) and did is null";
-			flag = Db.update(sql1, fileName);
+			flag = Db.update(sql1, status,fileName);
 		}
 		return flag;
 
