@@ -106,18 +106,42 @@ public class MetadataController extends BaseController {
 			String columnName = columnDetailList.get(i).get("FIELD_CODE");
 			String fieldType = columnDetailList.get(i).get("FIELD_TYPE");
 			String length = columnDetailList.get(i).get("FIELD_LENGTH");
-			boolean keyFlag = columnDetailList.get(i).get("KEY_FLAG");
-			// 默认值
-			boolean nullFlag = columnDetailList.get(i).get("NULL_FLAG");// 空值标识——0：能为空；1：不能为空
+			String fieldName = columnDetailList.get(i).get("FIELD_NAME");//字段描述
+			String def_value = columnDetailList.get(i).get("DEF_VALUE");//默认值
+			boolean unique = false;//唯一约束
+			if(null !=columnDetailList.get(i).get("UNIQUE_CONSTRAIN")) {
+				unique = columnDetailList.get(i).get("UNIQUE_CONSTRAIN");
+			}
+			boolean keyFlag = false;
+			if(null != columnDetailList.get(i).get("KEY_FLAG")) {
+				keyFlag = columnDetailList.get(i).get("KEY_FLAG");
+			}
+			
+			boolean nullFlag = false;
+			if(null != columnDetailList.get(i).get("NULL_FLAG")) {
+				nullFlag = columnDetailList.get(i).get("NULL_FLAG");// 空值标识——0：能为空；1：不能为空
+			}
+			
+			
 			tempColumnSql.append(columnName + " " + fieldType);
 			if (null != length && !"".equals(length.trim())) {
 				tempColumnSql.append(" (" + length + ")");
 			}
 			if (keyFlag) {
 				tempColumnSql.append(" not null primary key");
-			} else if (nullFlag) {
+			}  else if (nullFlag) {
 				tempColumnSql.append(" not null");
-			} else if ("TIMESTAMP".equals(fieldType)) {
+			}  
+			if (unique) {
+				tempColumnSql.append(" UNIQUE ");
+			}  
+			if(null != def_value&&!def_value.equals("")){
+				tempColumnSql.append(" DEFAULT ").append(def_value);
+			}  
+			if(fieldName!= null&&!fieldName.equals("")) {
+				tempColumnSql.append(" COMMENT '").append(fieldName).append("' ");
+			}  
+			if ("TIMESTAMP".equals(fieldType)) {
 				tempColumnSql.append(" null");// mysql中TIMESTAMP类型默认为非空
 			}
 			if (i != columnDetailList.size() - 1) {
