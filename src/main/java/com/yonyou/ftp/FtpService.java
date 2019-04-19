@@ -13,6 +13,7 @@ import com.eova.common.utils.xx;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.yonyou.base.ResponseBody;
+import com.yonyou.model.FileManagerModel;
 import com.yonyou.service.Translate4DESC;
 import com.yonyou.util.FileStatus;
 import com.yonyou.util.ServiceUtil;
@@ -26,7 +27,7 @@ public class FtpService {
 	 * @return
 	 */
 	public ResponseBody File_Name(String id) {
-		Translate4DESC translate4DESC = new Translate4DESC();
+		Translate4DESC translate4desc = new Translate4DESC();
 		String sqlStringProduct = "select * from bs_ftp_flow where id ='" + id
 				+ "'";
 		List<Record> listProduct = Db.use(xx.DS_EOVA).find(sqlStringProduct);
@@ -55,7 +56,7 @@ public class FtpService {
 					.get("description_file");
 			// 获取ftp信息
 			System.out.println("ftp_id:" + ftp_id);
-			List<Record> ftpList = new ServiceUtil().getFtpById(ftp_id);
+			List<Record> ftpList = ServiceUtil.dao.getFtpById(ftp_id);
 			String ftp_path = "";// 路径
 			int ftp_port = 0;// 端口
 			String ftp_address = "";// 地址
@@ -91,35 +92,34 @@ public class FtpService {
 					System.out.println(workDirectoryName);
 					boolean yn;
 					try {
-						yn = translate4DESC.checkDescExist(fielName);
+						yn = FileManagerModel.dao.checkDescExist(fielName);
 					} catch (Exception e1) {
 						e1.printStackTrace();
 						responseBody.setStatus(1);
-						responseBody.setMes(e1.getClass().getName());
+						responseBody.setMes("查询" + fielName + "文件失败");
 						return responseBody;
 					}
 					if (!yn) {
 						// 下载Desc
 						int rt = 0;
-						try {
-							rt = new FTPClientFactory(ftp_address, ftp_port,
-									ftp_username, ftp_password).downLoadFile(
-											ftp_path+"/", fielName, directoryName);
-						} catch (Exception e) {
-							e.printStackTrace();
-							responseBody.setStatus(1);
-							responseBody.setMes(e.getClass().getName());
-							return responseBody;
-						}
-						if (rt == 1) {
 							try {
-								//获取desc中的txt
-								listTxt = translate4DESC
-										.execute(workDirectoryName);
+								rt = new FTPClientFactory(ftp_address, ftp_port,
+										ftp_username, ftp_password).downLoadFile(
+												ftp_path+"/", fielName, directoryName);
 							} catch (Exception e) {
 								e.printStackTrace();
 								responseBody.setStatus(1);
-								responseBody.setMes(e.getClass().getName());
+								responseBody.setMes("IP为:" + ftp_address + "的FTP连接失败");
+								return responseBody;
+							}
+						if (rt == 1) {
+							try {
+								//获取desc中的txt
+								listTxt = translate4desc.execute(workDirectoryName);
+							} catch (Exception e) {
+								e.printStackTrace();
+								responseBody.setStatus(1);
+								responseBody.setMes("获取"+workDirectoryName +"中的TXT文件失败");
 								return responseBody;
 							}
 
@@ -129,12 +129,12 @@ public class FtpService {
 								int up = 0;
 								try {
 									// 下载前更新状态
-									up = translate4DESC.updataFileStatus(
+									up = FileManagerModel.dao.updataFileStatus(
 											txtName, FileStatus.UPDATING);
 								} catch (Exception e1) {
 									e1.printStackTrace();
 									responseBody.setStatus(1);
-									responseBody.setMes(e1.getClass().getName());
+									responseBody.setMes(txtName + "下载前更新状态失败");
 									return responseBody;
 								}
 								if (up >= 1) {
@@ -145,42 +145,42 @@ public class FtpService {
 													ftp_password).downLoadFile(ftp_path+"/",
 															txtName, directoryName) == 0) {
 												try {
-													translate4DESC
+													FileManagerModel.dao
 															.updataFileStatus(
 																	txtName,
 																	FileStatus.FAIL);
 												} catch (Exception e) {
 													e.printStackTrace();
 													responseBody.setStatus(1);
-													responseBody.setMes(e.getClass().getName());
+													responseBody.setMes(txtName + "下载失败时更新状态失败");
 													return responseBody;
 												}
 											} else {
 												//下载完成更新状态
 												try {
-													translate4DESC.updataFileStatus(
+													FileManagerModel.dao.updataFileStatus(
 															txtName, FileStatus.FINISH);
 												} catch (Exception e) {
 													e.printStackTrace();
 													responseBody.setStatus(1);
-													responseBody.setMes(e.getClass().getName());
+													responseBody.setMes(txtName + "下载完成更新状态失败");
 													return responseBody;
 												}
 											}
 										} catch (Exception e) {
 											e.printStackTrace();
 											responseBody.setStatus(1);
-											responseBody.setMes(e.getClass().getName());
+											responseBody.setMes("IP为:" + ftp_address + "的FTP连接失败");
 											return responseBody;
 										}
 								} else {
 									try {
-										translate4DESC.updataFileStatus(
+										FileManagerModel.dao.updataFileStatus(
 												txtName, FileStatus.FAIL);
 									} catch (Exception e) {
 										e.printStackTrace();
 										responseBody.setStatus(1);
-										responseBody.setMes(e.getClass().getName());
+										responseBody.setMes(txtName + "下载前更新状态失败,修改失败状态时失败");
 										return responseBody;
 									}
 								}
@@ -198,7 +198,7 @@ public class FtpService {
 				//固定式
 				boolean yn;
 				try {
-					yn = translate4DESC.checkDescExist(file_name);
+					yn = FileManagerModel.dao.checkDescExist(file_name);
 				} catch (Exception e) {
 					e.printStackTrace();
 					responseBody.setStatus(1);
@@ -221,8 +221,7 @@ public class FtpService {
 					if (rt == 1) {
 						try {
 							//获取desc中的txt
-							listTxt = translate4DESC
-									.execute(search_path+file_name);
+							listTxt = translate4desc.execute(search_path+file_name);
 						} catch (Exception e) {
 							e.printStackTrace();
 							responseBody.setStatus(1);
@@ -236,7 +235,7 @@ public class FtpService {
 							int up = 0;
 							try {
 								// 下载前更新状态
-								up = translate4DESC.updataFileStatus(
+								up = FileManagerModel.dao.updataFileStatus(
 										txtName, FileStatus.UPDATING);
 							} catch (Exception e) {
 								e.printStackTrace();
@@ -252,7 +251,7 @@ public class FtpService {
 											ftp_password).downLoadFile(ftp_path,
 													txtName, search_path) == 0) {
 										try {
-											translate4DESC
+											FileManagerModel.dao
 													.updataFileStatus(
 															txtName,
 															FileStatus.FAIL);
@@ -264,7 +263,7 @@ public class FtpService {
 										}
 									} else {
 										//下载完成更新状态
-										translate4DESC.updataFileStatus(
+										FileManagerModel.dao.updataFileStatus(
 												txtName, FileStatus.FINISH);
 									}
 								} catch (Exception e) {
@@ -275,7 +274,7 @@ public class FtpService {
 								}
 							} else {
 								try {
-									translate4DESC.updataFileStatus(
+									FileManagerModel.dao.updataFileStatus(
 											txtName, FileStatus.FAIL);
 								} catch (Exception e) {
 									e.printStackTrace();
@@ -373,7 +372,7 @@ public class FtpService {
 		// IUA
 		String file_name6a = IUA(file_name6);
 		// 获取目录名
-		List<Record> listDirectory = new ServiceUtil().getWorkDirectoryById(work_directory_id);
+		List<Record> listDirectory = ServiceUtil.dao.getWorkDirectoryById(work_directory_id);
 		String workName = "";
 		for (int i = 0; i < listDirectory.size(); i++) {
 			workName = listDirectory.get(i).get("working_path");
