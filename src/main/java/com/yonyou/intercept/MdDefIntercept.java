@@ -14,6 +14,20 @@ import com.jfinal.plugin.activerecord.Record;
  */
 public class MdDefIntercept extends BaseMetaIntercept {
 	@Override
+	public String addBefore(AopContext ac) throws Exception {
+		// TODO Auto-generated method stub
+		String table = ac.record.getStr("mid_table");
+		try {
+			Db.find("SELECT * from "+table);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			return super.addBefore(ac);
+		}
+
+		return table + "已存在！";
+	}
+
+	@Override
 	public String addAfter(AopContext ac) throws Exception {
 		// TODO Auto-generated method stub
 		String table = ac.record.get("mid_table");
