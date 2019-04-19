@@ -28,7 +28,7 @@ public class CoreExecute {
 		for (Record r : flows) {
 			List<Record> records = Db.find(sql, r.getStr("id"));
 			if (!records.isEmpty()) {
-				Thread t = new Thread(new ExecuteThread(records));
+				Thread t = new Thread(new ExecuteThread(records),r.getStr("flow_id"));
 				t.start();
 			}
 

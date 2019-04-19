@@ -5,8 +5,22 @@ package com.yonyou.base;
  *2019年4月17日10:59:47
  */
 public class ResponseBody {
-	public int status;
-	public String mes;
+	private int status;
+	private String mes;
+	public int getObjecttype() {
+		return objecttype;
+	}
+	public void setObjecttype(int objecttype) {
+		this.objecttype = objecttype;
+	}
+	public String getObjectid() {
+		return objectid;
+	}
+	public void setObjectid(String objectid) {
+		this.objectid = objectid;
+	}
+	private int objecttype;
+	private String objectid;
 
 	public int getStatus() {
 		return status;
