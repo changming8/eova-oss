@@ -3,13 +3,17 @@
 <body class="easyui-layout">
 <div data-options="region:'center',fit:false,border:false,split:false">
     <div id="contentLayout" class="easyui-layout" data-options="fit:true">
-    	<div data-options="region:'north',title:'数据关系定义-对照',split:true" style="height:400px;">
+    	<div data-options="region:'north',title:'数据关系定义-对照',split:true" style="height:370px;">
     		<div id="tb" style="background-color:#fafafa">
 				<input id="master_ss" class="easyui-searchbox" style="width:300px"
 				    data-options="searcher:doSearchMaster,prompt:'',menu:'#master_t'"></input>
-				<div id="master_t" style="width:120px">
-				    <div data-options="name:'sportsall'">模糊查询</div>
+				    <select id="queryWhere" class="easyui-combobox" style="width:100px;"></select>
+				<div id="master_t" style="width:120px" data-options="onClick:menuHandler" class="easyui-menu">
+				    <div data-options="name:'master_mm'">对照查询</div>
+				    <div class="menu-sep"></div>
+				    <div data-options="name:'slave_dd',disabled:true" id="dis">被对照查询</div>
 				</div>
+				<select id="slaveSelect" class="easyui-combobox" style="width:200px;"></select>
 				<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-tip',plain:true" onclick="blockDataModal()">数据定义</a>
 				<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="save()">保存对照</a>
 				<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-lock',plain:true" onclick="startUp()">启用被对照</a>
@@ -18,9 +22,9 @@
     			
     		</table>
     	</div>
-    	<div data-options="region:'center',fit:false,border:false,collapsible:true,title:'数据关系定义-被对照'">
+    	<div data-options="region:'center',fit:false,border:false,collapsible:true">
 	    	<div id="tb2" style="background-color:#fafafa">
-				<select id="slaveSelect" class="easyui-combobox" name="dept" style="width:200px;"></select>
+				
 			</div>
            	<table id="slave_" class="easyui-datagrid" toolbar="#tb2">
                     
@@ -52,18 +56,152 @@
 </div>
 <script type="text/javascript" src="/eova/plugins/easyui1.7/jquery-easyui-1.7.0/jquery.min.js"></script>
 <script type="text/javascript" src="/eova/plugins/easyui1.7/jquery-easyui-1.7.0/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="/eova/plugins/easyui1.7/jquery-easyui-1.7.0/locale/easyui-lang-zh_CN.js"></script>
 <!-- <script type="text/javascript" src="/eova/dataRelationMaintenance/js/dataRelationMaintenance.js"></script> -->
-<script type="text/javascript">
-var columns_field=[];
+<script type="text/javascript">//全局变量
+var columns_field;
+var columns_field1;
+var columns_field2;
+var columns_field3="";
+var columns_field4;
+var columns_field5="";
+var columns_field6;
 var globalDataId="";
 var globalDataName="";
-var isMasterSlave="";
+var globalDataName2;
 var isStartUp=false;
-var increment=0;
+var masterOrSlaveWhere="";
+var searchSlave;
+var searchSlaveWhere="";
+var increment;
 $(function(){
 	closeDataRelation();
+	
 })
-
+</script>
+<script type="text/javascript">//按钮组
+function save(){
+	var master=$("#master_").datagrid("getSelections");
+	var slave=$("#slave_").datagrid("getSelections");
+	console.info(slave);
+	if(master.length<1||slave.length<1){
+		$.messager.show({
+			title:'操作提示',
+			msg:'请选择数据对照或被对照',
+			timeout:1000,
+			width:260,
+			height:100,
+			showType:'slide'
+		});
+		return;
+	}
+	var masterCol=columns_field3[0][0].field;
+	var slaveCol=columns_field3[0][0].field;
+	var slaveTable=$("#slaveSelect").combo("getText");
+	if(masterCol.length<1||slaveCol.length<1||slaveTable.length<1){
+		$.messager.show({
+			title:'操作提示',
+			msg:'对照数据加载异常',
+			timeout:1000,
+			width:260,
+			height:100,
+			showType:'slide'
+		});
+		return;
+	}
+	var slaveCols="";
+	for(var i=0;i<slave.length;i++){
+		slaveCols+=slave[i].id+",";
+	}
+	slaveCols=slaveCols.substring(0,slaveCols.lastIndexOf(","));
+	var message={"message":"cheg"};
+	console.info(JSON.stringify(message));
+	$.ajax({
+		url:"/dataRelationMaintenance/insertMasterSlaveContrast/"+increment+"-"+master[0].id+"-"+slaveCols+"-"+masterCol+"-"+slaveCol+"-"+slaveTable,
+		type:"post",
+		dataType:"json",
+		async:false,
+		success:function(data){
+			$.messager.show({
+				title:'操作提示',
+				msg:data.message,
+				timeout:1000,
+				width:260,
+				height:100,
+				showType:'slide'
+			});
+		},
+		error:function(xhr,s,e){
+			$.messager.show({
+				title:'操作提示',
+				msg:'服务器异常',
+				timeout:1000,
+				width:260,
+				height:100,
+				showType:'slide'
+			});
+		}
+	})
+}
+function doSearch(value,name){
+	column("bs_md_def");
+	table("dataRelation","/grid/query/bs_md_def-bs_md_def",value);
+}
+function doSearchMaster(value,name){
+	if($("#queryWhere").combo("getValue")=="请选择查询条件列"||$("#queryWhere").combo("getValue").length<1){
+		$.messager.show({
+			title:'操作提示',
+			msg:'请选择数据定义再选择搜索条件列',
+			timeout:1000,
+			width:260,
+			height:100,
+			showType:'slide'
+		});
+		return;
+	}
+	if(masterOrSlaveWhere==globalDataName){
+		table_master2("master_","/dataRelationMaintenance/queryBsStyle/"+masterOrSlaveWhere+"-"+masterOrSlaveWhere+"-queryWhere-"+value+"-"+$("#queryWhere").combo("getValue"));
+	}else{
+		searchSlaveWhere="slaveWhere";
+		//column3("bs_style_b");
+		table_slave_cols("master_col","/dataRelationMaintenance/queryBsStyle/bs_style_b-bs_style_b-bs_style_b-"+$("#slaveSelect").combo("getValue"));
+		table_slave_col2("slave_","/dataRelationMaintenance/queryBsStyle/"+$("#slaveSelect").combo("getText")+"-"+$("#slaveSelect").combo("getText")+"-queryWhere-"+value+"-"+$("#queryWhere").combo("getValue"));
+		//searchSlaveWhere=null;
+	}
+}
+function menuHandler(item){
+	var strId;
+	var strNames;
+	var str=[];
+	if(item.name=="master_mm"){
+		if(columns_field3==""){
+			return;
+		}
+		masterOrSlaveWhere=globalDataName;
+    	str.push({"value":"请选择查询条件列","text":"查询条件列"});
+    	for(var i=0;i<columns_field3[0].length;i++){
+			//globalDataName=data.rows[0].md_table;
+			str.push({"value":columns_field3[0][i].field,"text":columns_field3[0][i].field});
+		}
+    	$("#queryWhere").combo({"editable":false});
+		$("#queryWhere").combobox("loadData", str);
+		$("#queryWhere").combobox("select", "请选择查询条件列");
+	}else{
+		//console.info(columns_field5);
+		if(columns_field5==""){
+			return;
+		}
+		masterOrSlaveWhere="slave"
+		str.push({"value":"请选择查询条件列","text":"查询条件列"});
+    	for(var i=0;i<columns_field5[0].length;i++){
+			//globalDataName=data.rows[0].md_table;
+			str.push({"value":columns_field5[0][i].field,"text":columns_field5[0][i].field});
+		}
+    	$("#queryWhere").combo({"editable":false});
+		$("#queryWhere").combobox("loadData", str);
+		$("#queryWhere").combobox("select", "请选择查询条件列");
+	}
+}
 function startUp(){
 	if(increment%2==0){
 		$.messager.show({
@@ -88,27 +226,6 @@ function startUp(){
 	}
 	increment++;
 }
-function save(){
-	if(isStartUp){
-		
-	}else{
-		$.messager.show({
-			title:'操作提示',
-			msg:'请启用被对照.',
-			timeout:1000,
-			width:260,
-			height:100,
-			showType:'slide'
-		});
-	}
-}
-function doSearch(value,name){
-	column("bs_md_def");
-	table("dataRelation","/grid/query/bs_md_def-bs_md_def",value);
-}
-function doSearchMaster(value,name){
-	
-}
 function closeDataRelation(){
 	$("#data").dialog("close");
 }
@@ -117,11 +234,359 @@ function blockDataModal(){
 	column("bs_md_def");
 	table("dataRelation","/grid/query/bs_md_def-bs_md_def",null);
 }
+</script>
+<script type="text/javascript">//初始dialog和选择行
 function selectOneData(){
-	column("bs_style");
+	column1("bs_style");
 	table_master_col("master_col","/dataRelationMaintenance/queryBsStyle/bs_style-bs_style-table_master_col-"+globalDataId+"-"+globalDataName);
 	$("#data").dialog("close");
 }
+
+function table(tableName,url,wheres){
+	$("#"+tableName).datagrid({
+	    url:url,
+	    columns:columns_field,
+	    fitColumns:true,
+	    striped:true,
+	    idField:"id",
+	    height:417,
+	    pagination:true,
+	    singleSelect:true,
+	    rownumbers:true,
+	    pageNumber:1,
+	    pageSize:15,
+	    
+	    pagePosition:"bottom",
+	    queryParams:{
+	    	"query_name":wheres
+	    },
+	    pageList:[15,30,50,100,200,500,1000,2000],
+	    onLoadSuccess:function(data){
+	    	//columns_field.splice(0,columns_field.length);
+	    	
+	    },
+	    onCheck:function(rowIndex,rowData){
+	    	globalDataId=rowData.id;
+	    	globalDataName=rowData.md_table_val;
+	    	masterOrSlaveWhere=globalDataName;
+	    	increment=rowData.mid_table;
+	    	//console.info(rowData);
+	    }
+	});
+}
+</script>
+<script type="text/javascript">//master
+function table_master_col(tableName,url,where){
+$("#"+tableName).datagrid({
+    url:url,
+    columns:columns_field1,
+    fitColumns:true,
+    striped:true,
+    idField:"id",
+    pagination:true,
+    singleSelect:true,
+    rownumbers:true,
+    pageNumber:1,
+    pagePosition:"bottom",
+    pageSize:15,
+    pageList:[15,30,50,100,200,500,1000,2000],
+    onLoadSuccess:function(data){
+    	if(data.rows.length<1){
+    		$.messager.show({
+				title:'操作提示',
+				msg:'此'+globalDataName+"没有实际表或实际记录",
+				timeout:1000,
+				width:260,
+				height:100,
+				showType:'slide'
+			});
+    		return;
+    	}
+    	column2("bs_style_b");
+    	table_master("master_col","/dataRelationMaintenance/queryBsStyle/bs_style_b-bs_style_b-bs_style_b-"+data.rows[0].id+"-"+globalDataName);
+    },
+    onCheck:function(rowIndex,rowData){
+    	
+    }
+});
+}
+function table_master(tableName,url){
+	$("#"+tableName).datagrid({
+	    url:url,
+	    columns:columns_field2,
+	    fitColumns:true,
+	    striped:true,
+	    idField:"id",
+	    pagination:true,
+	    singleSelect:true,
+	    rownumbers:true,
+	    pagePosition:"bottom",
+	    resizeHandle:"both",
+	    pageNumber:1,
+	    pageSize:15,
+	    pageList:[15,30,50,100,200,500,1000,2000],
+	    onLoadSuccess:function(data){
+	    		var tempFields=[];
+	    		var fields=[];
+	    		for(var i=0;i<data.rows.length;i++){
+	    			var field={
+	    				"field":data.rows[i].col_code,
+	    				"title":data.rows[i].col_name,
+	    				"width":100
+	    			}
+	    			fields.push(field);
+	    		}
+	    		tempFields.push(fields);
+	    		columns_field3=tempFields;
+	    		table_master1("master_","/dataRelationMaintenance/queryMaster/"+globalDataName);
+	    },
+	    onCheck:function(rowIndex,rowData){
+	    	
+	    }
+	});
+}
+function table_master1(tableName,url){
+	$("#"+tableName).datagrid({
+	    url:url,
+	    columns:columns_field3,
+	    fitColumns:true,
+	    striped:true,
+	    idField:"id",
+	    pagination:true,
+	    singleSelect:true,
+	    rownumbers:true,
+	    pagePosition:"bottom",
+	    resizeHandle:"both",
+	    height:330,
+	    pageNumber:1,
+	    pageSize:15,
+	    pageList:[15,30,50,100,200,500,1000,2000],
+	    onLoadSuccess:function(data){
+	    	var strId;
+	    	var strNames;
+	    	var str=[];
+	    	str.push({"value":"请选择查询条件列","text":"查询条件列"});
+	    	for(var i=0;i<columns_field3[0].length;i++){
+				//globalDataName=data.rows[0].md_table;
+				str.push({"value":columns_field3[0][i].field,"text":columns_field3[0][i].field});
+			}
+	    	$("#queryWhere").combo({"editable":false});
+			$("#queryWhere").combobox("loadData", str);
+			$("#queryWhere").combobox("select", "请选择查询条件列");
+	    	//columns_field3.splice(0,columns_field3.length);
+	    	ajaxSelect();
+	    },
+	    onCheck:function(rowIndex,rowData){
+	    	
+	    }
+	});
+}
+function table_master2(tableName,url){
+	$("#"+tableName).datagrid({
+	    url:url,
+	    columns:columns_field3,
+	    fitColumns:true,
+	    striped:true,
+	    idField:"id",
+	    pagination:true,
+	    singleSelect:true,
+	    rownumbers:true,
+	    pagePosition:"bottom",
+	    resizeHandle:"both",
+	    height:330,
+	    pageNumber:1,
+	    pageSize:15,
+	    pageList:[15,30,50,100,200,500,1000,2000],
+	    onLoadSuccess:function(data){
+	    	
+	    },
+	    onCheck:function(rowIndex,rowData){
+	    	
+	    }
+	});
+}
+</script>
+<script type="text/javascript">//slave
+function table_slave_col(tableName,url){
+	$("#"+tableName).datagrid({
+	    url:url,
+	    columns:columns_field4,
+	    fitColumns:true,
+	    striped:true,
+	    idField:"id",
+	    pagination:true,
+	    singleSelect:true,
+	    rownumbers:true,
+	    pagePosition:"bottom",
+	    pageNumber:1,
+	    pageSize:15,
+	    pageList:[15,30,50,100,200,500,1000,2000],
+	    onLoadSuccess:function(data){
+	    		var tempFields=[];
+	    		var fields=[];
+		    	for(var i=0;i<data.rows.length;i++){
+		    		var field={
+		    			"field":data.rows[i].col_code,
+		    			"title":data.rows[i].col_name,
+		    			"width":100
+		    		}
+		    		fields.push(field);
+		    	}
+		    	tempFields.push(fields);
+		    	columns_field5=tempFields;
+		    	console.info(columns_field5);
+		    	console.info(globalDataName2);
+		    	table_slave_col1("slave_","/grid/query/"+globalDataName2+"-"+globalDataName2);
+	    },
+	    onCheck:function(rowIndex,rowData){
+	    	
+	    }
+	});
+}
+function table_slave_cols(tableName,url){
+	$("#"+tableName).datagrid({
+	    url:url,
+	    columns:columns_field5,
+	    fitColumns:true,
+	    striped:true,
+	    idField:"id",
+	    pagination:true,
+	    singleSelect:true,
+	    rownumbers:true,
+	    pagePosition:"bottom",
+	    pageNumber:1,
+	    pageSize:15,
+	    pageList:[15,30,50,100,200,500,1000,2000],
+	    onLoadSuccess:function(data){
+	    		/* var tempFields=[];
+	    		var fields=[];
+		    	for(var i=0;i<data.rows.length;i++){
+		    		var field={
+		    			"field":data.rows[i].col_code,
+		    			"title":data.rows[i].col_name,
+		    			"width":100
+		    		}
+		    		fields.push(field);
+		    	}
+		    	tempFields.push(fields);
+		    	columns_field6=tempFields;
+		    	console.info(columns_field6);
+		    	console.info(data);
+		    	table_slave_col2("slave_","/grid/query/"+globalDataName2+"-"+globalDataName2); */
+	    },
+	    onCheck:function(rowIndex,rowData){
+	    	
+	    }
+	});
+}
+function table_slave_col1(tableName,url){
+	$("#"+tableName).datagrid({
+	    url:url,
+	    columns:columns_field5,
+	    fitColumns:true,
+	    striped:true,
+	    idField:"id",
+	    height:291,
+	    pagination:true,
+	    singleSelect:false,
+	    rownumbers:true,
+	    pagePosition:"bottom",
+	    pageNumber:1,
+	    pageSize:15,
+	    pageList:[15,30,50,100,200,500,1000,2000],
+	    onLoadSuccess:function(data){
+	    	var item = $('#master_t').menu('findItem', '被对照查询');
+	    	$('#master_t').menu('enableItem', item.target);
+	    },
+	    onCheck:function(rowIndex,rowData){
+	    	
+	    },onLoadError:function(){
+	    	$.messager.show({
+				title:'操作提示',
+				msg:'此'+globalDataName2+"没有实际表",
+				timeout:1000,
+				width:260,
+				height:100,
+				showType:'slide'
+			});
+	    }
+	});
+}
+function table_slave_col2(tableName,url){
+	$("#"+tableName).datagrid({
+	    url:url,
+	    columns:columns_field5,
+	    fitColumns:true,
+	    striped:true,
+	    idField:"id",
+	    height:291,
+	    pagination:true,
+	    singleSelect:false,
+	    rownumbers:true,
+	    pagePosition:"bottom",
+	    pageNumber:1,
+	    pageSize:15,
+	    pageList:[15,30,50,100,200,500,1000,2000],
+	    onLoadSuccess:function(data){
+	    	//console.info(data);
+	    	//console.info(columns_field5);
+	    },
+	    onCheck:function(rowIndex,rowData){
+	    	
+	    }
+	});
+}
+</script>
+<script type="text/javascript">//下拉框
+function ajaxSelect(){
+	$.ajax({
+		url:"/dataRelationMaintenance/queryBsStyle/bs_style-bs_style-select-"+globalDataId+"-"+globalDataName,
+		type:"get",
+		dataType:"json",
+		async:false,
+		success:function(data){
+			if(data.rows.length<1){
+				$("#slaveSelect").combobox("loadData", "");
+				return;
+			}
+			var str=[];
+			var strNames="";
+			var strId="";
+			//console.info(data);
+			$('#slaveSelect').combobox({ 
+			   data:data.rows,
+			   valueField:'id', 
+			   textField:'md_table',
+			   //value:"数据", // 未测试过当selectId不在数据集合中有何情况
+			   onLoadSuccess: function () {
+			       
+			   }
+			});
+			strId=data.rows[0].id;
+			strNames=data.rows[0].md_table;
+			globalDataName2=data.rows[0].md_table;
+			//globalDataName=data.rows[0].md_table;
+			/* for(var i=0;i<data.rows.length;i++){
+				globalDataName2=data.rows[0].md_table;
+				strId=data.rows[0].id;
+				strNames=data.rows[0].md_table;
+				str.push({"value":data.rows[i].id,"text":data.rows[i].md_table});
+			} */
+			//$("#slaveSelect").combobox("loadData", str);
+			$("#slaveSelect").combobox("select",strNames );
+			column3("bs_style_b");
+			table_slave_col("master_col","/dataRelationMaintenance/queryBsStyle/bs_style_b-bs_style_b-bs_style_b-"+strId);
+			
+		}
+	});
+}
+$("#slaveSelect").combobox({
+	onSelect:function(record){
+		
+	}
+});
+</script>
+<script type="text/javascript">//column
 function column(code){
 	$.ajax({
 		url:"/meta/fields/"+code,
@@ -135,6 +600,7 @@ function column(code){
 	});
 }
 function splice_column(data){
+	var tempFields=[];
 	var fields=[];
 	for(var i=0;i<data.length;i++){
 		var isTrue=false;
@@ -152,168 +618,116 @@ function splice_column(data){
 		}
 		fields.push(field);
 	}
-	columns_field.push(fields);
+	tempFields.push(fields);
+	columns_field=tempFields;
 }
-function table(tableName,url,wheres){
-	$("#"+tableName).datagrid({
-	    url:url,
-	    columns:columns_field,
-	    fitColumns:true,
-	    striped:true,
-	    idField:"id",
-	    pagination:true,
-	    singleSelect:true,
-	    rownumbers:true,
-	    pageNumber:1,
-	    pageSize:10,
-	    queryParams:{
-	    	"query_name":wheres
-	    },
-	    pageList:[10,20,30,40],
-	    onLoadSuccess:function(data){
-	    	columns_field.splice(0,columns_field.length);
-	    	
-	    },
-	    onCheck:function(rowIndex,rowData){
-	    	globalDataId=rowData.id;
-	    	globalDataName=rowData.md_table;
-	    }
-	});
-}
-function table_master_col(tableName,url,where){
-	$("#"+tableName).datagrid({
-	    url:url,
-	    columns:columns_field,
-	    fitColumns:true,
-	    striped:true,
-	    idField:"id",
-	    pagination:true,
-	    singleSelect:true,
-	    rownumbers:true,
-	    pageNumber:1,
-	    pageSize:10,
-	    pageList:[10,20,30,40],
-	    onLoadSuccess:function(data){
-	    	columns_field.splice(0,columns_field.length);
-	    	if(data.rows.length<1){
-	    		return;
-	    	}
-	    	column("bs_style_b");
-	    	table_master("master_col","/dataRelationMaintenance/queryBsStyle/bs_style_b-bs_style_b-bs_style_b-"+data.rows[0].id+"-"+globalDataName);
-	    	isMasterSlave="master";
-	    },
-	    onCheck:function(rowIndex,rowData){
-	    	
-	    }
-	});
-}
-function table_master(tableName,url){
-	$("#"+tableName).datagrid({
-	    url:url,
-	    columns:columns_field,
-	    fitColumns:true,
-	    striped:true,
-	    idField:"id",
-	    pagination:true,
-	    singleSelect:true,
-	    rownumbers:true,
-	    resizeHandle:"both",
-	    pageNumber:1,
-	    pageSize:10,
-	    pageList:[10,20,30,40],
-	    onLoadSuccess:function(data){
-	    	columns_field.splice(0,columns_field.length);
-	    	if("master"==isMasterSlave){
-	    		isMasterSlave="slave";
-	    		var fields=[];
-	    		for(var i=0;i<data.rows.length;i++){
-	    			var field={
-	    				"field":data.rows[i].col_code,
-	    				"title":data.rows[i].col_name,
-	    				"width":data.rows[i].col_length
-	    			}
-	    			fields.push(field);
-	    		}
-	    		columns_field.push(fields);
-	    		table_master("master_","/grid/query/"+globalDataName+"-"+globalDataName);
-	    		ajaxSelect();
-	    	}
-	    },
-	    onCheck:function(rowIndex,rowData){
-	    	
-	    }
-	});
-}
-function ajaxSelect(){
+</script>
+<script type="text/javascript">//column1
+function column1(code){
 	$.ajax({
-		url:"/dataRelationMaintenance/queryBsStyle/bs_style-bs_style-select-"+globalDataId+"-"+globalDataName,
+		url:"/meta/fields/"+code,
 		type:"get",
 		dataType:"json",
 		async:false,
 		success:function(data){
 			//console.info(data);
-			if(data.length<1){
-				$("#slaveSelect").combobox("loadData", "");
-				return;
-			}
-			var str=[];
-			var strNames="";
-			var strId="";
-			for(var i=0;i<data.rows.length;i++){
-				globalDataName=data.rows[0].stable;
-				strId=data.rows[0].id;
-				strNames=data.rows[0].stable;
-				str.push({"valueField":data.rows[i].id,"textField":data.rows[i].stable});
-			}
-			$("#slaveSelect").combobox("loadData", str);
-			$("#slaveSelect").combobox("select", strNames);
-			setTimeout(function(){
-				column("bs_style_b");
-				table_slave_col("master_col","/dataRelationMaintenance/queryBsStyle/bs_style_b-bs_style_b-bs_style_b-"+strId);
-			},1000);
+			splice_column1(data)
 		}
 	});
 }
-function table_slave_col(tableName,url){
-	$("#"+tableName).datagrid({
-	    url:url,
-	    columns:columns_field,
-	    fitColumns:true,
-	    striped:true,
-	    idField:"id",
-	    pagination:true,
-	    singleSelect:true,
-	    rownumbers:true,
-	    resizeHandle:"both",
-	    pageNumber:1,
-	    pageSize:10,
-	    pageList:[10,20,30,40],
-	    onLoadSuccess:function(data){
-	    	columns_field.splice(0,columns_field.length);
-	    	if("slave"==isMasterSlave){
-	    		isMasterSlave="master";
-	    		var fields=[];
-		    	for(var i=0;i<data.rows.length;i++){
-		    		var field={
-		    			"field":data.rows[i].col_code,
-		    			"title":data.rows[i].col_name,
-		    			"width":data.rows[i].col_length
-		    		}
-		    		fields.push(field);
-		    	}
-		    	columns_field.push(fields);
-		    	table_slave_col("slave_","/grid/query/"+globalDataName+"-"+globalDataName);
-	    	}
-	    },
-	    onCheck:function(rowIndex,rowData){
-	    	
-	    }
+function splice_column1(data){
+	var tempFields=[];
+	var fields=[];
+	for(var i=0;i<data.length;i++){
+		var isTrue=false;
+		if(data[i].en.indexOf("def_")>=0){
+			continue;
+		}
+		if(data[i].is_show==0){
+			isTrue=true;
+		}
+		var field={
+			"field":data[i].en,
+			"title":data[i].cn,
+			"width":data[i].width,
+			"hidden":isTrue
+		}
+		fields.push(field);
+	}
+	tempFields.push(fields);
+	columns_field1=tempFields;
+}
+</script>
+<script type="text/javascript">//colum2
+function column2(code){
+	$.ajax({
+		url:"/meta/fields/"+code,
+		type:"get",
+		dataType:"json",
+		async:false,
+		success:function(data){
+			//console.info(data);
+			splice_column2(data)
+		}
 	});
 }
-$("#slaveSelect").combobox({
-	onSelect:function(record){
-		alert(record);
+function splice_column2(data){
+	var tempFields=[];
+	var fields=[];
+	for(var i=0;i<data.length;i++){
+		var isTrue=false;
+		if(data[i].en.indexOf("def_")>=0){
+			continue;
+		}
+		if(data[i].is_show==0){
+			isTrue=true;
+		}
+		var field={
+			"field":data[i].en,
+			"title":data[i].cn,
+			"width":data[i].width,
+			"hidden":isTrue
+		}
+		fields.push(field);
 	}
-});
+	tempFields.push(fields);
+	columns_field2=tempFields;
+}
+</script>
+<script type="text/javascript">//column3
+function column3(code){
+	$.ajax({
+		url:"/meta/fields/"+code,
+		type:"get",
+		dataType:"json",
+		async:false,
+		success:function(data){
+			//console.info(data);
+			splice_column3(data)
+		}
+	});
+}
+function splice_column3(data){
+	var tempFields=[];
+	var fields=[];
+	for(var i=0;i<data.length;i++){
+		var isTrue=false;
+		if(data[i].en.indexOf("def_")>=0){
+			continue;
+		}
+		if(data[i].is_show==0){
+			isTrue=true;
+		}
+		var field={
+			"field":data[i].en,
+			"title":data[i].cn,
+			"width":data[i].width,
+			"hidden":isTrue
+		}
+		fields.push(field);
+	}
+	tempFields.push(fields);
+	columns_field4=tempFields;
+}
 </script>
 </body>

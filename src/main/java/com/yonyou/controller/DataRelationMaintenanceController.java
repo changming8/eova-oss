@@ -20,6 +20,7 @@ import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
+import com.yonyou.util.UUID;
 
 public class DataRelationMaintenanceController extends BaseController{
 	
@@ -56,16 +57,14 @@ public class DataRelationMaintenanceController extends BaseController{
 		String select =  "select " + WidgetManager.buildSelect(object, RID());
 		String sql="";
 		if("table_master_col".equals(where)) {
-			sql = WidgetManager.buildQuerySQL(ctrl, menu, object, intercept, paras, true)+" where type='template' and sid='"+para1+"' and stable='"+para2+"'";
+			sql = WidgetManager.buildQuerySQL(ctrl, menu, object, intercept, paras, true)+" where type='template' and sid='"+para1+"' and md_table='"+para2+"'";
 		}else if("bs_style_b".equals(where)) {
 			sql = WidgetManager.buildQuerySQL(ctrl, menu, object, intercept, paras, true)+" where pid='"+para1+"' and isshow=0" ;
 		}else if("select".equals(where)) {
-			sql = WidgetManager.buildQuerySQL(ctrl, menu, object, intercept, paras, true)+" where type='template' and sid!='"+para1+"' and stable!='"+para2+"'" ;
-		} /*
-			 * else if("selectSearchSalve".equals(where)) { sql =
-			 * WidgetManager.buildQuerySQL(ctrl, menu, object, intercept, paras,
-			 * true)+" where pid='"+para1+"' and isshow=0" ; }
-			 */
+			sql = WidgetManager.buildQuerySQL(ctrl, menu, object, intercept, paras, true)+" where type='template' and sid='"+para1+"' and md_table!='"+para2+"'" ;
+		}else if("queryWhere".equals(where)) {
+			sql = WidgetManager.buildQuerySQL(ctrl, menu, object, intercept, paras, true)+" where "+para2+" like '%"+para1+"%'";
+		}
 		Page<Record> page = Db.use(object.getDs()).paginate(pageNumber, pageSize, select, sql, xx.toArray(paras));
 
 		// 查询后置任务
@@ -94,5 +93,42 @@ public class DataRelationMaintenanceController extends BaseController{
 		}
 
 		renderJson(sb.toString());
+	}
+	public void insertMasterSlaveContrast() {
+		String objectCode=getPara(0);
+		String masterId=getPara(1);
+		String slaveId=getPara(2);
+		String masterCol=getPara(3);
+		String slaveCol=getPara(4);
+		String slaveTable=getPara(5);
+		if("".equals(objectCode)) {
+			renderJson("{\"message\":\"对照数据异常\"}");
+			return;
+		}
+		Record record = new Record();
+		record.set("mdid", masterId);
+		record.set("md_column", masterCol);
+		record.set("dest_table", slaveTable);
+		record.set("dest_column", slaveCol);
+		String[] slaveIds=slaveId.split(",");
+		for(int i=0;i<slaveIds.length;i++) {
+			record.set("id",UUID.getUnqionPk());
+			record.set("destid",slaveIds[i]);
+			Db.use(xx.DS_EOVA).save(objectCode, record);
+		}
+		renderJson("{\"message\":\"保存成功\"}");
+	}
+	public void queryMaster() {
+		String objectCode=getPara(0);
+		List<String> record=Db.use(xx.DS_EOVA).query("SELECT column_name FROM information_schema.COLUMNS WHERE table_name='"+objectCode+"'");
+		
+		StringBuffer sb=new StringBuffer();
+		for(String re : record) {
+			sb.append(re+",");
+		}
+		String tempCol=sb.substring(0,sb.length()-1);
+		String sql="select "+tempCol+" from "+objectCode;
+		List<Record> recordData=Db.find(sql);
+		renderJson(recordData);
 	}
 }
