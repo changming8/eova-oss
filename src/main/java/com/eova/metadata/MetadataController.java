@@ -179,6 +179,9 @@ public class MetadataController extends BaseController {
 			} else {
 				Db.use(xx.DS_EOVA).update(tempColumnSql.toString());
 			}
+			
+			//更新建表状态
+			Db.use(xx.DS_EOVA).update("update bs_metadata set create_status = 1 where id =" +json.getString("id"));
 			renderJson(Easy.sucess());
 			return;
 		} catch (Exception e) {
@@ -234,7 +237,18 @@ public class MetadataController extends BaseController {
 		setAttr("menuCode", menuCode);
 		render("/eova/metadata/dialog/import.html");
 	}
-
+	//挑战页面
+	public void demo() {
+		String menuCode = this.getPara(0);
+		setAttr("menuCode", menuCode);
+		render("/eova/tabs2_demo.html");
+	}
+	//挑战页面
+	public void table() {
+		String menuCode = this.getPara(0);
+		setAttr("menuCode", menuCode);
+		render("/eova/table_1.html");
+	}
 	// 导入页面
 	public void imports() {
 		setAttr("dataSources", EovaConfig.getDataSources());
