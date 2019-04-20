@@ -15,8 +15,8 @@
 				</div>
 				<select id="slaveSelect" class="easyui-combobox" style="width:200px;"></select>
 				<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-tip',plain:true" onclick="blockDataModal()">数据定义</a>
-				<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="save()">保存对照</a>
-				<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-lock',plain:true" onclick="startUp()">启用被对照</a>
+				<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="queryModal()">增加对照</a>
+				<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="deleteModal()">删除对照</a>
 			</div>	
     		<table id="master_"  class="easyui-datagrid" toolbar="#tb">
     			
@@ -47,6 +47,24 @@
 			<a href="#" class="easyui-linkbutton" onclick="selectOneData()">确定</a>
 			<a href="#" class="easyui-linkbutton" onclick="closeDataRelation()">取消</a>
 		</div>
+		<div id="data2" class="easyui-dialog" title="数据关系维护" style="width:600px;height:500px;"
+		    data-options="iconCls:'icon-filter',modal:false,collapsible:true,buttons:'#bb2'">
+		    <div id="tb4" style="background-color:#fafafa">
+		    	<input id="dataRelationSearch2" class="easyui-searchbox" style="width:65%"
+						    data-options="searcher:doSearch2,prompt:'',menu:'#slave_ss'"></input>
+						<div id="slave_ss" style="width:120px">
+						    <div data-options="name:'sport'">模糊查询</div>
+						</div>
+				<select id="queryWhere2" class="easyui-combobox" style="width:32%"></select>
+			</div>
+		    <table id="dataRelation2" class="easyui-datagrid" toolbar="#tb4">
+                    
+            </table>
+		</div>
+		<div id="bb2">
+			<a href="#" class="easyui-linkbutton" onclick="save()">保存对照</a>
+			<a href="#" class="easyui-linkbutton" onclick="closeDataRelation()">取消</a>
+		</div>
     </div>
 </div>
 <div id="hide" style="display:none">
@@ -66,6 +84,8 @@ var columns_field3="";
 var columns_field4;
 var columns_field5="";
 var columns_field6;
+var columns_slave;
+var findSelect;
 var globalDataId="";
 var globalDataName="";
 var globalDataName2;
@@ -74,18 +94,42 @@ var masterOrSlaveWhere="";
 var searchSlave;
 var searchSlaveWhere="";
 var increment=0;
-var startUp_table;
-var isStart=0;
 $(function(){
 	closeDataRelation();
-	
+	$("#queryWhere2").combo({"editable":false});
 })
 </script>
 <script type="text/javascript">//按钮组
+function queryModal(){
+	if($("#slaveSelect").combo("getText").length<1){
+		$.messager.show({
+			title:'操作提示',
+			msg:'请选择数据对照',
+			timeout:1000,
+			width:260,
+			height:100,
+			showType:'slide'
+		});
+		return;
+	}
+	$("#data2").dialog("open");
+	slaveColumns("/dataRelationMaintenance/queryBsStyle/bs_style_b-bs_style_b-bs_style_b-"+findSelect);
+	tableSlave("dataRelation2","/dataRelationMaintenance/queryMaster/"+$("#slaveSelect").combo("getText"),null);
+	if(columns_slave==""){
+		return;
+	}
+	var str=[];
+	str.push({"value":"请选择查询条件列","text":"查询条件列"});
+	for(var i=0;i<columns_slave[0].length;i++){
+		//globalDataName=data.rows[0].md_table;
+		str.push({"value":columns_slave[0][i].field,"text":columns_slave[0][i].field});
+	}
+	$("#queryWhere2").combobox("loadData", str);
+	$("#queryWhere2").combobox("select", "请选择查询条件列");
+}
 function save(){
 	var master=$("#master_").datagrid("getSelections");
-	var slave=$("#slave_").datagrid("getSelections");
-	console.info(slave);
+	var slave=$("#dataRelation2").datagrid("getSelections");
 	if(master.length<1||slave.length<1){
 		$.messager.show({
 			title:'操作提示',
@@ -98,12 +142,12 @@ function save(){
 		return;
 	}
 	var masterCol=columns_field3[0][0].field;
-	var slaveCol=columns_field3[0][0].field;
+	var slaveCol=columns_slave[0][1].field;
 	var slaveTable=$("#slaveSelect").combo("getText");
 	if(masterCol.length<1||slaveCol.length<1||slaveTable.length<1){
 		$.messager.show({
 			title:'操作提示',
-			msg:'对照数据加载异常',
+			msg:'对照数据获取异常',
 			timeout:1000,
 			width:260,
 			height:100,
@@ -146,6 +190,20 @@ function save(){
 function doSearch(value,name){
 	column("bs_md_def");
 	table("dataRelation","/grid/query/bs_md_def-bs_md_def",value);
+}
+function doSearch2(value,name){
+	if($("#queryWhere2").combo("getValue")=="请选择查询条件列"){
+		$.messager.show({
+			title:'操作提示',
+			msg:'请选择查询条件列',
+			timeout:1000,
+			width:260,
+			height:100,
+			showType:'slide'
+		});
+		return;
+	}
+	tableSlave("dataRelation2","/dataRelationMaintenance/queryWhere/"+$("#slaveSelect").combo("getText")+"-"+value+"-"+$("#queryWhere2").combo("getText"));
 }
 function doSearchMaster(value,name){
 	if($("#queryWhere").combo("getValue")=="请选择查询条件列"||$("#queryWhere").combo("getValue").length<1){
@@ -202,34 +260,55 @@ function menuHandler(item){
 		$("#queryWhere").combobox("select", "请选择查询条件列");
 	}
 }
-function startUp(){
-	if(isStart%2==0){
+function deleteModal(){
+	var slave=$("#slave_").datagrid("getSelections");
+	var master=$("#master_").datagrid("getSelections");
+	if(slave.length<1||master.length<1){
 		$.messager.show({
 			title:'操作提示',
-			msg:'已启用被对照',
+			msg:'请选择对照数据删除',
 			timeout:1000,
 			width:260,
 			height:100,
 			showType:'slide'
 		});
-		startUp_table=true;
-		isStartUp=true;
-	}else{
-		$.messager.show({
-			title:'操作提示',
-			msg:'已关闭被对照.',
-			timeout:1000,
-			width:260,
-			height:100,
-			showType:'slide'
-		});
-		startUp_table=false;
-		isStartUp=false;
+		return;
 	}
-	isStart++;
+	var slaveIds="";
+	for(var i=0;i<slave.length;i++){
+		slaveIds+=slave[i].id+",";
+	}
+	slaveIds=slaveIds.substring(0,slaveIds.lastIndexOf(","));
+	$.ajax({
+		url:"/dataRelationMaintenance/deleteModal/"+increment+"-"+master[0].id+"-"+slaveIds+"-"+$("#slaveSelect").combo("getText"),
+		type:"delete",
+		dataType:"json",
+		async:false,
+		success:function(data){
+			$.messager.show({
+				title:'操作提示',
+				msg:data.message,
+				timeout:1000,
+				width:260,
+				height:100,
+				showType:'slide'
+			});
+		},
+		error:function(){
+			$.messager.show({
+				title:'操作提示',
+				msg:'服务器异常',
+				timeout:1000,
+				width:260,
+				height:100,
+				showType:'slide'
+			});
+		}
+	})
 }
 function closeDataRelation(){
 	$("#data").dialog("close");
+	$("#data2").dialog("close");
 }
 function blockDataModal(){
 	$("#data").dialog("open");
@@ -272,6 +351,33 @@ function table(tableName,url,wheres){
 	    	globalDataName=rowData.md_table_val;
 	    	masterOrSlaveWhere=globalDataName;
 	    	increment=rowData.mid_table;
+	    	//console.info(rowData);
+	    }
+	});
+}
+function tableSlave(tableName,url,wheres){
+	$("#"+tableName).datagrid({
+	    url:url,
+	    columns:columns_slave,
+	    fitColumns:true,
+	    striped:true,
+	    idField:"id",
+	    height:417,
+	    pagination:true,
+	    singleSelect:true,
+	    rownumbers:true,
+	    pageNumber:1,
+	    pageSize:15,
+	    pagePosition:"bottom",
+	    pageList:[15,30,50,100,200,500,1000,2000],
+	    onLoadSuccess:function(data){
+	    	//columns_field.splice(0,columns_field.length);
+	    },
+	    onCheck:function(rowIndex,rowData){
+	    	/* globalDataId=rowData.id;
+	    	globalDataName=rowData.md_table_val;
+	    	masterOrSlaveWhere=globalDataName;
+	    	increment=rowData.mid_table; */
 	    	//console.info(rowData);
 	    }
 	});
@@ -379,9 +485,9 @@ function table_master1(tableName,url){
 	    	ajaxSelect();
 	    },
 	    onCheck:function(rowIndex,rowData){
-	    	if(startUp_table==true){
+	    	//if(startUp_table==true){
 	    		table_slave_col2("slave_","/dataRelationMaintenance/startUpContrast/"+increment+"-"+rowData.id+"-"+$("#slaveSelect").combo("getText"));
-	    	}
+	    	//}
 	    }
 	});
 }
@@ -405,10 +511,11 @@ function table_master2(tableName,url){
 	    	
 	    },
 	    onCheck:function(rowIndex,rowData){
-	    	if(startUp_table==true){
+	    	/* if(startUp_table==true){
 	    		console.info("search:");
 	    		console.info(rowData);
-	    	}
+	    	} */
+    		table_slave_col2("slave_","/dataRelationMaintenance/startUpContrast/"+increment+"-"+rowData.id+"-"+$("#slaveSelect").combo("getText"));
 	    }
 	});
 }
@@ -430,7 +537,41 @@ function table_slave_col(tableName,url){
 	    pageList:[15,30,50,100,200,500,1000,2000],
 	    onLoadSuccess:function(data){
 	    		var tempFields=[];
-	    		var fields=[];
+	    		var fields=[{"field":"ck",checkbox:true}];
+		    	for(var i=0;i<data.rows.length;i++){
+		    		var field={
+		    			"field":data.rows[i].col_code,
+		    			"title":data.rows[i].col_name,
+		    			"width":100
+		    		}
+		    		fields.push(field);
+		    	}
+		    	tempFields.push(fields);
+		    	columns_field5=tempFields;
+		    	table_slave_col1("master_col","/dataRelationMaintenance/queryMaster/"+globalDataName2+"-"+globalDataName2);
+	    },
+	    onCheck:function(rowIndex,rowData){
+	    	
+	    }
+	});
+}
+function table_slave_colss(tableName,url){
+	$("#"+tableName).datagrid({
+	    url:url,
+	    columns:columns_field4,
+	    fitColumns:true,
+	    striped:true,
+	    idField:"id",
+	    pagination:true,
+	    singleSelect:true,
+	    rownumbers:true,
+	    pagePosition:"bottom",
+	    pageNumber:1,
+	    pageSize:15,
+	    pageList:[15,30,50,100,200,500,1000,2000],
+	    onLoadSuccess:function(data){
+	    		var tempFields=[];
+	    		var fields=[{"field":"ck",checkbox:true}];
 		    	for(var i=0;i<data.rows.length;i++){
 		    		var field={
 		    			"field":data.rows[i].col_code,
@@ -510,7 +651,7 @@ function table_slave_col2(tableName,url){
 	    fitColumns:true,
 	    striped:true,
 	    idField:"id",
-	    height:291,
+	    height:"auto",
 	    pagination:true,
 	    singleSelect:false,
 	    rownumbers:true,
@@ -532,6 +673,13 @@ function table_slave_col2(tableName,url){
 				height:100,
 				showType:'slide'
 			});
+	    	var item = $('#slave_').datagrid('getRows');
+            if (item) {
+                for (var i = item.length - 1; i >= 0; i--) {
+                    var index = $('#slave_').datagrid('getRowIndex', item[i]);
+                    $('#slave_').datagrid('deleteRow', index);
+                }
+            }
 	    }
 	});
 }
@@ -562,6 +710,7 @@ function ajaxSelect(){
 			   }
 			});
 			strId=data.rows[0].id;
+			findSelect=data.rows[0].id;
 			strNames=data.rows[0].md_table;
 			globalDataName2=data.rows[0].md_table;
 			//globalDataName=data.rows[0].md_table;
@@ -581,10 +730,11 @@ function ajaxSelect(){
 }
 $("#slaveSelect").combobox({
 	onSelect:function(record){
+		findSelect=record.id;
 		globalDataName2=record.md_table;
 		var table_id=record.id;
 		column3("bs_style_b");
-		table_slave_col("master_col","/dataRelationMaintenance/queryBsStyle/bs_style_b-bs_style_b-bs_style_b-"+table_id);
+		table_slave_colss("master_col","/dataRelationMaintenance/queryBsStyle/bs_style_b-bs_style_b-bs_style_b-"+table_id);
 	}
 });
 </script>
@@ -730,6 +880,30 @@ function splice_column3(data){
 	}
 	tempFields.push(fields);
 	columns_field4=tempFields;
+}
+</script>
+<script type="text/javascript">
+function slaveColumns(code){
+	$.ajax({
+		url:code,
+		type:"get",
+		dataType:"json",
+		async:false,
+		success:function(data){
+			var tempFields=[];
+    		var fields=[{"field":"ck","checkbox":true}];
+    		for(var i=0;i<data.rows.length;i++){
+    			var field={
+    				"field":data.rows[i].col_code,
+    				"title":data.rows[i].col_name,
+    				"width":100
+    			}
+    			fields.push(field);
+    		}
+    		tempFields.push(fields);
+    		columns_slave=tempFields;
+		}
+	});
 }
 </script>
 </body>
