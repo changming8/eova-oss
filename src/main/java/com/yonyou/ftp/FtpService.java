@@ -29,8 +29,8 @@ public class FtpService {
 			String workDirectoryId = listProduct.get(i).get(
 					"workdirectory_id");// 工作目录ID
 			String distinguish = listProduct.get(i).get("distinguish");// 大小写
-			String standardType = listProduct.get(i).get("standard_type");// 规范类型
-			String day_rule = listProduct.get(i).get("day_rule");// 解析规则
+			String analysisrule = listProduct.get(i).get("analysis_rule");// 规范规则
+			String day_rule = listProduct.get(i).get("day_rule");// 日期解析规则
 			String searchPath = listProduct.get(i).get("search_path");// 搜索路径
 			String fileName = listProduct.get(i).get("file_name");
 			String searchPath1 = listProduct.get(i).get("search_path1");// 搜索路径1
@@ -41,7 +41,8 @@ public class FtpService {
 			String fileName4 = listProduct.get(i).get("file_name4");
 			String fileName5 = listProduct.get(i).get("file_name5");
 			String fileName6 = listProduct.get(i).get("file_name6");
-			String descriptionFile = listProduct.get(i).get("description_file");
+			String descriptionFile = listProduct.get(i)
+					.get("description_file");
 			// 获取ftp信息
 			System.out.println("ftp_id:" + ftpId);
 			List<Record> ftpList = ServiceUtil.dao.getFtpById(ftpId);
@@ -60,10 +61,10 @@ public class FtpService {
 			System.out.println("地址:" + ftpAddress + "端口：" + ftpPort + "帐号："
 					+ ftpUsername + "密码：" + ftpPassword);
 			// 判断固定、解析
-			if (standardType.equals("2")) {
+			if (analysisrule.equals("2")) {
 				// 获取全路径信息
 				list = directoryName(ftpId, workDirectoryId, distinguish,
-						standardType, day_rule, searchPath1,
+						analysisrule, day_rule, searchPath1,
 						searchPath2, fileName1, fileName2, fileName3,
 						fileName4, fileName5, fileName6, descriptionFile);
 				for (String str : list) {
