@@ -97,7 +97,7 @@ li { list-style-type: none; }
 }
 #header .nav ul { display:none; width:230px; border:solid 1px #06223e; overflow:hidden; background:#FFF; position:absolute; top:20px; right:0;}
 #header .nav li { float:left; margin-left:-1px; padding:0 8px; line-height:11px; position:relative; background:url(/easy/style/images/listLine.png) no-repeat;}
-#header .nav li a { color:#b9ccda;}
+#header .nav li a { color:#E78925;}
 #header .nav ul li { margin-top:0px; height:21px;}
 #header .nav .selected ul {display:block;}
 

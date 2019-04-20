@@ -322,23 +322,6 @@ public class FtpService {
 		return list;
 	}
 
-	/**
-	 * 解析IUA
-	 * 
-	 * @param file_name6
-	 * @return
-	 */
-	public String IUA(String file_name6) {
-		String file_name6a = "";
-		if (file_name6.equals("1")) {
-			file_name6a = "I";
-		} else if (file_name6.equals("2")) {
-			file_name6a = "U";
-		} else if (file_name6.equals("3")) {
-			file_name6a = "A";
-		}
-		return file_name6a;
-	}
 
 	/**
 	 * 解析目录名
@@ -369,8 +352,6 @@ public class FtpService {
 		Date date = new Date();
 		// 获取日期
 		listWorkDirectory = date(file_name4, date, analytical_rule);
-		// IUA
-		String file_name6a = IUA(file_name6);
 		// 获取目录名
 		List<Record> listDirectory = ServiceUtil.dao.getWorkDirectoryById(work_directory_id);
 		String workName = "";
@@ -384,7 +365,7 @@ public class FtpService {
 				directoryName = workName + search_path1 + "/"
 						+ search_path + "/" + file_name1 + "-" + file_name2
 						+ "-" + file_name3 + "-" + str + "-" + file_name5 + "-"
-						+ file_name6a + description_file;
+						+ file_name6 + description_file;
 				list1.add(directoryName);
 			}
 

@@ -29,7 +29,7 @@
             </div>
             <#grid id="master_grid" toolbar="master_grid_toolbar" objectCode="${config.objectCode}" menuCode="${menu.code}" />
         </div>
-        <div data-options="region:'south',fit:false,border:false,split:true" style="height:${config.params.slave_height!200}px">
+        <div data-options="region:'south',fit:false,border:false,split:true" style="height:${config.params.slave_height!400}px">
 
             <div id="sonTab" class="easyui-tabs" data-options="fit:true,border:false">
 
@@ -39,7 +39,7 @@
                 	<div id="${x.code}_toolbar" style="display: none;">
 		                <table>
 		                    <tr>
-		                    	<%if(!isEmpty(btnMap[i+1]!)){// 有按钮授权才显示%>
+		                    	<%if(!isEmpty(btnMap[i+1]!)){// 鏈夋寜閽巿鏉冩墠鏄剧ず%>
                                 <%for(btn in btnMap[i+1]){%>
                                 <td><%include(btn.ui,{'object':x, 'gridId': x.code + '_grid', 'parentId': 'master_grid', config : config, 'field' : config.fields[i] , 'button':btn }){}%></td>
                                 <%}%>
@@ -57,11 +57,11 @@
 </div>
 <script>
     $(function(){
-    	<%// 主表相关设定%>
+    	<%// 涓昏〃鐩稿叧璁惧畾%>
         var $master_grid = $('#master_grid').datagrid({
-        	<%// 选中行事件%>
+        	<%// 閫変腑琛屼簨浠�%>
             onSelect:function(rowIndex, rowData){
-           		// 默认自动选中第一个Tab
+           		// 榛樿鑷姩閫変腑绗竴涓猅ab
            		var $firstSonGrid = $('#${config.objects[0]}_grid');
            		$firstSonGrid.datagrid('load',{
                     ${'query_' + config.fields[0]} : rowData.${config.objectField}
@@ -69,27 +69,27 @@
            		$firstSonGrid.datagrid('clearSelections');
                 $('#sonTab').tabs('select',0);
             },
-            <%// 数据加载成功事件%>
+            <%// 鏁版嵁鍔犺浇鎴愬姛浜嬩欢%>
             onLoadSuccess: function(data){
-            	// 主表没数据直接清空子表
+            	// 涓昏〃娌℃暟鎹洿鎺ユ竻绌哄瓙琛�
             	if(data.total == 0){
             		$(this).datagrid('clearSelections');
-            		// 清空子的数据
+            		// 娓呯┖瀛愮殑鏁版嵁
             		<%for(x in objects){%>
             		$('#${x.code}_grid').datagrid('loadData', { total: 0, rows: [] });
             		<%}%>
             		return;
             	}
-            	// 数据加载成功后自动选择第一行
+            	// 鏁版嵁鍔犺浇鎴愬姛鍚庤嚜鍔ㄩ�夋嫨绗竴琛�
             	$(this).datagrid('clearSelections');
                 $(this).datagrid('selectRow', 0);
             }
         });
-        <%// 子表相关设定%>
+        <%// 瀛愯〃鐩稿叧璁惧畾%>
         <%for(x in objects){%>
 		$('#${x.code}_grid').datagrid({
 			onBeforeLoad: function(data){
-				// 主表没选中行，子表不加载任何数据(包括排序)
+				// 涓昏〃娌￠�変腑琛岋紝瀛愯〃涓嶅姞杞戒换浣曟暟鎹�(鍖呮嫭鎺掑簭)
 				var rowData = $.getWidgetSelected($master_grid);
             	if(!rowData){
             		return false;
