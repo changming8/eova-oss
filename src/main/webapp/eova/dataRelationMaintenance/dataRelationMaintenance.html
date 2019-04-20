@@ -73,7 +73,9 @@ var isStartUp=false;
 var masterOrSlaveWhere="";
 var searchSlave;
 var searchSlaveWhere="";
-var increment;
+var increment=0;
+var startUp_table;
+var isStart=0;
 $(function(){
 	closeDataRelation();
 	
@@ -114,8 +116,6 @@ function save(){
 		slaveCols+=slave[i].id+",";
 	}
 	slaveCols=slaveCols.substring(0,slaveCols.lastIndexOf(","));
-	var message={"message":"cheg"};
-	console.info(JSON.stringify(message));
 	$.ajax({
 		url:"/dataRelationMaintenance/insertMasterSlaveContrast/"+increment+"-"+master[0].id+"-"+slaveCols+"-"+masterCol+"-"+slaveCol+"-"+slaveTable,
 		type:"post",
@@ -160,12 +160,12 @@ function doSearchMaster(value,name){
 		return;
 	}
 	if(masterOrSlaveWhere==globalDataName){
-		table_master2("master_","/dataRelationMaintenance/queryBsStyle/"+masterOrSlaveWhere+"-"+masterOrSlaveWhere+"-queryWhere-"+value+"-"+$("#queryWhere").combo("getValue"));
+		table_master2("master_","/dataRelationMaintenance/queryWhere/"+masterOrSlaveWhere+"-"+value+"-"+$("#queryWhere").combo("getValue"));
 	}else{
 		searchSlaveWhere="slaveWhere";
 		//column3("bs_style_b");
 		table_slave_cols("master_col","/dataRelationMaintenance/queryBsStyle/bs_style_b-bs_style_b-bs_style_b-"+$("#slaveSelect").combo("getValue"));
-		table_slave_col2("slave_","/dataRelationMaintenance/queryBsStyle/"+$("#slaveSelect").combo("getText")+"-"+$("#slaveSelect").combo("getText")+"-queryWhere-"+value+"-"+$("#queryWhere").combo("getValue"));
+		table_slave_col2("slave_","/dataRelationMaintenance/queryWhere/"+$("#slaveSelect").combo("getText")+"-"+value+"-"+$("#queryWhere").combo("getValue"));
 		//searchSlaveWhere=null;
 	}
 }
@@ -203,7 +203,7 @@ function menuHandler(item){
 	}
 }
 function startUp(){
-	if(increment%2==0){
+	if(isStart%2==0){
 		$.messager.show({
 			title:'操作提示',
 			msg:'已启用被对照',
@@ -212,6 +212,7 @@ function startUp(){
 			height:100,
 			showType:'slide'
 		});
+		startUp_table=true;
 		isStartUp=true;
 	}else{
 		$.messager.show({
@@ -222,9 +223,10 @@ function startUp(){
 			height:100,
 			showType:'slide'
 		});
+		startUp_table=false;
 		isStartUp=false;
 	}
-	increment++;
+	isStart++;
 }
 function closeDataRelation(){
 	$("#data").dialog("close");
@@ -377,7 +379,9 @@ function table_master1(tableName,url){
 	    	ajaxSelect();
 	    },
 	    onCheck:function(rowIndex,rowData){
-	    	
+	    	if(startUp_table==true){
+	    		table_slave_col2("slave_","/dataRelationMaintenance/startUpContrast/"+increment+"-"+rowData.id+"-"+$("#slaveSelect").combo("getText"));
+	    	}
 	    }
 	});
 }
@@ -401,7 +405,10 @@ function table_master2(tableName,url){
 	    	
 	    },
 	    onCheck:function(rowIndex,rowData){
-	    	
+	    	if(startUp_table==true){
+	    		console.info("search:");
+	    		console.info(rowData);
+	    	}
 	    }
 	});
 }
@@ -434,9 +441,7 @@ function table_slave_col(tableName,url){
 		    	}
 		    	tempFields.push(fields);
 		    	columns_field5=tempFields;
-		    	console.info(columns_field5);
-		    	console.info(globalDataName2);
-		    	table_slave_col1("slave_","/grid/query/"+globalDataName2+"-"+globalDataName2);
+		    	table_slave_col1("slave_","/dataRelationMaintenance/queryMaster/"+globalDataName2+"-"+globalDataName2);
 	    },
 	    onCheck:function(rowIndex,rowData){
 	    	
@@ -458,21 +463,7 @@ function table_slave_cols(tableName,url){
 	    pageSize:15,
 	    pageList:[15,30,50,100,200,500,1000,2000],
 	    onLoadSuccess:function(data){
-	    		/* var tempFields=[];
-	    		var fields=[];
-		    	for(var i=0;i<data.rows.length;i++){
-		    		var field={
-		    			"field":data.rows[i].col_code,
-		    			"title":data.rows[i].col_name,
-		    			"width":100
-		    		}
-		    		fields.push(field);
-		    	}
-		    	tempFields.push(fields);
-		    	columns_field6=tempFields;
-		    	console.info(columns_field6);
-		    	console.info(data);
-		    	table_slave_col2("slave_","/grid/query/"+globalDataName2+"-"+globalDataName2); */
+	    	
 	    },
 	    onCheck:function(rowIndex,rowData){
 	    	
@@ -528,11 +519,19 @@ function table_slave_col2(tableName,url){
 	    pageSize:15,
 	    pageList:[15,30,50,100,200,500,1000,2000],
 	    onLoadSuccess:function(data){
-	    	//console.info(data);
-	    	//console.info(columns_field5);
+
 	    },
 	    onCheck:function(rowIndex,rowData){
 	    	
+	    },onLoadError:function(){
+	    	$.messager.show({
+				title:'操作提示',
+				msg:'无对照数据',
+				timeout:1000,
+				width:260,
+				height:100,
+				showType:'slide'
+			});
 	    }
 	});
 }
@@ -582,7 +581,10 @@ function ajaxSelect(){
 }
 $("#slaveSelect").combobox({
 	onSelect:function(record){
-		
+		globalDataName2=record.md_table;
+		var table_id=record.id;
+		column3("bs_style_b");
+		table_slave_col("master_col","/dataRelationMaintenance/queryBsStyle/bs_style_b-bs_style_b-bs_style_b-"+table_id);
 	}
 });
 </script>

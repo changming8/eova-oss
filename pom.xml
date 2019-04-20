@@ -32,6 +32,12 @@
 		    <scope>provided</scope>
 		</dependency>
 		
+		<dependency>
+		    <groupId>jchardet</groupId>
+		    <artifactId>jchardet</artifactId>
+		    <version>1.1.0</version>
+		</dependency>
+		
 		<!-- 无法自动下载，请手工获取Jar(10G专用)：https://gitee.com/eova/eova/attach_files，其它版本驱动自行下载测试！-->
 		<!-- <dependency> -->
 		<!-- <groupId>com.oracle</groupId> -->

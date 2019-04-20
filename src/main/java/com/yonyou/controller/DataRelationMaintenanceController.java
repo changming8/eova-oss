@@ -29,15 +29,19 @@ public class DataRelationMaintenanceController extends BaseController{
 	/** 元对象业务拦截器 **/
 	protected MetaObjectIntercept intercept = null;
 
-	/** 异常信息 **/
-	private String errorInfo = "";
-	
+	/*
+	 * 页面跳转
+	 */
 	public void dataRelationMaintenance() {
 		render("/eova/dataRelationMaintenance/dataRelationMaintenance.html");
 	}
 	public void dataFlow() {
 		render("/eova/dataflow/dataFlow.html");
 	}
+	/*
+	 * dataRelationMaintenance大部分查询
+	 * 
+	 */
 	public void queryBsStyle() throws Exception {
 		String objectCode=getPara(0);
 		String menuCode=getPara(1);
@@ -62,8 +66,6 @@ public class DataRelationMaintenanceController extends BaseController{
 			sql = WidgetManager.buildQuerySQL(ctrl, menu, object, intercept, paras, true)+" where pid='"+para1+"' and isshow=0" ;
 		}else if("select".equals(where)) {
 			sql = WidgetManager.buildQuerySQL(ctrl, menu, object, intercept, paras, true)+" where type='template' and sid='"+para1+"' and md_table!='"+para2+"'" ;
-		}else if("queryWhere".equals(where)) {
-			sql = WidgetManager.buildQuerySQL(ctrl, menu, object, intercept, paras, true)+" where "+para2+" like '%"+para1+"%'";
 		}
 		Page<Record> page = Db.use(object.getDs()).paginate(pageNumber, pageSize, select, sql, xx.toArray(paras));
 
@@ -94,6 +96,9 @@ public class DataRelationMaintenanceController extends BaseController{
 
 		renderJson(sb.toString());
 	}
+	/*
+	 * 新增数据到关系存储表
+	 */
 	public void insertMasterSlaveContrast() {
 		String objectCode=getPara(0);
 		String masterId=getPara(1);
@@ -118,6 +123,9 @@ public class DataRelationMaintenanceController extends BaseController{
 		}
 		renderJson("{\"message\":\"保存成功\"}");
 	}
+	/*
+	 * 对照查询
+	 */
 	public void queryMaster() {
 		String objectCode=getPara(0);
 		List<String> record=Db.use(xx.DS_EOVA).query("SELECT column_name FROM information_schema.COLUMNS WHERE table_name='"+objectCode+"'");
@@ -130,5 +138,40 @@ public class DataRelationMaintenanceController extends BaseController{
 		String sql="select "+tempCol+" from "+objectCode;
 		List<Record> recordData=Db.find(sql);
 		renderJson(recordData);
+	}
+	/*
+	 * 对照条件查询
+	 */
+	public void queryWhere() {
+		String objectCode=getPara(0);
+		String para1=getPara(1);
+		String para2=getPara(2);
+		
+		String sql="select * from "+objectCode+" where "+para2+" like '%"+para1+"%'";
+		List<Record> record=Db.find(sql);
+		renderJson(record);
+	}
+	/*
+	 * 启用对照
+	 */
+	public void startUpContrast() {
+		String mid_table=getPara(0);
+		String masterId=getPara(1);
+		String dest_table=getPara(2);
+		
+		String sql_query_ids="select destid from "+mid_table+" where mdid='"+masterId+"' and dest_table='"+dest_table+"'";
+		List<String> slaveIds=Db.query(sql_query_ids);
+		if(slaveIds.size()<1) {
+			renderJson("");
+			return;
+		}
+		StringBuffer sql_query=new StringBuffer();
+		sql_query.append("select * from "+dest_table+" where id in(");
+		for(String slave:slaveIds) {
+			sql_query.append("'"+slave+"',");
+		}
+		String sql=sql_query.substring(0,sql_query.lastIndexOf(",")).toString()+")";
+		List<Record> queryData=Db.find(sql);
+		renderJson(queryData);
 	}
 }
