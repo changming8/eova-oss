@@ -106,17 +106,25 @@ public class DataRelationMaintenanceController extends BaseController{
 		String masterCol=getPara(3);
 		String slaveCol=getPara(4);
 		String slaveTable=getPara(5);
+		String[] slaveIds=slaveId.split(",");
 		if("".equals(objectCode)) {
 			renderJson("{\"message\":\"对照数据异常\"}");
 			return;
 		}
+		StringBuffer sb=new StringBuffer();
+		sb.append("SELECT count(destid) FROM md_mid1");
+		Integer isId;
+		
 		Record record = new Record();
 		record.set("mdid", masterId);
 		record.set("md_column", masterCol);
 		record.set("dest_table", slaveTable);
 		record.set("dest_column", slaveCol);
-		String[] slaveIds=slaveId.split(",");
 		for(int i=0;i<slaveIds.length;i++) {
+			isId=Db.queryInt(sb.toString()+" where mdid='"+masterId+"' and dest_table='"+slaveTable+"' and destid='"+slaveIds[i]+"'");
+			if(isId>0) {
+				continue;
+			}
 			record.set("id",UUID.getUnqionPk());
 			record.set("destid",slaveIds[i]);
 			Db.use(xx.DS_EOVA).save(objectCode, record);
@@ -173,5 +181,20 @@ public class DataRelationMaintenanceController extends BaseController{
 		String sql=sql_query.substring(0,sql_query.lastIndexOf(",")).toString()+")";
 		List<Record> queryData=Db.find(sql);
 		renderJson(queryData);
+	}
+	/*
+	 * 删除对照
+	 */
+	public void deleteModal() {
+		String tempTable=getPara(0);
+		String mdid=getPara(1);
+		String slaveId=getPara(2);
+		String slaveTable=getPara(3);
+		
+		String[] slaveIds=slaveId.split(",");
+		for(int i=0;i<slaveIds.length;i++) {
+			Db.delete("delete from "+tempTable+" where mdid='"+mdid+"' and destid='"+slaveIds[i]+"' and dest_table='"+slaveTable+"'");
+		}
+		renderJson("{\"message\":\"删除成功\"}");
 	}
 }
