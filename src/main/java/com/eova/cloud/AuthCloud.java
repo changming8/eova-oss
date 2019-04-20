@@ -41,7 +41,7 @@ public class AuthCloud {
 
 			return app;
 		} catch (Exception e) {
-			LogKit.info("应用ID和应用密钥在http://www.eova.cn/app 免费注册获取,Eova app config error：" + e.getMessage());
+			// LogKit.info("应用ID和应用密钥在http://www.eova.cn/app 免费注册获取,Eova app config error：" + e.getMessage());
 			return null;
 		}
 	}
