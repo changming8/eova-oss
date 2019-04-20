@@ -30,7 +30,7 @@ public class FtpService {
 					"workdirectory_id");// 工作目录ID
 			String distinguish = listProduct.get(i).get("distinguish");// 大小写
 			String standardType = listProduct.get(i).get("standard_type");// 规范类型
-			int analyticalRule = listProduct.get(i).get("analytical_rule");// 解析规则
+			String day_rule = listProduct.get(i).get("day_rule");// 解析规则
 			String searchPath = listProduct.get(i).get("search_path");// 搜索路径
 			String fileName = listProduct.get(i).get("file_name");
 			String searchPath1 = listProduct.get(i).get("search_path1");// 搜索路径1
@@ -41,8 +41,7 @@ public class FtpService {
 			String fileName4 = listProduct.get(i).get("file_name4");
 			String fileName5 = listProduct.get(i).get("file_name5");
 			String fileName6 = listProduct.get(i).get("file_name6");
-			String descriptionFile = listProduct.get(i)
-					.get("description_file");
+			String descriptionFile = listProduct.get(i).get("description_file");
 			// 获取ftp信息
 			System.out.println("ftp_id:" + ftpId);
 			List<Record> ftpList = ServiceUtil.dao.getFtpById(ftpId);
@@ -64,7 +63,7 @@ public class FtpService {
 			if (standardType.equals("2")) {
 				// 获取全路径信息
 				list = directoryName(ftpId, workDirectoryId, distinguish,
-						standardType, analyticalRule, searchPath1,
+						standardType, day_rule, searchPath1,
 						searchPath2, fileName1, fileName2, fileName3,
 						fileName4, fileName5, fileName6, descriptionFile);
 				for (String str : list) {
@@ -255,7 +254,7 @@ public class FtpService {
 
 	public ArrayList<String> directoryName(String ftp_id,
 			String work_directory_id, String distinguish, String standard_type,
-			int analytical_rule, String search_path1, String search_path2,
+			String day_rule, String search_path1, String search_path2,
 			String file_name1, String file_name2, String file_name3,
 			String file_name4, String file_name5, String file_name6,
 			String description_file) {
@@ -263,7 +262,7 @@ public class FtpService {
 		ArrayList<String> list1 = new ArrayList<String>();
 		Date date = new Date();
 		// 获取日期
-		listWorkDirectory = date(file_name4, date, analytical_rule);
+		listWorkDirectory = date(file_name4, date, day_rule);
 		// 获取目录名
 		List<Record> listDirectory = ServiceUtil.dao.getWorkDirectoryById(work_directory_id);
 		String workName = "";
