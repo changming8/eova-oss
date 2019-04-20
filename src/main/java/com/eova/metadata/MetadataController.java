@@ -60,7 +60,6 @@ public class MetadataController extends BaseController {
 		Object j = keepPara("rows").getAttr("rows");
 		JSONArray jsonlist = JSONArray.parseArray(j.toString());
 		JSONObject json = (JSONObject) jsonlist.get(0);
-		System.out.print(json.getString("id"));
 		// 复制元数据
 		// 先查询 先复制以时间戳为结尾复制到元数据主表中 子表直接复制
 		String metadataSql = "select * from bs_metadata where dr=0 and  id ='" + json.getString("id") + "'";
@@ -71,10 +70,15 @@ public class MetadataController extends BaseController {
 		Record record = new Record();
 		record = metadataList.get(0).remove("ID");
 		record.set("ID", id);
-		String code = record.get("DATA_CODE").toString();
+		String data_code = record.get("DATA_CODE").toString();
+		String code = record.get("code").toString();
 		record.remove("DATA_CODE");
-		String serialCode = code + "_" + System.currentTimeMillis();
+		long t = System.currentTimeMillis();
+		String serialCode = data_code + "_" + t;
+		String coden = code+"_"+t;
 		record.set("DATA_CODE", serialCode);
+		record.set("code", coden);
+		record.set("create_status", 0);
 		// 插入
 		Db.use(xx.DS_EOVA).save("bs_metadata", record);
 		// 复制子表字段信息
