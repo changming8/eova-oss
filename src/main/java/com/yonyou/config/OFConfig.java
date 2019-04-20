@@ -10,6 +10,7 @@ import com.eova.user.UserController;
 import com.jfinal.config.Plugins;
 import com.jfinal.config.Routes;
 import com.jfinal.plugin.activerecord.ActiveRecordPlugin;
+import com.jfinal.plugin.redis.RedisPlugin;
 import com.oss.OSSController;
 import com.oss.global.BaseMetaObjectIntercept;
 import com.oss.global.GlobalEovaIntercept;
@@ -50,7 +51,6 @@ public class OFConfig extends EovaConfig {
 		me.add("/product", ProductController.class);
 		me.add("/mddef", MdDEFController.class);
 		me.add("/dataRelationMaintenance", DataRelationMaintenanceController.class);
-		me.add("/ftp", FTPController.class);
 		me.add("/flow", QuartzController.class);
 		// 排除不需要登录拦截的URI 语法同SpringMVC拦截器配置 @see
 		// com.eova.common.utils.util.AntPathMatcher
@@ -76,7 +76,7 @@ public class OFConfig extends EovaConfig {
 		main.addMapping("users", Users.class);
 		main.addMapping("address", Address.class);
 		main.addMapping("orders", Orders.class);
-		
+
 		main.addMapping("bs_filemanager", FileManagerModel.class);
 		main.addMapping("bs_metadata", Metadata.class);
 		main.addMapping("bs_metadata_b", MetadataDetail.class);
@@ -89,7 +89,11 @@ public class OFConfig extends EovaConfig {
 	 */
 	@Override
 	protected void plugin(Plugins plugins) {
-		// 添加需要的插件
+//RedisManager对应redis管理器
+		RedisPlugin main = new RedisPlugin("main", "localhost");
+		RedisPlugin eova = new RedisPlugin("eova", "localhost");
+		plugins.add(main);
+		plugins.add(eova);
 	}
 
 	/**
@@ -106,8 +110,10 @@ public class OFConfig extends EovaConfig {
 //		主数据列 参照联动 参照联动
 		String sql = "select field_code 编码 ,field_name 名称 from bs_metadata_b where metadata_id =( select id from bs_metadata where data_code  =( select md_table from bs_md_def where id = ? )) and  (unique_constraint = 1 or  key_flag = 1)";
 		exps.put("md_ref", sql);
-		exps.put("md_dest_column_ref", "select  field_code 编码 ,field_name 名称  from bs_metadata_b where metadata_id = (select id from bs_metadata where data_code = ? ) and (unique_constraint = 1 or  key_flag = 1) ");
-		exps.put("bs_metadata_column_ref", "select  field_code 编码 ,field_name 名称  from bs_metadata_b where metadata_id = (select id from bs_metadata where data_code = ? ) and (key_flag =1 or unique_constraint =1)");
+		exps.put("md_dest_column_ref",
+				"select  field_code 编码 ,field_name 名称  from bs_metadata_b where metadata_id = (select id from bs_metadata where data_code = ? ) and (unique_constraint = 1 or  key_flag = 1) ");
+		exps.put("bs_metadata_column_ref",
+				"select  field_code 编码 ,field_name 名称  from bs_metadata_b where metadata_id = (select id from bs_metadata where data_code = ? ) and (key_flag =1 or unique_constraint =1)");
 		// 用法，级联动态在页面改变SQL和参数
 		// $xxx.eovacombo({exp : 'selectAreaByLv2AndPid,aaa,10'}).reload();
 		// $xxx.eovafind({exp : 'selectAreaByLv2AndPid,aaa,10'});
