@@ -50,8 +50,14 @@ public class OFConfig extends EovaConfig {
 		me.add("/test", TestController.class);
 		me.add("/product", ProductController.class);
 		me.add("/mddef", MdDEFController.class);
+<<<<<<< HEAD
 		me.add("/dataRelationMaintenance", DataRelationMaintenanceController.class);
 		me.add("/ftp", FTPController.class);
+=======
+		me.add("/dataRelationMaintenance", DataRelationMaintenanceController.class);
+
+		me.add("/ftp", FTPController.class);
+>>>>>>> branch 'master' of https://github.com/financial-management/eova-oss.git
 		me.add("/flow", QuartzController.class);
 		// 排除不需要登录拦截的URI 语法同SpringMVC拦截器配置 @see
 		// com.eova.common.utils.util.AntPathMatcher
