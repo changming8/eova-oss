@@ -23,6 +23,7 @@ import com.oss.model.Users;
 import com.oss.product.ProductController;
 import com.oss.test.TestController;
 import com.yonyou.controller.DataRelationMaintenanceController;
+import com.yonyou.controller.FTPController;
 import com.yonyou.controller.MdDEFController;
 import com.yonyou.model.FileManagerModel;
 import com.yonyou.quartz.controller.QuartzController;
@@ -50,6 +51,7 @@ public class OFConfig extends EovaConfig {
 		me.add("/product", ProductController.class);
 		me.add("/mddef", MdDEFController.class);
 		me.add("/dataRelationMaintenance", DataRelationMaintenanceController.class);
+		me.add("/ftp", FTPController.class);
 		me.add("/flow", QuartzController.class);
 		// 排除不需要登录拦截的URI 语法同SpringMVC拦截器配置 @see
 		// com.eova.common.utils.util.AntPathMatcher
