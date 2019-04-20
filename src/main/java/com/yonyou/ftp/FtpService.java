@@ -29,7 +29,7 @@ public class FtpService {
 			String workDirectoryId = listProduct.get(i).get(
 					"workdirectory_id");// 工作目录ID
 			String distinguish = listProduct.get(i).get("distinguish");// 大小写
-			String analysisrule = listProduct.get(i).get("analysis_rule");// 规范规则
+			String analysis_rule = listProduct.get(i).get("analysis_rule");// 解析规则 // 固定式，解析式
 			String day_rule = listProduct.get(i).get("day_rule");// 日期解析规则
 			String searchPath = listProduct.get(i).get("search_path");// 搜索路径
 			String fileName = listProduct.get(i).get("file_name");
@@ -61,10 +61,10 @@ public class FtpService {
 			System.out.println("地址:" + ftpAddress + "端口：" + ftpPort + "帐号："
 					+ ftpUsername + "密码：" + ftpPassword);
 			// 判断固定、解析
-			if (analysisrule.equals("2")) {
+			if (analysis_rule.equals("2")) {
 				// 获取全路径信息
 				list = directoryName(ftpId, workDirectoryId, distinguish,
-						analysisrule, day_rule, searchPath1,
+						analysis_rule, day_rule, searchPath1,
 						searchPath2, fileName1, fileName2, fileName3,
 						fileName4, fileName5, fileName6, descriptionFile);
 				for (String str : list) {
@@ -239,8 +239,8 @@ public class FtpService {
 	 * 解析目录名
 	 * 
 	 * @param distinguish
-	 * @param standard_type
-	 * @param analytical_rule
+	 * @param analysis_rule // 解析规则 // 固定式，解析式
+	 * @param day_rule
 	 * @param search_path1
 	 * @param search_path2
 	 * @param file_name1
@@ -254,7 +254,7 @@ public class FtpService {
 	 */
 
 	public ArrayList<String> directoryName(String ftp_id,
-			String work_directory_id, String distinguish, String standard_type,
+			String work_directory_id, String distinguish, String analysis_rule,
 			String day_rule, String search_path1, String search_path2,
 			String file_name1, String file_name2, String file_name3,
 			String file_name4, String file_name5, String file_name6,
@@ -263,14 +263,14 @@ public class FtpService {
 		ArrayList<String> list1 = new ArrayList<String>();
 		Date date = new Date();
 		// 获取日期
-		listWorkDirectory = date(file_name4, date, day_rule);
+		listWorkDirectory = date(file_name4, date, Integer.parseInt(day_rule));
 		// 获取目录名
 		List<Record> listDirectory = ServiceUtil.dao.getWorkDirectoryById(work_directory_id);
 		String workName = "";
 		for (int i = 0; i < listDirectory.size(); i++) {
 			workName = listDirectory.get(i).get("working_path");
 		}
-		if (standard_type.equals("2")) {
+		if (analysis_rule.equals("2")) {
 			for (String str : listWorkDirectory) {
 				String directoryName = "";
 				String search_path = str.substring(0, 6);
