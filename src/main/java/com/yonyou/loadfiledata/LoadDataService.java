@@ -23,14 +23,12 @@ import com.yonyou.util.FileUtil;
 
 /**
  * 数据文件load到数据库指定表环节
- * @author cm
- *
+ * @author changming
  */
 public class LoadDataService {
 
 	/**
 	 * 数据库表load数据文件
-	 * 
 	 * @param id
 	 * @return
 	 */
@@ -45,7 +43,6 @@ public class LoadDataService {
 		String distinguish = listProduct.get(0).get("distinguish");// 大小写
 		String standard_type = listProduct.get(0).get("standard_type");// 规范类型
 		int analytical_rule = listProduct.get(0).get("analytical_rule");// 解析规则
-//		String search_path = listProduct.get(0).get("search_path");// 搜索路径
 		String file_name = listProduct.get(0).get("file_name");
 		String search_path1 = listProduct.get(0).get("search_path1");// 搜索路径1
 		String search_path2 = listProduct.get(0).get("search_path2");// 搜索路径2
@@ -133,18 +130,18 @@ public class LoadDataService {
 			
 			Connection conn = null;
 			try {
-				conn = Db.use(xx.DS_EOVA).getConfig().getConnection();
+				conn = Db.use(xx.DS_MAIN).getConfig().getConnection();
 			} catch (SQLException e) {
 				e.printStackTrace();
 				responseBody.setStatus(1);
-				responseBody.setMes("字段序列为空");
+				responseBody.setMes("获取数据库连接失败");
 				responseBody.setObjectid(data.getStr("id"));
 				responseBody.setObjecttype(1);
 				return responseBody;
 			}	
 			if (!checkColumns(table_name, fields, conn)) {
 				responseBody.setStatus(1);
-				responseBody.setMes("字段序列异常");
+				responseBody.setMes("字段序与数据库表列不匹配");
 				responseBody.setObjectid(data.getStr("id"));
 				responseBody.setObjecttype(1);
 				return responseBody;
@@ -158,21 +155,21 @@ public class LoadDataService {
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 				responseBody.setStatus(1);
-				responseBody.setMes("数据文件不存在");
+				responseBody.setMes("字符集转换：数据文件不存在");
 				responseBody.setObjectid(data.getStr("id"));
 				responseBody.setObjecttype(1);
 				return responseBody;
 			} catch (IOException e) {
 				e.printStackTrace();
 				responseBody.setStatus(1);
-				responseBody.setMes("文件处理IO异常");
+				responseBody.setMes("字符集转换：文件处理IO异常");
 				responseBody.setObjectid(data.getStr("id"));
 				responseBody.setObjecttype(1);
 				return responseBody;
 			} catch (Exception e) {
 				e.printStackTrace();
 				responseBody.setStatus(1);
-				responseBody.setMes("文件处理其他异常");
+				responseBody.setMes("字符集转换：转换异常");
 				responseBody.setObjectid(data.getStr("id"));
 				responseBody.setObjecttype(1);
 				return responseBody;
@@ -183,7 +180,7 @@ public class LoadDataService {
 			} catch (IOException e) {
 				e.printStackTrace();
 				responseBody.setStatus(1);
-				responseBody.setMes("数据文件换行符异常");
+				responseBody.setMes("换行符替换：数据文件换行符异常");
 				responseBody.setObjectid(data.getStr("id"));
 				responseBody.setObjecttype(1);
 				return responseBody;
@@ -194,7 +191,7 @@ public class LoadDataService {
 			} catch (IOException e) {
 				e.printStackTrace();
 				responseBody.setStatus(1);
-				responseBody.setMes("数据文件Bom头异常");
+				responseBody.setMes("处理数据文件Bom头异常");
 				responseBody.setObjectid(data.getStr("id"));
 				responseBody.setObjecttype(1);
 				return responseBody;
@@ -206,14 +203,14 @@ public class LoadDataService {
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 				responseBody.setStatus(1);
-				responseBody.setMes( fileFullName + "数据文不存在");
+				responseBody.setMes( "数据Load:" + fileFullName + "数据文不存在");
 				responseBody.setObjectid(data.getStr("id"));
 				responseBody.setObjecttype(1);
 				return responseBody;
 			} catch (SQLException e) {
 				e.printStackTrace();
 				responseBody.setStatus(1);
-				responseBody.setMes( "数据Load SQL异常");
+				responseBody.setMes( "数据Load:SQL异常");
 				responseBody.setObjectid(data.getStr("id"));
 				responseBody.setObjecttype(1);
 				return responseBody;
@@ -300,10 +297,7 @@ public class LoadDataService {
 		String file_name6a = IUA(file_name6);
 		// 获取目录名
 		List<Record> listDirectory = new ServiceUtil().getWorkDirectoryById(work_directory_id);
-		String workName = "";
-		for (int i = 0; i < listDirectory.size(); i++) {
-			workName = listDirectory.get(i).get("working_path");
-		}
+		String workName =  listDirectory.get(0).get("working_path");
 		if (standard_type.equals("2")) {
 			for (String str : listWorkDirectory) {
 				String directoryName = "";
