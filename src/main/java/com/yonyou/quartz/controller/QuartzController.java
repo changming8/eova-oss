@@ -1,28 +1,31 @@
-package com.yonyou.quartz;
+package com.yonyou.quartz.controller;
+/**
+ * 流程立即执行
+ * @author changjr
+ * 2019年4月19日17:15:59
+ */
 
 import java.util.List;
 
-import org.quartz.JobExecutionContext;
-
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.eova.common.base.BaseController;
 import com.eova.common.utils.xx;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
+import com.yonyou.quartz.ExecuteThread;
 
-/**
- * Job任务核心执行活动
- * 
- * @author changjr 2019年4月16日14:17:53
- */
-public class CoreExecute {
-
-	@SuppressWarnings("unused")
-	public void exe(JobExecutionContext context) {
-		String name = this.getClass().getName();
-		List<Record> res = Db.find("select id from eova_task where clazz = ?", context.getJobInstance().getClass().getName());
-		String taskid = res.get(0).getStr("id");
-		System.out.println(taskid);
+public class QuartzController extends BaseController {
+	/**
+	 * 立即执行
+	 */
+	public void now() {
+		String params = getPara("rows");
+		JSONObject obj = (((JSONArray) JSONObject.parse(params)).getJSONObject(0));
+		String id = obj.getString("id");
+		
 		List<Record> flows = Db.use(xx.DS_MAIN)
-				.find("select * from bs_data_flow where dr =0 and task_id = ? and task_state = 1", taskid);
+				.find("select * from bs_data_flow where dr =0 and id = ? and task_state = 1",id);
 		String sql = "select t.flowtype_executionclass ,b.flow_id ,b.flow_code,b.flow_name,b.flow_sort,b.pid ,t.flowtype_code,t.flowtype_name  from bs_flow_type t inner  join bs_data_flow_b b on t.id = b.flowtype_id where b.pid =?  order by b.flow_sort";
 		System.out.println(flows);
 		for (Record r : flows) {
@@ -33,7 +36,6 @@ public class CoreExecute {
 			}
 
 		}
-
 	}
 
 }

@@ -6,7 +6,6 @@ import com.eova.common.base.BaseModel;
 import com.eova.common.utils.xx;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
-import com.yonyou.util.FileStatus;
 
 public class FileManagerModel extends BaseModel<FileManagerModel> {
 
@@ -73,8 +72,8 @@ public class FileManagerModel extends BaseModel<FileManagerModel> {
 	/**
 	 * 查询desc文件所有状态的数据文件 descName 文件名称 status 对应的状态 返回 对应状态的文件名
 	 */
-	public List<Record> queryDataFileByDesc(List<String> descNames, String status) throws Exception {
-		String sql = "select * from bs_filemanager where did in (select id from bs_filemanager where  allname " + List2WhereIn(descNames)
+	public List<Record> queryDataFileByDesc( String descName, String status) throws Exception {
+		String sql = "select * from bs_filemanager where did in (select id from bs_filemanager where  allname " + descName
 				+ " and status = ? and did is null )";
 		List<Record> res = Db.find(sql, status);
 		return res;
