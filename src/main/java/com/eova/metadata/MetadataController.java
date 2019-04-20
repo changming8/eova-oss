@@ -92,7 +92,11 @@ public class MetadataController extends BaseController {
 		Object j = keepPara("rows").getAttr("rows");
 		JSONArray jsonlist = JSONArray.parseArray(j.toString());
 		JSONObject json = (JSONObject) jsonlist.get(0);
-		System.out.print(json.getString("id"));
+		//视图直接返回不能创表表信息
+		if(json.getString("storage_type").equals("视图")) {
+			renderJson(Easy.fail("视图无法建表"));
+			return;
+		}
 		final Object[] objs = new Object[2];
 		// 获取key获取数据库类型字段 从MYSQL_DATEBASE_TYPE获取
 		String columnSql = "select* from bs_metadata_b where dr=0 and  metadata_id ='" + json.getString("id")

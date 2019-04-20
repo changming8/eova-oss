@@ -4,9 +4,12 @@
 	var eova_btn_${button.id} = function(){
 		var $widget = $('#${gridId}');
         var rows = $.getWidgetSelections($widget);
-        console.log($widget.rows);
         if (rows.length == "0") {
         	$.slideMsg($.I18N('请选择一行数据'));
+            return;
+        }
+        if(rows[0].storage_type=="视图"){
+        	$.slideMsg($.I18N('视图无法创建表哦'));
             return;
         }
         
