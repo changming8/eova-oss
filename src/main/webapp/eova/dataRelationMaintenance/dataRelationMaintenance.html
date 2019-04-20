@@ -3,20 +3,20 @@
 <body class="easyui-layout">
 <div data-options="region:'center',fit:false,border:false,split:false">
     <div id="contentLayout" class="easyui-layout" data-options="fit:true">
-    	<div data-options="region:'north',title:'数据关系定义-对照',split:true" style="height:370px;">
+    	<div data-options="region:'north',title:'数据关系定义维护',split:true" style="height:370px;">
     		<div id="tb" style="background-color:#fafafa">
+    			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-tip',plain:true" onclick="blockDataModal()">主数据</a>
+				<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="queryModal()">增加</a>
+				<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="deleteModal()">删除</a>
 				<input id="master_ss" class="easyui-searchbox" style="width:300px"
 				    data-options="searcher:doSearchMaster,prompt:'',menu:'#master_t'"></input>
-				    <select id="queryWhere" class="easyui-combobox" style="width:100px;"></select>
 				<div id="master_t" style="width:120px" data-options="onClick:menuHandler" class="easyui-menu">
-				    <div data-options="name:'master_mm'">对照查询</div>
+				    <div data-options="name:'master_mm'">主数据</div>
 				    <div class="menu-sep"></div>
-				    <div data-options="name:'slave_dd',disabled:true" id="dis">被对照查询</div>
+				    <div data-options="name:'slave_dd',disabled:true" id="dis">映射表</div>
 				</div>
-				<select id="slaveSelect" class="easyui-combobox" style="width:200px;"></select>
-				<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-tip',plain:true" onclick="blockDataModal()">数据定义</a>
-				<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="queryModal()">增加对照</a>
-				<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="deleteModal()">删除对照</a>
+				<span>切换表</span><select id="slaveSelect" class="easyui-combobox" style="width:200px;"></select>
+				<span>查询条件列</span><select id="queryWhere" class="easyui-combobox" style="width:200px;"></select>
 			</div>	
     		<table id="master_"  class="easyui-datagrid" toolbar="#tb">
     			
@@ -30,7 +30,7 @@
                     
             </table>
         </div>
-        <div id="data" class="easyui-dialog" title="数据关系定义" style="width:600px;height:500px;"
+        <div id="data" class="easyui-dialog" title="主数据" style="width:600px;height:500px;"
 		    data-options="iconCls:'icon-filter',modal:false,collapsible:true,buttons:'#bb'">
 		    <div id="tb3" style="background-color:#fafafa">
 		    	<input id="dataRelationSearch" class="easyui-searchbox" style="width:100%"
@@ -236,28 +236,47 @@ function menuHandler(item){
 			return;
 		}
 		masterOrSlaveWhere=globalDataName;
-    	str.push({"value":"请选择查询条件列","text":"查询条件列"});
-    	for(var i=0;i<columns_field3[0].length;i++){
+    	//str.push({"value":"请选择查询条件列","text":"查询条件列"});
+    	/* for(var i=0;i<columns_field3[0].length;i++){
 			//globalDataName=data.rows[0].md_table;
 			str.push({"value":columns_field3[0][i].field,"text":columns_field3[0][i].field});
 		}
-    	$("#queryWhere").combo({"editable":false});
+    	console.info(columns_field3); */
+    	/* $("#queryWhere").combo({"editable":false});
 		$("#queryWhere").combobox("loadData", str);
-		$("#queryWhere").combobox("select", "请选择查询条件列");
+		$("#queryWhere").combobox("select", "请选择查询条件列"); */
+		$('#queryWhere').combobox({ 
+			   data:columns_field3[0],
+			   valueField:'field', 
+			   textField:'title',
+			   //value:"数据", // 未测试过当selectId不在数据集合中有何情况
+			   onLoadSuccess: function () {
+
+			   }
+			});
 	}else{
 		//console.info(columns_field5);
 		if(columns_field5==""){
 			return;
 		}
 		masterOrSlaveWhere="slave"
-		str.push({"value":"请选择查询条件列","text":"查询条件列"});
+		/* str.push({"value":"请选择查询条件列","text":"查询条件列"});
     	for(var i=0;i<columns_field5[0].length;i++){
 			//globalDataName=data.rows[0].md_table;
 			str.push({"value":columns_field5[0][i].field,"text":columns_field5[0][i].field});
 		}
     	$("#queryWhere").combo({"editable":false});
 		$("#queryWhere").combobox("loadData", str);
-		$("#queryWhere").combobox("select", "请选择查询条件列");
+		$("#queryWhere").combobox("select", "请选择查询条件列"); */
+		$('#queryWhere').combobox({ 
+			   data:columns_field5[0],
+			   valueField:'field', 
+			   textField:'title',
+			   //value:"数据", // 未测试过当selectId不在数据集合中有何情况
+			   onLoadSuccess: function () {
+
+			   }
+			});
 	}
 }
 function deleteModal(){
@@ -364,7 +383,7 @@ function tableSlave(tableName,url,wheres){
 	    idField:"id",
 	    height:417,
 	    pagination:true,
-	    singleSelect:true,
+	    singleSelect:false,
 	    rownumbers:true,
 	    pageNumber:1,
 	    pageSize:15,
@@ -627,7 +646,16 @@ function table_slave_col1(tableName,url){
 	    pageSize:15,
 	    pageList:[15,30,50,100,200,500,1000,2000],
 	    onLoadSuccess:function(data){
-	    	var item = $('#master_t').menu('findItem', '被对照查询');
+	    		$('#queryWhere').combobox({ 
+					   data:columns_field5[0],
+					   valueField:'field', 
+					   textField:'title',
+					   //value:"数据", // 未测试过当selectId不在数据集合中有何情况
+					   onLoadSuccess: function () {
+
+					   }
+					});
+	    	var item = $('#master_t').menu('findItem', '映射表');
 	    	$('#master_t').menu('enableItem', item.target);
 	    },
 	    onCheck:function(rowIndex,rowData){
