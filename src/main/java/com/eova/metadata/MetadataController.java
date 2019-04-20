@@ -29,6 +29,7 @@ import com.eova.template.common.util.TemplateUtil;
 import com.eova.template.single.SingleAtom;
 import com.eova.template.single.SingleIntercept;
 import com.eova.widget.WidgetManager;
+import com.eova.widget.WidgetUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.core.Controller;
 import com.jfinal.kit.JsonKit;
@@ -116,6 +117,8 @@ public class MetadataController extends BaseController {
 			String length = columnDetailList.get(i).get("FIELD_LENGTH");
 			String fieldName = columnDetailList.get(i).get("FIELD_NAME");//字段描述
 			String def_value = columnDetailList.get(i).get("DEF_VALUE");//默认值
+			Boolean auto = columnDetailList.get(i).get("enable_auto");
+			//列是否自增模式 
 			boolean unique = false;//唯一约束
 			if(null !=columnDetailList.get(i).get("UNIQUE_CONSTRAIN")) {
 				unique = columnDetailList.get(i).get("UNIQUE_CONSTRAIN");
@@ -136,10 +139,13 @@ public class MetadataController extends BaseController {
 				tempColumnSql.append(" (" + length + ")");
 			}
 			if (keyFlag) {
-				tempColumnSql.append(" not null primary key");
+				tempColumnSql.append(" primary key not null ");
 			}  else if (nullFlag) {
 				tempColumnSql.append(" not null");
 			}  
+			if(null!= auto&&auto) {
+				tempColumnSql.append(" auto_increment ");
+			}
 			if (unique) {
 				tempColumnSql.append(" UNIQUE ");
 			}  
@@ -202,6 +208,9 @@ public class MetadataController extends BaseController {
 		// 获取到所有行修改休息 做批量修改和新增 如果主键非空修改, 其余新增操作
 		Object j = keepPara("rows").getAttr("rows");
 		String pid = keepPara("rows").getPara("pid");
+		//获取数据里字段大小写类型 转换字段类型大小写问题
+		String  database_type= keepPara("rows").getPara("type");
+	
 		JSONArray jsonlist = JSONArray.parseArray(j.toString());
 		List<Record> insertRecord = new ArrayList<Record>();
 		List<Record> updateRecord = new ArrayList<Record>();
@@ -217,14 +226,19 @@ public class MetadataController extends BaseController {
 			} else {
 				obj.put("null_flag", "0");
 			}
-
 			Record re = new Record();
 			Map<String, Object> map = obj;
 			re.setColumns(map);
 			re.remove("pk_val");
 			re.remove("link_column_val");
 			re.remove("link_table_val");
-			
+			//转参数大小写
+			String field_type =re.getStr("field_type");
+			if(database_type.equals("2")) {
+				re.set("field_type", field_type.toLowerCase());
+			}else if(database_type.equals("1")) {
+				re.set("field_type", field_type.toUpperCase());
+			}
 			if (obj.getString("id") == null || obj.getString("id").equals("")) {
 				// 新增
 				re.set("id", UUID.getUnqionPk());

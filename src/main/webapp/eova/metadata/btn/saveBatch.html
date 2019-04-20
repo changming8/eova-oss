@@ -4,8 +4,8 @@
 		var $widget = $('#${gridId}');
         //var rows = $.getWidgetSelections($widget);
         var rows = $('#${gridId}').datagrid("getRows");
-        console.log(rows);
         var metadata_row = $('#master_grid').datagrid('getSelected');
+        console.log(metadata_row);
         if(metadata_row== null || metadata_row =="0"){
         	$.slideMsg($.I18N('请选择一行数据'));
             return;
@@ -16,7 +16,8 @@
 				var json = JSON.stringify(rows);
 				$.syncPost('${button.uri!}', {
 					rows : json,
-					pid : metadata_row.id
+					pid : metadata_row.id,
+					type : metadata_row.database_type_val
 				}, function(result, status) {
 					if (result.success) {
 						$.slideMsg($.I18N('操作成功'));
