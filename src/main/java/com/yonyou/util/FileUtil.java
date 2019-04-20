@@ -44,7 +44,7 @@ public class FileUtil {
     }
     
     /**
-     * 读取流中前面的字符，看是否有bom，如果有bom，将bom头先读掉丢弃
+     * 读取流中前面的字符，看是否有bom，如果有bom，将bom头丢弃
      *
      * @param in
      * @return
@@ -107,6 +107,7 @@ public class FileUtil {
 		
 	}
 
+	
     
     public static void main(String[] args) {
     	String path = "D:/source/M003-COSTTYPEANDCOORAUTH-FMP-20190415-001-I.TXT";

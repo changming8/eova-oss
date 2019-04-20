@@ -6,7 +6,6 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
 import org.slf4j.Logger;
@@ -31,19 +30,15 @@ public class LoadFileData {
 	 * @param 表列序列以","逗号分割 如 colum1,colum2,colum3,colum4,colum5
 	 * @return 载入数据量
 	 */
-	public int loadFile(String filePath, String tableName, String colums ) {
+	public static int loadFile(String filePath, String tableName, String colums, Connection conn ) {
 		
 		int result = 0;
-		if (!colums.equals(getColumnNames(tableName)))
-			return result;
-		
-		Connection con = null;
+//		Connection con = null;
 		PreparedStatement pstmt = null;
 		com.mysql.jdbc.PreparedStatement mysqlStatement = null;
 	   	try {
-			con = Db.use().getConfig().getConnection();
 			String sql = "LOAD DATA INFILE '"+filePath+"' INTO TABLE "+tableName+" FIELDS TERMINATED BY '`' ENCLOSED BY '\"' "+"("+colums+")";
-			pstmt = con.prepareStatement(sql);
+			pstmt = conn.prepareStatement(sql);
 			if (pstmt.isWrapperFor(com.mysql.jdbc.Statement.class)) {
 				mysqlStatement = pstmt.unwrap(com.mysql.jdbc.PreparedStatement.class);
 				result = mysqlStatement.executeUpdate(); 
@@ -54,7 +49,6 @@ public class LoadFileData {
 			try {
 				mysqlStatement.close();
 				pstmt.close();
-				con.close();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -72,78 +66,23 @@ public class LoadFileData {
 	 * @param 表列序列以","逗号分割 如 colum1,colum2,colum3,colum4,colum5
 	 * @return 载入数据量
 	 */
-	public int loadLocalFile(String filePath, String tableName, String colums ) {
+	public static int loadLocalFile(String filePath, String tableName, String colums, Connection conn ) throws FileNotFoundException,SQLException {
 		
 		int result = 0;
-		if (!colums.equals(getColumnNames(tableName)))
-			return result;
-		
-		Connection conn = null;
 		com.mysql.jdbc.PreparedStatement mysqlStatement = null;
 		PreparedStatement statement = null;
 		InputStream dataStream = null;
 		String sql = "LOAD DATA LOCAL INFILE '"+filePath+"' INTO TABLE "+tableName+"("+colums+")";
 		File file = new File(filePath);
-		try {
-			dataStream = new FileInputStream(file);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+		dataStream = new FileInputStream(file);
+		statement = conn.prepareStatement(sql);
+		if (statement.isWrapperFor(com.mysql.jdbc.Statement.class)) {
+			mysqlStatement = statement.unwrap(com.mysql.jdbc.PreparedStatement.class);
+			mysqlStatement.setLocalInfileInputStream(dataStream);
+			result = mysqlStatement.executeUpdate(); 
 		}
-		if(dataStream==null){
-			logger.info("InputStream is null ,No data is imported");
-			return 0;
-		}
-		try {
-			conn = Db.use().getConfig().getConnection();
-			statement = conn.prepareStatement(sql);
-			if (statement.isWrapperFor(com.mysql.jdbc.Statement.class)) {
-				mysqlStatement = statement.unwrap(com.mysql.jdbc.PreparedStatement.class);
-				mysqlStatement.setLocalInfileInputStream(dataStream);
-				result = mysqlStatement.executeUpdate(); 
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally{
-			try {
-				mysqlStatement.close();
-				statement.close();
-				conn.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}
+		mysqlStatement.close();
+		statement.close();
 		return result;
 	}
-	
-	/**
-     * 获取表中所有字段名称
-     * @param tableName 表名
-     * @return
-     */
-    private  String getColumnNames(String tableName) {
-        //与数据库的连接
-        Connection conn = null;
-        StringBuilder results = new StringBuilder();
-		try {
-			conn = Db.use().getConfig().getConnection();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-        PreparedStatement pStemt = null;
-        String tableSql = "select * from " + tableName;
-        try {
-            pStemt = conn.prepareStatement(tableSql);
-            //结果集元数据
-            ResultSetMetaData rsmd = pStemt.getMetaData();
-            //表列数
-            int size = rsmd.getColumnCount();
-            for (int i = 0; i < size; i++) {
-                results.append(rsmd.getColumnName(i + 1)).append(",");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return results.toString();
-        } 
-        return results.substring(0, results.lastIndexOf(",")).toString().toUpperCase();
-    }
 }
