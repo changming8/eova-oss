@@ -10,6 +10,7 @@ import com.yonyou.base.ResponseBody;
 import com.yonyou.model.FileManagerModel;
 import com.yonyou.service.Translate4DESC;
 import com.yonyou.util.FileStatus;
+import com.yonyou.util.LockUtils;
 import com.yonyou.util.ServiceUtil;
 
 public class FtpService {
@@ -21,11 +22,13 @@ public class FtpService {
 	 * @return
 	 */
 	public ResponseBody File_Name(String id) {
+		Date date=new Date();
 		List<Record> listProduct = ServiceUtil.dao.getBsFtpFlow(id);
 		ArrayList<String> list = new ArrayList<String>();
-		ResponseBody responseBody = new ResponseBody();
+		ResponseBody responseBody = new ResponseBody(0,"下载成功");
 		for (int i = 0; i < listProduct.size(); i++) {
 			String ftpId = listProduct.get(i).get("ftp_id");// ftpID
+			String flowtypeId=listProduct.get(i).get("flowtype_id");
 			String workDirectoryId = listProduct.get(i).get(
 					"workdirectory_id");// 工作目录ID
 			String distinguish = listProduct.get(i).get("distinguish");// 大小写
@@ -60,13 +63,15 @@ public class FtpService {
 			}
 			System.out.println("地址:" + ftpAddress + "端口：" + ftpPort + "帐号："
 					+ ftpUsername + "密码：" + ftpPassword);
+			responseBody.setId(id);
+			responseBody.setFlowtypeId(flowtypeId);
 			// 判断固定、解析
 			if (analysis_rule.equals("2")) {
 				// 获取全路径信息
 				list = directoryName(ftpId, workDirectoryId, distinguish,
 						analysis_rule, day_rule, searchPath1,
 						searchPath2, fileName1, fileName2, fileName3,
-						fileName4, fileName5, fileName6, descriptionFile);
+						fileName4, fileName5, fileName6, descriptionFile,date);
 				for (String str : list) {
 					// 文件名
 					String fielName = str.substring(str.lastIndexOf("/") + 1);
@@ -79,18 +84,38 @@ public class FtpService {
 					System.out.println("文件名:"+fielName);
 					System.out.println("目录名:"+directoryName);
 					System.out.println(workDirectoryName);
-					//公共下载方法
-					downloadFile(ftpAddress, ftpPort, ftpUsername, ftpPassword,
-							ftpPath, fileName, directoryName, workDirectoryName);
+					boolean yn;
+					try {
+						yn = FileManagerModel.dao.checkDescExist(fielName);
+					} catch (Exception e) {
+						e.printStackTrace();
+						responseBody.setStatus(1);
+						responseBody.setMes(e.getClass().getName());
+						return responseBody;
+					}
+					if(!yn) {
+						//公共下载方法
+						downloadFile(ftpAddress, ftpPort, ftpUsername, ftpPassword,
+								ftpPath, fileName, directoryName, workDirectoryName,responseBody);
+					}
 				}
 			}else{
+				boolean yn;
+				try {
+					yn = FileManagerModel.dao.checkDescExist(fileName);
+				} catch (Exception e) {
+					e.printStackTrace();
+					responseBody.setStatus(1);
+					responseBody.setMes(e.getClass().getName());
+					return responseBody;
+				}
+				if(!yn) {
 				//公共下载方法
 				downloadFile(ftpAddress, ftpPort, ftpUsername, ftpPassword,
-						ftpPath, fileName, searchPath, searchPath + fileName);
+						ftpPath, fileName, searchPath, searchPath + fileName,responseBody);
+				}
 			}
 		}
-		responseBody.setStatus(0);
-		responseBody.setMes("下载成功"+ new Date());
 		return responseBody;
 	}
 
@@ -106,20 +131,8 @@ public class FtpService {
 	 * @param workDirectoryName 全路径
 	 * @return
 	 */
-	public ResponseBody downloadFile(String ftpAddress,int ftpPort,String ftpUsername,String ftpPassword,String ftpPath,String fielName,String directoryName,
-			String workDirectoryName){
-		ResponseBody responseBody=new ResponseBody();
-		boolean yn;
-		try {
-			yn = FileManagerModel.dao.checkDescExist(fielName);
-		} catch (Exception e) {
-			e.printStackTrace();
-			responseBody.setStatus(1);
-			responseBody.setMes(e.getClass().getName());
-			return responseBody;
-		}
-		//文件不存在不能下载
-		if(!yn){
+	public void downloadFile(String ftpAddress,int ftpPort,String ftpUsername,String ftpPassword,String ftpPath,String fielName,String directoryName,
+			String workDirectoryName,ResponseBody responseBody){
 			Translate4DESC translate4desc = new Translate4DESC();
 			List<String> listTxt = new ArrayList<String>();
 			int rt = 0;
@@ -130,19 +143,21 @@ public class FtpService {
 				} catch (Exception e) {
 					e.printStackTrace();
 					responseBody.setStatus(1);
-					responseBody.setMes("IP为:" + ftpAddress + "的FTP连接失败");
-					return responseBody;
+					responseBody.setMes("IP为:" + ftpAddress + "的FTP连接失败,文件名:"+fielName);
+					return;
 				}
 			//判断连接是否成功
 			if (rt == 1) {
 				try {
+					LockUtils.pkLock(responseBody.getId()+responseBody.getFlowtypeId());
 					//获取desc中的txt
 					listTxt = translate4desc.execute(workDirectoryName);
+					LockUtils.unpkLock(responseBody.getId()+responseBody.getFlowtypeId());
 				} catch (Exception e) {
 					e.printStackTrace();
 					responseBody.setStatus(1);
-					responseBody.setMes("获取"+workDirectoryName +"中的TXT文件失败");
-					return responseBody;
+					responseBody.setMes("获取"+workDirectoryName +"中的TXT文件失败,文件名:"+fielName);
+					return;
 				}
 	
 				for (int j = 1; j < listTxt.size(); j++) {
@@ -156,8 +171,8 @@ public class FtpService {
 					} catch (Exception e1) {
 						e1.printStackTrace();
 						responseBody.setStatus(1);
-						responseBody.setMes(txtName + "下载前更新状态失败");
-						return responseBody;
+						responseBody.setMes(txtName + "下载前更新状态失败,文件名:"+fielName);
+						return;
 					}
 					if (up >= 1) {
 							try {
@@ -170,8 +185,8 @@ public class FtpService {
 									} catch (Exception e) {
 										e.printStackTrace();
 										responseBody.setStatus(1);
-										responseBody.setMes(txtName + "下载失败时更新状态失败");
-										return responseBody;
+										responseBody.setMes(txtName + "下载失败时更新状态失败,文件名:"+fielName);
+										return;
 									}
 								} else {
 									//下载完成更新状态
@@ -181,15 +196,15 @@ public class FtpService {
 									} catch (Exception e) {
 										e.printStackTrace();
 										responseBody.setStatus(1);
-										responseBody.setMes(txtName + "下载完成更新状态失败");
-										return responseBody;
+										responseBody.setMes(txtName + "下载完成更新状态失败,文件名:"+fielName);
+										return;
 									}
 								}
 							} catch (Exception e) {
 								e.printStackTrace();
 								responseBody.setStatus(1);
-								responseBody.setMes("IP为:" + ftpAddress + "的FTP连接失败");
-								return responseBody;
+								responseBody.setMes("IP为:" + ftpAddress + "的FTP连接失败,文件名:"+fielName);
+								return;
 							}
 					} else {
 						try {
@@ -198,18 +213,16 @@ public class FtpService {
 						} catch (Exception e) {
 							e.printStackTrace();
 							responseBody.setStatus(1);
-							responseBody.setMes(txtName + "下载前更新状态失败,修改失败状态时失败");
-							return responseBody;
+							responseBody.setMes(txtName + "下载前更新状态失败,修改失败状态时失败,文件名:"+fielName);
+							return;
 						}
 					}
 				}
 			} else if (rt == 0) {
 				responseBody.setStatus(1);
-				responseBody.setMes("下载DESC文件失败:"+fielName);
-				return responseBody;
+				responseBody.setMes("下载DESC文件失败,文件名:"+fielName);
+				return;
 			}
-		}
-		return responseBody;
 	}
 	/**
 	 * 转换时间
@@ -258,10 +271,9 @@ public class FtpService {
 			String day_rule, String search_path1, String search_path2,
 			String file_name1, String file_name2, String file_name3,
 			String file_name4, String file_name5, String file_name6,
-			String description_file) {
+			String description_file,Date date) {
 		ArrayList<String> listWorkDirectory = new ArrayList<String>();
 		ArrayList<String> list1 = new ArrayList<String>();
-		Date date = new Date();
 		// 获取日期
 		listWorkDirectory = date(file_name4, date, Integer.parseInt(day_rule));
 		// 获取目录名
