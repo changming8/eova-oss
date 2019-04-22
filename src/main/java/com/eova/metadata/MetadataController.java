@@ -63,7 +63,7 @@ public class MetadataController extends BaseController {
 		// 复制元数据
 		// 先查询 先复制以时间戳为结尾复制到元数据主表中 子表直接复制
 		String metadataSql = "select * from bs_metadata where dr=0 and  id ='" + json.getString("id") + "'";
-		String metadatadetailSql = "select * from bs_metadata_b where dr=0 and  metadata_id ='"+ json.getString("id") + "'";
+		String metadatadetailSql = "select * from bs_metadata_b where dr=0 and  pid ='"+ json.getString("id") + "'";
 		List<Record> metadataList = Db.use(xx.DS_EOVA).find(metadataSql);
 		List<Record> metadataDetailList = Db.use(xx.DS_EOVA).find(metadatadetailSql);
 		String id = UUID.getUnqionPk();
@@ -84,7 +84,7 @@ public class MetadataController extends BaseController {
 		// 复制子表字段信息
 
 		for (int i = 0; i < metadataDetailList.size(); i++) {
-			metadataDetailList.get(i).set("METADATA_ID", id);
+			metadataDetailList.get(i).set("pid", id);
 			metadataDetailList.get(i).set("ID", UUID.getUnqionPk());
 		}
 		Db.use(xx.DS_EOVA).batchSave("bs_metadata_b", metadataDetailList, 30);
@@ -103,7 +103,7 @@ public class MetadataController extends BaseController {
 		}
 		final Object[] objs = new Object[2];
 		// 获取key获取数据库类型字段 从MYSQL_DATEBASE_TYPE获取
-		String columnSql = "select* from bs_metadata_b where dr=0 and  metadata_id ='" + json.getString("id")
+		String columnSql = "select* from bs_metadata_b where dr=0 and  pid ='" + json.getString("id")
 				+ "'";
 		List<Record> columnDetailList = Db.use(xx.DS_EOVA).find(columnSql);
 		StringBuffer tempColumnSql = new StringBuffer(" CREATE TABLE ");
@@ -164,7 +164,7 @@ public class MetadataController extends BaseController {
 			if (checkExit(tableName)) {
 				// 存在的话 查询是否有数据
 				String countSql = "select count(*) as COUNT from " + tableName;
-				List<Record> countList = Db.use(xx.DS_EOVA).find(countSql);
+				List<Record> countList = Db.use(xx.DS_MAIN).find(countSql);
 				if (Integer.valueOf(countList.get(0).get("count").toString()) > 0) {
 					renderJson(Easy.fail("表已存在数据,无法重新创建"));
 					return;
@@ -173,8 +173,8 @@ public class MetadataController extends BaseController {
 					boolean succeed = Db.tx(new IAtom() {
 						@Override
 						public boolean run() throws SQLException {
-							Db.use(xx.DS_EOVA).update(" DROP TABLE " + objs[0].toString()+";");
-							Db.use(xx.DS_EOVA).update(objs[1].toString()+";");
+							Db.use(xx.DS_MAIN).update(" DROP TABLE " + objs[0].toString()+";");
+							Db.use(xx.DS_MAIN).update(objs[1].toString()+";");
 							//xx.info("sql语句执行结果: "+a+"===="+b);
 							return true;
 						}
@@ -185,7 +185,7 @@ public class MetadataController extends BaseController {
 					}
 				}
 			} else {
-				Db.use(xx.DS_EOVA).update(tempColumnSql.toString());
+				Db.use(xx.DS_MAIN).update(tempColumnSql.toString());
 			}
 			
 			//更新建表状态
@@ -228,7 +228,7 @@ public class MetadataController extends BaseController {
 			if (obj.getString("id") == null || obj.getString("id").equals("")) {
 				// 新增
 				re.set("id", UUID.getUnqionPk());
-				re.set("metadata_id", pid);
+				re.set("pid", pid);
 				insertRecord.add(re);
 			} else {
 				// 修改
@@ -275,7 +275,7 @@ public class MetadataController extends BaseController {
 		// 构建查询
 		List<Object> parmList = new ArrayList<Object>();
 		String sql = WidgetManager.buildQuerySQL(ctrl, menu, object, null, parmList, true);
-		sql= sql+"	where  metadata_id="+pid;
+		sql= sql+"	where  pid="+pid;
 		// 转换SQL参数
 		Object[] paras = new Object[parmList.size()];
 		parmList.toArray(paras);
@@ -459,7 +459,7 @@ public class MetadataController extends BaseController {
 			// 获取每个字段的属性 批量保存到业务数据表中
 			ColumnMeta col = new ColumnMeta(ds, table, o);
 			MetadataDetail metadataDetail = new MetadataDetail(code, col);
-			metadataDetail.set("metadata_id", pid);
+			metadataDetail.set("pid", pid);
 			metadataDetail.save();
 			//autoBindDict(table, code, o.getString("REMARKS"), mi.getEn());
 		}
@@ -611,8 +611,8 @@ public class MetadataController extends BaseController {
 	}
 
 	public boolean checkExit(String tableName) {
-		String tableSql = "select * from information_schema.tables where table_name='" + tableName + "'";
-		List<Record> columnDetailList = Db.use(xx.DS_EOVA).find(tableSql);
+		String tableSql = "select * from information_schema.tables where table_schema ='fidata'  and  table_name='" + tableName + "'";
+		List<Record> columnDetailList = Db.use(xx.DS_MAIN).find(tableSql);
 		if (columnDetailList.size() > 0) {
 			return true;
 		}

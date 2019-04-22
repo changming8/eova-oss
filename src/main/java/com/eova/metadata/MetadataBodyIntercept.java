@@ -15,7 +15,7 @@ public class MetadataBodyIntercept extends MetaObjectIntercept {
 	public String updateBefore(AopContext ac) throws Exception {
 		
 		//获取主表主键 查询字段类型是大小写 返回
-		String id = ac.record.getStr("metadata_id");
+		String id = ac.record.getStr("pid");
 		String metadataSql = "select * from bs_metadata where id ='" + id + "'";
 		List<Record> metadataList = Db.use(xx.DS_EOVA).find(metadataSql);
 		String database_type = metadataList.get(0).get("database_type");
@@ -34,7 +34,7 @@ public class MetadataBodyIntercept extends MetaObjectIntercept {
 	public String addBefore(AopContext ac) throws Exception {
 		
 		//获取主表主键 查询字段类型是大小写 返回
-		String id = ac.record.getStr("metadata_id");
+		String id = ac.record.getStr("pid");
 		String metadataSql = "select * from bs_metadata where id ='" + id + "'";
 		List<Record> metadataList = Db.use(xx.DS_EOVA).find(metadataSql);
 		String database_type = metadataList.get(0).get("database_type");

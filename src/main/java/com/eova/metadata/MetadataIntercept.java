@@ -25,7 +25,7 @@ public class MetadataIntercept extends SingleIntercept {
 		for (Record record : ac.records) {
 			//处理主键 更换主键
 			record.set("id", UUID.getUnqionPk());
-			record.set("metadata_id", mid);
+			record.set("pid", mid);
 		}
 	}
 

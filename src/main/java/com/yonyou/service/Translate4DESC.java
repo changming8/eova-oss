@@ -108,7 +108,7 @@ public class Translate4DESC {
 				record.set("plat_code", plat_code);
 				record.set("date_code", date_code);
 				record.set("workpath", workpath);
-				Db.save("bs_filemanager", record);
+				Db.use(xx.DS_EOVA).save("bs_filemanager", record);
 				System.out.println(did);
 			} else {
 				Record record = new Record();
@@ -133,7 +133,7 @@ public class Translate4DESC {
 				System.out.println(did);
 			}
 		}
-		Db.batchSave("bs_filemanager", slist, 1000);
+		Db.use(xx.DS_EOVA).batchSave("bs_filemanager", slist, 1000);
 		return context;
 	}
 

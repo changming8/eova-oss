@@ -6,6 +6,7 @@ import java.util.List;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.eova.common.base.BaseController;
+import com.eova.common.utils.xx;
 import com.eova.model.MetaField;
 import com.eova.model.MetaObject;
 import com.jfinal.plugin.activerecord.Db;
@@ -33,7 +34,7 @@ public class MdDEFController extends BaseController {
 		String source = hlist.get(0).getStr("md_table");
 		tableList.add(source);
 //		获取被对照表-begin
-		List<Record> blist = Db.find("select * from bs_md_def_b where dr= 0 and pid = ?", id);
+		List<Record> blist = Db.use(xx.DS_EOVA).find("select * from bs_md_def_b where dr= 0 and pid = ?", id);
 		for (Record r : blist) {
 			tableList.add(r.getStr("dest_table"));
 		}
@@ -54,7 +55,7 @@ public class MdDEFController extends BaseController {
 				record.set("smeta", "主数据关系定义");
 				slist.add(record);
 			}
-			Db.batchSave("bs_style", slist, 1000);
+			Db.use(xx.DS_EOVA).batchSave("bs_style", slist, 1000);
 			initStyleBody(t, id, type);
 			slist.clear();
 		}
@@ -77,15 +78,15 @@ public class MdDEFController extends BaseController {
 	 * @throws BussnissException
 	 */
 	private Boolean checkHasInit(String meta, String sid) {
-		List res = Db.find("select * from bs_style where dr = 0 and sid = ? and md_table = ?", sid, meta);
+		List res = Db.use(xx.DS_EOVA).find("select * from bs_style where dr = 0 and sid = ? and md_table = ?", sid, meta);
 		return !res.isEmpty();
 	}
 
 	private void initStyleBody(String meta, String sid, String[] type) {
 		List<Record> slist = new ArrayList<>();
 //		List<MetaField> fields = MetaField.dao.queryFields(meta);
-		String sql = "select * from bs_metadata_b b where b.metadata_id = (select a.id from bs_metadata a where a.data_code = ? and dr = 0) and dr = 0"; 
-		List<Record> fields = Db.find(sql, meta);
+		String sql = "select * from bs_metadata_b b where b.pid = (select a.id from bs_metadata a where a.data_code = ? and dr = 0) and dr = 0"; 
+		List<Record> fields = Db.use(xx.DS_EOVA).find(sql, meta);
 		for (String t : type) {
 //			获取 pid
 			String pid = this.queryId(meta, sid, t);
@@ -107,7 +108,7 @@ public class MdDEFController extends BaseController {
 			}
 		}
 
-		Db.batchSave("bs_style_b", slist, 1000);
+		Db.use(xx.DS_EOVA).batchSave("bs_style_b", slist, 1000);
 	}
 
 	/**
@@ -120,7 +121,7 @@ public class MdDEFController extends BaseController {
 	 */
 	private String queryId(String meta, String sid, String type) {
 
-		List<Record> res = Db.find("select id from bs_style where dr = 0 and sid = ? and md_table = ? and type = ?", sid,
+		List<Record> res = Db.use(xx.DS_EOVA).find("select id from bs_style where dr = 0 and sid = ? and md_table = ? and type = ?", sid,
 				meta, type);
 		return res.get(0).getStr("id");
 	}

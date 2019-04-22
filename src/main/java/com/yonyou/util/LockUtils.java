@@ -7,11 +7,6 @@ import com.jfinal.plugin.redis.Cache;
 import com.jfinal.plugin.redis.Redis;
 
 /**
- * 
- * @author changjr
- *
- */
-/**
  * @version:（版本，具体版本信息自己来定）
  * @Description: （对类进行功能描述）
  * @author: changjr
