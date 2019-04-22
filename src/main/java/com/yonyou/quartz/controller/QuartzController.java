@@ -25,7 +25,7 @@ public class QuartzController extends BaseController {
 		JSONObject obj = (((JSONArray) JSONObject.parse(params)).getJSONObject(0));
 		String id = obj.getString("id");
 
-		List<Record> flows = Db.use(xx.DS_MAIN)
+		List<Record> flows = Db.use(xx.DS_EOVA)
 				.find("select * from bs_data_flow where dr =0 and id = ? and task_state = 1", id);
 		String sql = "select t.flowtype_executionclass ,b.flow_id ,b.flow_code,b.flow_name,b.flow_sort,b.pid ,t.flowtype_code,t.flowtype_name  from bs_flow_type t inner  join bs_data_flow_b b on t.id = b.flowtype_id where b.pid =?  order by b.flow_sort";
 		System.out.println(flows);
