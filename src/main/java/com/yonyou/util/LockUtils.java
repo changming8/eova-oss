@@ -5,6 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.jfinal.plugin.redis.Cache;
 import com.jfinal.plugin.redis.Redis;
+import com.yonyou.base.LockObject;
 
 /**
  * @version:（版本，具体版本信息自己来定）
@@ -22,13 +23,16 @@ public class LockUtils {
 	 * 
 	 * @throws Exception
 	 */
-	public synchronized static boolean pkLock(String pk) {
+	public synchronized static boolean pkLock(String pk,String detail) {
 
 		boolean flag = checkLockExist(pk);
 		if (flag) {
 			return false;
 		}
-		Redis.use("eova").set(pk, "");
+		LockObject obj =new LockObject();
+		obj.setDetail(detail);
+		obj.setLockDate(DateUtil.findSystemDateString());
+		Redis.use("PKLOCK").set(pk, obj);
 		return true;
 
 	}
@@ -38,7 +42,7 @@ public class LockUtils {
 	 */
 	public synchronized static boolean checkLockExist(String pk) {
 
-		return Redis.use("eova").exists(pk);
+		return Redis.use("PKLOCK").exists(pk);
 
 	}
 
@@ -55,7 +59,7 @@ public class LockUtils {
 		if (!checkLockExist(pk)) {
 			return false;
 		}
-		Redis.use("eova").del(pk);
+		Redis.use("PKLOCK").del(pk);
 		return true;
 
 	}
@@ -69,12 +73,12 @@ public class LockUtils {
 	 */
 	public synchronized static boolean lockTable(List<String> tableNames) {
 		for (String table : tableNames) {
-			if (checkLockExist(table)) {
+			if (checktableLockExist(table)) {
 				return false;
 			}
 		}
 		for (String table : tableNames) {
-			Redis.use("eova").set(table, "");
+			Redis.use("TABLELOCK").set(table, "");
 		}
 		return true;
 
@@ -89,9 +93,17 @@ public class LockUtils {
 	 */
 	public synchronized static boolean unLockTable(List<String> tableNames) {
 		for (String table : tableNames) {
-			Redis.use("eova").del(table);
+			Redis.use("TABLELOCK").del(table);
 		}
 		return true;
 		
+	}
+	/**
+	 * 检查pk锁是否存在
+	 */
+	public synchronized static boolean checktableLockExist(String table) {
+
+		return Redis.use("TABLELOCK").exists(table);
+
 	}
 }
