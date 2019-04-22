@@ -263,9 +263,9 @@ public class DataRelationMaintenanceController extends BaseController{
 			cellView.setSize(10 * 550);
 			// 添加工作表并设置Sheet的名字
 			WritableSheet sheet = wb.createSheet(exportSlave, 0);
-			
-			int row=0;
-			int row2=0;
+			//记录当前索引
+			int row=0,row2=0;
+			//主映射表头
 			String masterTableId = Db.use(xx.DS_EOVA).queryStr("select id from bs_metadata where data_code='" + exportMaster + "'");
 			List<String> masterColCNName = Db.use(xx.DS_EOVA).query("select field_name from bs_metadata_b where pid='" + masterTableId + "'");
 			for (int i = 0; i < masterColCNName.size(); i++) {
@@ -273,33 +273,6 @@ public class DataRelationMaintenanceController extends BaseController{
 				sortLabel.setCellFormat(codeCF);
 				sheet.addCell(sortLabel);
 				row++;
-				row2++;
-			}
-			Label mdid = new Label((row+1),0,"mdid");
-			mdid.setCellFormat(codeCF);
-			sheet.addCell(mdid);
-			Label destid = new Label((row+2),0,"destid");
-			destid.setCellFormat(codeCF);
-			sheet.addCell(destid);
-			
-			final String[] tempCol= {"mdid","destid"};
-			
-			List<Record> queryMapping=Db.use(xx.DS_MAIN).find("select mdid,destid from "+ increment+" where dest_table='"+exportSlave+"'");
-			for(int i=0;i<queryMapping.size();i++) { 
-				Record record = queryMapping.get(i);
-				for(int j=0;j<2;j++) {
-					Label sortLabel6 = new Label((row+1)+j,(i+1),record.getStr(tempCol[j]));
-					sortLabel6.setCellFormat(codeCF);
-					sheet.addCell(sortLabel6);
-				}
-			}
-			String slaveTableId = Db.use(xx.DS_EOVA).queryStr("select id from bs_metadata where data_code='" + exportSlave + "'");
-			List<String> slaveColCNName = Db.use(xx.DS_EOVA).query("select field_name from bs_metadata_b where pid='" + slaveTableId + "'");
-			
-			for (int i = 0; i < slaveColCNName.size(); i++) {
-				Label sortLabel5 = new Label((++row+3), 0, slaveColCNName.get(i));
-				sortLabel5.setCellFormat(codeCF); 
-				sheet.addCell(sortLabel5); 
 			}
 			//master
 			StringBuffer sb=new StringBuffer();
@@ -318,9 +291,37 @@ public class DataRelationMaintenanceController extends BaseController{
 				}
 			}
 			
+			//映射表id信息
+			Label mdid = new Label((row+1),0,"mdid");
+			mdid.setCellFormat(codeCF);
+			sheet.addCell(mdid);
+			Label destid = new Label((row+2),0,"destid");
+			destid.setCellFormat(codeCF);
+			sheet.addCell(destid);
+			
+			final String[] tempCol= {"mdid","destid"};
+			//查询当前映射
+			List<Record> queryMapping=Db.use(xx.DS_MAIN).find("select mdid,destid from "+ increment+" where dest_table='"+exportSlave+"'");
+			for(int i=0;i<queryMapping.size();i++) { 
+				Record record = queryMapping.get(i);
+				for(int j=0;j<2;j++) {
+					Label sortLabel6 = new Label((row+1)+j,(i+1),record.getStr(tempCol[j]));
+					sortLabel6.setCellFormat(codeCF);
+					sheet.addCell(sortLabel6);
+				}
+			}
 			
 			//slave
+			
 			sb.delete(0, sb.length());
+			String slaveTableId = Db.use(xx.DS_EOVA).queryStr("select id from bs_metadata where data_code='" + exportSlave + "'");
+			List<String> slaveColCNName = Db.use(xx.DS_EOVA).query("select field_name from bs_metadata_b where pid='" + slaveTableId + "'");
+			
+			for (int i = 0; i < slaveColCNName.size(); i++) {
+				Label sortLabel5 = new Label((++row+3), 0, slaveColCNName.get(i));
+				sortLabel5.setCellFormat(codeCF); 
+				sheet.addCell(sortLabel5); 
+			}
 			List<String> slaveColENName = Db.use(xx.DS_EOVA).query("select field_code from bs_metadata_b where pid='" + slaveTableId + "'");
 			for(int i=0;i<slaveColENName.size();i++) {
 				sb.append(slaveColENName.get(i)+",");
