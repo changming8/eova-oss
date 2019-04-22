@@ -87,6 +87,10 @@ import com.jfinal.plugin.druid.DruidStatViewHandler;
 import com.jfinal.plugin.druid.IDruidStatViewAuth;
 import com.jfinal.plugin.ehcache.EhCachePlugin;
 import com.jfinal.template.Engine;
+import com.oss.model.Address;
+import com.oss.model.Orders;
+import com.oss.model.UserInfo;
+import com.oss.model.Users;
 
 public class EovaConfig extends JFinalConfig {
 
@@ -397,6 +401,11 @@ public class EovaConfig extends JFinalConfig {
 		arp.addMapping("eova_log", EovaLog.class);
 		arp.addMapping("eova_task", Task.class);
 		arp.addMapping("eova_widget", Widget.class);
+		//
+		arp.addMapping("user_info", UserInfo.class);
+		arp.addMapping("users", Users.class);
+		arp.addMapping("address", Address.class);
+		arp.addMapping("orders", Orders.class);
 	}
 
 	/**

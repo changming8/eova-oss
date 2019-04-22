@@ -611,7 +611,7 @@ public class MetadataController extends BaseController {
 	}
 
 	public boolean checkExit(String tableName) {
-		String tableSql = "select * from information_schema.tables where table_name='" + tableName + "'";
+		String tableSql = "select * from information_schema.tables where table_schema ='fidata'  and  table_name='" + tableName + "'";
 		List<Record> columnDetailList = Db.use(xx.DS_MAIN).find(tableSql);
 		if (columnDetailList.size() > 0) {
 			return true;
