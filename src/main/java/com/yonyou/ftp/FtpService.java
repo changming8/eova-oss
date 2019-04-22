@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
 import com.jfinal.plugin.activerecord.Record;
 import com.yonyou.base.ResponseBody;
 import com.yonyou.model.FileManagerModel;
@@ -149,7 +150,7 @@ public class FtpService {
 			//判断连接是否成功
 			if (rt == 1) {
 				try {
-					LockUtils.pkLock(responseBody.getId()+responseBody.getFlowtypeId());
+					LockUtils.pkLock(responseBody.getId()+responseBody.getFlowtypeId(), workDirectoryName);
 					//获取desc中的txt
 					listTxt = translate4desc.execute(workDirectoryName);
 					LockUtils.unpkLock(responseBody.getId()+responseBody.getFlowtypeId());
