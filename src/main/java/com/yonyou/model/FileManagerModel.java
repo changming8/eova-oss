@@ -26,7 +26,7 @@ public class FileManagerModel extends BaseModel<FileManagerModel> {
 
 		int flag = 0;
 
-		flag = Db.update("update bs_filemanager set status = ? where dataname =?", status, fileName);
+		flag = Db.use(xx.DS_EOVA).update("update bs_filemanager set status = ? where dataname =?", status, fileName);
 		if (true) {
 			UpdateDescFileStatus(fileName,status);
 		}
@@ -44,7 +44,7 @@ public class FileManagerModel extends BaseModel<FileManagerModel> {
 
 		int flag = 0;
 
-		flag = Db.update("update bs_filemanager set status = ? where allname =?", status, DescName);
+		flag = Db.use(xx.DS_EOVA).update("update bs_filemanager set status = ? where allname =?", status, DescName);
 		return flag;
 
 	}
@@ -54,7 +54,7 @@ public class FileManagerModel extends BaseModel<FileManagerModel> {
 	 */
 	public boolean checkFileExist(String fileName) throws Exception {
 		String sql = "select 1 from bs_filemanager where  dataname = ?";
-		List<Record> res = Db.find(sql, fileName);
+		List<Record> res = Db.use(xx.DS_EOVA).find(sql, fileName);
 		return !res.isEmpty();
 
 	}
@@ -64,7 +64,7 @@ public class FileManagerModel extends BaseModel<FileManagerModel> {
 	 */
 	public boolean checkDescExist(String descName) throws Exception {
 		String sql = "select 1 from bs_filemanager where  allname = ?";
-		List<Record> res = Db.find(sql, descName);
+		List<Record> res = Db.use(xx.DS_EOVA).find(sql, descName);
 		return !res.isEmpty();
 
 	}
@@ -75,18 +75,18 @@ public class FileManagerModel extends BaseModel<FileManagerModel> {
 	public List<Record> queryDataFileByDesc( String descName, String status) throws Exception {
 		String sql = "select * from bs_filemanager where did in (select id from bs_filemanager where  allname " + descName
 				+ " and status = ? and did is null )";
-		List<Record> res = Db.find(sql, status);
+		List<Record> res = Db.use(xx.DS_EOVA).find(sql, status);
 		return res;
 	}
 
 	private  int UpdateDescFileStatus(String fileName,String status ) throws Exception {
 		int flag = 0;
 		String sql = "select 1 from bs_filemanager where allname =(select allname from bs_filemanager where dataname = ?) and status <> ? and did is not null";
-		List<Record> res = Db.find(sql, fileName,status);
+		List<Record> res = Db.use(xx.DS_EOVA).find(sql, fileName,status);
 		if (res.isEmpty()) {
 			String sql1 = "update bs_filemanager set status = ?"
 					+ " where allname =(select * from (SELECT allname FROM bs_filemanager WHERE dataname = ? ) a  ) and did is null";
-			flag = Db.update(sql1, status,fileName);
+			flag = Db.use(xx.DS_EOVA).update(sql1, status,fileName);
 		}
 		return flag;
 
