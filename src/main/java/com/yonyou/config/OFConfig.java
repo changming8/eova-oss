@@ -23,6 +23,7 @@ import com.oss.model.Users;
 import com.oss.product.ProductController;
 import com.oss.test.TestController;
 import com.yonyou.controller.DataRelationMaintenanceController;
+import com.yonyou.controller.FTPController;
 import com.yonyou.controller.MdDEFController;
 import com.yonyou.model.FileManagerModel;
 import com.yonyou.quartz.controller.QuartzController;

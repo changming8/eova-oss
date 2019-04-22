@@ -23,29 +23,26 @@ import com.yonyou.util.FileUtil;
 
 /**
  * 数据文件load到数据库指定表环节
- * @author cm
- *
+ * @author changming
  */
 public class LoadDataService {
 
 	/**
 	 * 数据库表load数据文件
-	 * 
 	 * @param id
 	 * @return
 	 */
 	public ResponseBody loadData(String id) {
 		
-		List<Record> listProduct = Db.use(xx.DS_MAIN).find("select * from bs_loaddata_flow where id ='" + id + "'");//拼接DESC文件路径和文件名数据
+		List<Record> listProduct = Db.use(xx.DS_MAIN).find("select * from bs_load_flow where id ='" + id + "'");//拼接DESC文件路径和文件名数据
 		ResponseBody responseBody = new ResponseBody();
 		
 		//拼接DESC文件名
 		String ftp_id = listProduct.get(0).get("ftp_id");// ftpID
 		String work_directory_id = listProduct.get(0).get("workdirectory_id");// 工作目录ID
 		String distinguish = listProduct.get(0).get("distinguish");// 大小写
-		String standard_type = listProduct.get(0).get("standard_type");// 规范类型
-		int analytical_rule = listProduct.get(0).get("analytical_rule");// 解析规则
-//		String search_path = listProduct.get(0).get("search_path");// 搜索路径
+		String analysis_rule = listProduct.get(0).get("analysis_rule");// 规范规则
+		String day_rule = listProduct.get(0).get("day_rule");// 日期解析规则
 		String file_name = listProduct.get(0).get("file_name");
 		String search_path1 = listProduct.get(0).get("search_path1");// 搜索路径1
 		String search_path2 = listProduct.get(0).get("search_path2");// 搜索路径2
@@ -58,10 +55,10 @@ public class LoadDataService {
 		String description_file = listProduct.get(0).get("description_file");
 		String table_name = listProduct.get(0).get("table_code");
 		
-		if (standard_type.equals("2")) {
+		if (analysis_rule.equals("2")) {
 			// 获取全路径信息
 			ArrayList<String> list = directoryName(ftp_id, work_directory_id, distinguish,
-					standard_type, analytical_rule, search_path1,
+					analysis_rule, day_rule, search_path1,
 					search_path2, file_name1, file_name2, file_name3,
 					file_name4, file_name5, file_name6, description_file);
 			for (String str : list) {
@@ -133,18 +130,18 @@ public class LoadDataService {
 			
 			Connection conn = null;
 			try {
-				conn = Db.use(xx.DS_EOVA).getConfig().getConnection();
+				conn = Db.use(xx.DS_MAIN).getConfig().getConnection();
 			} catch (SQLException e) {
 				e.printStackTrace();
 				responseBody.setStatus(1);
-				responseBody.setMes("字段序列为空");
+				responseBody.setMes("获取数据库连接失败");
 				responseBody.setObjectid(data.getStr("id"));
 				responseBody.setObjecttype(1);
 				return responseBody;
 			}	
 			if (!checkColumns(table_name, fields, conn)) {
 				responseBody.setStatus(1);
-				responseBody.setMes("字段序列异常");
+				responseBody.setMes("字段序与数据库表列不匹配");
 				responseBody.setObjectid(data.getStr("id"));
 				responseBody.setObjecttype(1);
 				return responseBody;
@@ -158,21 +155,21 @@ public class LoadDataService {
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 				responseBody.setStatus(1);
-				responseBody.setMes("数据文件不存在");
+				responseBody.setMes("字符集转换：数据文件不存在");
 				responseBody.setObjectid(data.getStr("id"));
 				responseBody.setObjecttype(1);
 				return responseBody;
 			} catch (IOException e) {
 				e.printStackTrace();
 				responseBody.setStatus(1);
-				responseBody.setMes("文件处理IO异常");
+				responseBody.setMes("字符集转换：文件处理IO异常");
 				responseBody.setObjectid(data.getStr("id"));
 				responseBody.setObjecttype(1);
 				return responseBody;
 			} catch (Exception e) {
 				e.printStackTrace();
 				responseBody.setStatus(1);
-				responseBody.setMes("文件处理其他异常");
+				responseBody.setMes("字符集转换：转换异常");
 				responseBody.setObjectid(data.getStr("id"));
 				responseBody.setObjecttype(1);
 				return responseBody;
@@ -183,7 +180,7 @@ public class LoadDataService {
 			} catch (IOException e) {
 				e.printStackTrace();
 				responseBody.setStatus(1);
-				responseBody.setMes("数据文件换行符异常");
+				responseBody.setMes("换行符替换：数据文件换行符异常");
 				responseBody.setObjectid(data.getStr("id"));
 				responseBody.setObjecttype(1);
 				return responseBody;
@@ -194,7 +191,7 @@ public class LoadDataService {
 			} catch (IOException e) {
 				e.printStackTrace();
 				responseBody.setStatus(1);
-				responseBody.setMes("数据文件Bom头异常");
+				responseBody.setMes("处理数据文件Bom头异常");
 				responseBody.setObjectid(data.getStr("id"));
 				responseBody.setObjecttype(1);
 				return responseBody;
@@ -206,14 +203,14 @@ public class LoadDataService {
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 				responseBody.setStatus(1);
-				responseBody.setMes( fileFullName + "数据文不存在");
+				responseBody.setMes( "数据Load:" + fileFullName + "数据文不存在");
 				responseBody.setObjectid(data.getStr("id"));
 				responseBody.setObjecttype(1);
 				return responseBody;
 			} catch (SQLException e) {
 				e.printStackTrace();
 				responseBody.setStatus(1);
-				responseBody.setMes( "数据Load SQL异常");
+				responseBody.setMes( "数据Load:SQL异常");
 				responseBody.setObjectid(data.getStr("id"));
 				responseBody.setObjecttype(1);
 				return responseBody;
@@ -271,8 +268,8 @@ public class LoadDataService {
 	 * 解析目录名
 	 * 
 	 * @param distinguish
-	 * @param standard_type
-	 * @param analytical_rule
+	 * @param analysis_rule
+	 * @param day_rule
 	 * @param search_path1
 	 * @param search_path2
 	 * @param file_name1
@@ -286,8 +283,8 @@ public class LoadDataService {
 	 */
 
 	public ArrayList<String> directoryName(String ftp_id,
-			String work_directory_id, String distinguish, String standard_type,
-			int analytical_rule, String search_path1, String search_path2,
+			String work_directory_id, String distinguish, String analysis_rule,
+			String day_rule, String search_path1, String search_path2,
 			String file_name1, String file_name2, String file_name3,
 			String file_name4, String file_name5, String file_name6,
 			String description_file) {
@@ -295,16 +292,13 @@ public class LoadDataService {
 		ArrayList<String> list1 = new ArrayList<String>();
 		Date date = new Date();
 		// 获取日期
-		listWorkDirectory = date(file_name4, date, analytical_rule);
+		listWorkDirectory = date(file_name4, date, Integer.parseInt(day_rule));
 		// IUA
 		String file_name6a = IUA(file_name6);
 		// 获取目录名
 		List<Record> listDirectory = new ServiceUtil().getWorkDirectoryById(work_directory_id);
-		String workName = "";
-		for (int i = 0; i < listDirectory.size(); i++) {
-			workName = listDirectory.get(i).get("working_path");
-		}
-		if (standard_type.equals("2")) {
+		String workName =  listDirectory.get(0).get("working_path");
+		if (analysis_rule.equals("2")) {
 			for (String str : listWorkDirectory) {
 				String directoryName = "";
 				String search_path = str.substring(0, 6);

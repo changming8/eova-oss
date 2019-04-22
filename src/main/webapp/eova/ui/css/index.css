@@ -31,11 +31,11 @@
 }
 
 .ztree li a.level0.cur {
-    background-color: #12588E;
+    background-color: #F6D79D;
 }
 
 .ztree li a:HOVER {
-    background-color: #12588E;
+    background-color: #F6D79D;
     color: #F4F4F7;
 /*     border: 1px #FFB951 solid; */
     opacity: 0.8;
@@ -93,7 +93,7 @@
     margin: 0;
     cursor: pointer;
     height: 20px;
-    color: #333;
+    color: black;
     background-color: transparent;
     text-decoration: none;
     vertical-align: top;

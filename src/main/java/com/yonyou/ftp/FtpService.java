@@ -1,16 +1,10 @@
 package com.yonyou.ftp;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-
-import com.eova.common.utils.xx;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.yonyou.base.ResponseBody;
 import com.yonyou.model.FileManagerModel;
@@ -27,57 +21,52 @@ public class FtpService {
 	 * @return
 	 */
 	public ResponseBody File_Name(String id) {
-		Translate4DESC translate4desc = new Translate4DESC();
-		String sqlStringProduct = "select * from bs_ftp_flow where id ='" + id
-				+ "'";
-		List<Record> listProduct = Db.use(xx.DS_EOVA).find(sqlStringProduct);
+		List<Record> listProduct = ServiceUtil.dao.getBsFtpFlow(id);
 		ArrayList<String> list = new ArrayList<String>();
-		List<String> listTxt = new ArrayList<String>();
 		ResponseBody responseBody = new ResponseBody();
 		for (int i = 0; i < listProduct.size(); i++) {
-			String ftp_config_name = listProduct.get(i).get("ftp_config_name");
-			String ftp_id = listProduct.get(i).get("ftp_id");// ftpID
-			String work_directory_id = listProduct.get(i).get(
+			String ftpId = listProduct.get(i).get("ftp_id");// ftpID
+			String workDirectoryId = listProduct.get(i).get(
 					"workdirectory_id");// 工作目录ID
 			String distinguish = listProduct.get(i).get("distinguish");// 大小写
-			String standard_type = listProduct.get(i).get("standard_type");// 规范类型
-			int analytical_rule = listProduct.get(i).get("analytical_rule");// 解析规则
-			String search_path = listProduct.get(i).get("search_path");// 搜索路径
-			String file_name = listProduct.get(i).get("file_name");
-			String search_path1 = listProduct.get(i).get("search_path1");// 搜索路径1
-			String search_path2 = listProduct.get(i).get("search_path2");// 搜索路径2
-			String file_name1 = listProduct.get(i).get("file_name1");
-			String file_name2 = listProduct.get(i).get("file_name2");
-			String file_name3 = listProduct.get(i).get("file_name3");
-			String file_name4 = listProduct.get(i).get("file_name4");
-			String file_name5 = listProduct.get(i).get("file_name5");
-			String file_name6 = listProduct.get(i).get("file_name6");
-			String description_file = listProduct.get(i)
+			String analysis_rule = listProduct.get(i).get("analysis_rule");// 解析规则 // 固定式，解析式
+			String day_rule = listProduct.get(i).get("day_rule");// 日期解析规则
+			String searchPath = listProduct.get(i).get("search_path");// 搜索路径
+			String fileName = listProduct.get(i).get("file_name");
+			String searchPath1 = listProduct.get(i).get("search_path1");// 搜索路径1
+			String searchPath2 = listProduct.get(i).get("search_path2");// 搜索路径2
+			String fileName1 = listProduct.get(i).get("file_name1");
+			String fileName2 = listProduct.get(i).get("file_name2");
+			String fileName3 = listProduct.get(i).get("file_name3");
+			String fileName4 = listProduct.get(i).get("file_name4");
+			String fileName5 = listProduct.get(i).get("file_name5");
+			String fileName6 = listProduct.get(i).get("file_name6");
+			String descriptionFile = listProduct.get(i)
 					.get("description_file");
 			// 获取ftp信息
-			System.out.println("ftp_id:" + ftp_id);
-			List<Record> ftpList = ServiceUtil.dao.getFtpById(ftp_id);
-			String ftp_path = "";// 路径
-			int ftp_port = 0;// 端口
-			String ftp_address = "";// 地址
-			String ftp_username = "";// 帐号
-			String ftp_password = "";// 密码
+			System.out.println("ftp_id:" + ftpId);
+			List<Record> ftpList = ServiceUtil.dao.getFtpById(ftpId);
+			String ftpPath = "";// 路径
+			int ftpPort = 0;// 端口
+			String ftpAddress = "";// 地址
+			String ftpUsername = "";// 帐号
+			String ftpPassword = "";// 密码
 			for (int q = 0; q < ftpList.size(); q++) {
-				ftp_path = ftpList.get(q).get("ftp_path");
-				ftp_port = ftpList.get(q).get("ftp_port");
-				ftp_address = ftpList.get(q).get("ftp_address");
-				ftp_username = ftpList.get(q).get("ftp_username");
-				ftp_password = ftpList.get(q).get("ftp_password");
+				ftpPath = ftpList.get(q).get("ftp_path");
+				ftpPort = ftpList.get(q).get("ftp_port");
+				ftpAddress = ftpList.get(q).get("ftpAddress");
+				ftpUsername = ftpList.get(q).get("ftpUsername");
+				ftpPassword = ftpList.get(q).get("ftp_password");
 			}
-			System.out.println("地址:" + ftp_address + "端口：" + ftp_port + "帐号："
-					+ ftp_username + "密码：" + ftp_password);
+			System.out.println("地址:" + ftpAddress + "端口：" + ftpPort + "帐号："
+					+ ftpUsername + "密码：" + ftpPassword);
 			// 判断固定、解析
-			if (standard_type.equals("2")) {
+			if (analysis_rule.equals("2")) {
 				// 获取全路径信息
-				list = directoryName(ftp_id, work_directory_id, distinguish,
-						standard_type, analytical_rule, search_path1,
-						search_path2, file_name1, file_name2, file_name3,
-						file_name4, file_name5, file_name6, description_file);
+				list = directoryName(ftpId, workDirectoryId, distinguish,
+						analysis_rule, day_rule, searchPath1,
+						searchPath2, fileName1, fileName2, fileName3,
+						fileName4, fileName5, fileName6, descriptionFile);
 				for (String str : list) {
 					// 文件名
 					String fielName = str.substring(str.lastIndexOf("/") + 1);
@@ -90,208 +79,14 @@ public class FtpService {
 					System.out.println("文件名:"+fielName);
 					System.out.println("目录名:"+directoryName);
 					System.out.println(workDirectoryName);
-					boolean yn;
-					try {
-						yn = FileManagerModel.dao.checkDescExist(fielName);
-					} catch (Exception e1) {
-						e1.printStackTrace();
-						responseBody.setStatus(1);
-						responseBody.setMes("查询" + fielName + "文件失败");
-						return responseBody;
-					}
-					if (!yn) {
-						// 下载Desc
-						int rt = 0;
-							try {
-								rt = new FTPClientFactory(ftp_address, ftp_port,
-										ftp_username, ftp_password).downLoadFile(
-												ftp_path+"/", fielName, directoryName);
-							} catch (Exception e) {
-								e.printStackTrace();
-								responseBody.setStatus(1);
-								responseBody.setMes("IP为:" + ftp_address + "的FTP连接失败");
-								return responseBody;
-							}
-						if (rt == 1) {
-							try {
-								//获取desc中的txt
-								listTxt = translate4desc.execute(workDirectoryName);
-							} catch (Exception e) {
-								e.printStackTrace();
-								responseBody.setStatus(1);
-								responseBody.setMes("获取"+workDirectoryName +"中的TXT文件失败");
-								return responseBody;
-							}
-
-							for (int j = 1; j < listTxt.size(); j++) {
-								String[]  strs=listTxt.get(j).split(",");
-								String txtName = strs[0];
-								int up = 0;
-								try {
-									// 下载前更新状态
-									up = FileManagerModel.dao.updataFileStatus(
-											txtName, FileStatus.UPDATING);
-								} catch (Exception e1) {
-									e1.printStackTrace();
-									responseBody.setStatus(1);
-									responseBody.setMes(txtName + "下载前更新状态失败");
-									return responseBody;
-								}
-								if (up >= 1) {
-									// 下载txt
-										try {
-											if (new FTPClientFactory(ftp_address,
-													ftp_port, ftp_username,
-													ftp_password).downLoadFile(ftp_path+"/",
-															txtName, directoryName) == 0) {
-												try {
-													FileManagerModel.dao
-															.updataFileStatus(
-																	txtName,
-																	FileStatus.FAIL);
-												} catch (Exception e) {
-													e.printStackTrace();
-													responseBody.setStatus(1);
-													responseBody.setMes(txtName + "下载失败时更新状态失败");
-													return responseBody;
-												}
-											} else {
-												//下载完成更新状态
-												try {
-													FileManagerModel.dao.updataFileStatus(
-															txtName, FileStatus.FINISH);
-												} catch (Exception e) {
-													e.printStackTrace();
-													responseBody.setStatus(1);
-													responseBody.setMes(txtName + "下载完成更新状态失败");
-													return responseBody;
-												}
-											}
-										} catch (Exception e) {
-											e.printStackTrace();
-											responseBody.setStatus(1);
-											responseBody.setMes("IP为:" + ftp_address + "的FTP连接失败");
-											return responseBody;
-										}
-								} else {
-									try {
-										FileManagerModel.dao.updataFileStatus(
-												txtName, FileStatus.FAIL);
-									} catch (Exception e) {
-										e.printStackTrace();
-										responseBody.setStatus(1);
-										responseBody.setMes(txtName + "下载前更新状态失败,修改失败状态时失败");
-										return responseBody;
-									}
-								}
-							}
-						} else if (rt == 0) {
-							System.out.println("下载失败!!!!!!");
-							// 下载失败
-							responseBody.setStatus(1);
-							responseBody.setMes("下载DESC文件失败:"+fielName);
-							return responseBody;
-						}
-					}
+					//公共下载方法
+					downloadFile(ftpAddress, ftpPort, ftpUsername, ftpPassword,
+							ftpPath, fileName, directoryName, workDirectoryName);
 				}
 			}else{
-				//固定式
-				boolean yn;
-				try {
-					yn = FileManagerModel.dao.checkDescExist(file_name);
-				} catch (Exception e) {
-					e.printStackTrace();
-					responseBody.setStatus(1);
-					responseBody.setMes(e.getClass().getName());
-					return responseBody;
-				}
-				if (!yn) {
-					// 下载Desc
-					int rt = 0;
-					try {
-						rt = new FTPClientFactory(ftp_address, ftp_port,
-								ftp_username, ftp_password).downLoadFile(
-										ftp_path, file_name, search_path);
-					} catch (Exception e) {
-						e.printStackTrace();
-						responseBody.setStatus(1);
-						responseBody.setMes(e.getClass().getName());
-						return responseBody;
-					}
-					if (rt == 1) {
-						try {
-							//获取desc中的txt
-							listTxt = translate4desc.execute(search_path+file_name);
-						} catch (Exception e) {
-							e.printStackTrace();
-							responseBody.setStatus(1);
-							responseBody.setMes(e.getClass().getName());
-							return responseBody;
-						}
-
-						for (int j = 1; j < listTxt.size(); j++) {
-							String[]  strs=listTxt.get(j).split(",");
-							String txtName = strs[0];
-							int up = 0;
-							try {
-								// 下载前更新状态
-								up = FileManagerModel.dao.updataFileStatus(
-										txtName, FileStatus.UPDATING);
-							} catch (Exception e) {
-								e.printStackTrace();
-								responseBody.setStatus(1);
-								responseBody.setMes(e.getClass().getName());
-								return responseBody;
-							}
-							if (up >= 1) {
-								// 下载txt
-								try {
-									if (new FTPClientFactory(ftp_address,
-											ftp_port, ftp_username,
-											ftp_password).downLoadFile(ftp_path,
-													txtName, search_path) == 0) {
-										try {
-											FileManagerModel.dao
-													.updataFileStatus(
-															txtName,
-															FileStatus.FAIL);
-										} catch (Exception e) {
-											e.printStackTrace();
-											responseBody.setStatus(1);
-											responseBody.setMes(e.getClass().getName());
-											return responseBody;
-										}
-									} else {
-										//下载完成更新状态
-										FileManagerModel.dao.updataFileStatus(
-												txtName, FileStatus.FINISH);
-									}
-								} catch (Exception e) {
-									e.printStackTrace();
-									responseBody.setStatus(1);
-									responseBody.setMes(e.getClass().getName());
-									return responseBody;
-								}
-							} else {
-								try {
-									FileManagerModel.dao.updataFileStatus(
-											txtName, FileStatus.FAIL);
-								} catch (Exception e) {
-									e.printStackTrace();
-									responseBody.setStatus(1);
-									responseBody.setMes(e.getClass().getName());
-									return responseBody;
-								}
-							}
-						}
-					} else if (rt == 0) {
-						System.out.println("下载失败!!!!!!");
-						// 下载失败
-						responseBody.setStatus(1);
-						responseBody.setMes("下载DESC文件失败:"+file_name);
-						return responseBody;
-					}
-				}
+				//公共下载方法
+				downloadFile(ftpAddress, ftpPort, ftpUsername, ftpPassword,
+						ftpPath, fileName, searchPath, searchPath + fileName);
 			}
 		}
 		responseBody.setStatus(0);
@@ -299,6 +94,123 @@ public class FtpService {
 		return responseBody;
 	}
 
+	/**
+	 * 根据指定信息下载
+	 * @param ftpAddress ftp地址
+	 * @param ftpPort  ftp端口号
+	 * @param ftpUsername ftp账号
+	 * @param ftpPassword  ftp 密码
+	 * @param ftpPath ftp路径
+	 * @param fielName 文件名
+	 * @param directoryName 目录名
+	 * @param workDirectoryName 全路径
+	 * @return
+	 */
+	public ResponseBody downloadFile(String ftpAddress,int ftpPort,String ftpUsername,String ftpPassword,String ftpPath,String fielName,String directoryName,
+			String workDirectoryName){
+		ResponseBody responseBody=new ResponseBody();
+		boolean yn;
+		try {
+			yn = FileManagerModel.dao.checkDescExist(fielName);
+		} catch (Exception e) {
+			e.printStackTrace();
+			responseBody.setStatus(1);
+			responseBody.setMes(e.getClass().getName());
+			return responseBody;
+		}
+		//文件不存在不能下载
+		if(!yn){
+			Translate4DESC translate4desc = new Translate4DESC();
+			List<String> listTxt = new ArrayList<String>();
+			int rt = 0;
+				try {
+					rt = new FTPClientFactory(ftpAddress, ftpPort,
+							ftpUsername, ftpPassword).downLoadFile(
+									ftpPath+"/", fielName, directoryName);
+				} catch (Exception e) {
+					e.printStackTrace();
+					responseBody.setStatus(1);
+					responseBody.setMes("IP为:" + ftpAddress + "的FTP连接失败");
+					return responseBody;
+				}
+			//判断连接是否成功
+			if (rt == 1) {
+				try {
+					//获取desc中的txt
+					listTxt = translate4desc.execute(workDirectoryName);
+				} catch (Exception e) {
+					e.printStackTrace();
+					responseBody.setStatus(1);
+					responseBody.setMes("获取"+workDirectoryName +"中的TXT文件失败");
+					return responseBody;
+				}
+	
+				for (int j = 1; j < listTxt.size(); j++) {
+					String[]  strs=listTxt.get(j).split(",");
+					String txtName = strs[0];
+					int up = 0;
+					try {
+						// 下载前更新状态
+						up = FileManagerModel.dao.updataFileStatus(
+								txtName, FileStatus.UPDATING);
+					} catch (Exception e1) {
+						e1.printStackTrace();
+						responseBody.setStatus(1);
+						responseBody.setMes(txtName + "下载前更新状态失败");
+						return responseBody;
+					}
+					if (up >= 1) {
+							try {
+								if (new FTPClientFactory(ftpAddress,
+										ftpPort, ftpUsername,
+										ftpPassword).downLoadFile(ftpPath+"/",
+												txtName, directoryName) == 0) {
+									try {
+										FileManagerModel.dao.updataFileStatus(txtName,FileStatus.FAIL);
+									} catch (Exception e) {
+										e.printStackTrace();
+										responseBody.setStatus(1);
+										responseBody.setMes(txtName + "下载失败时更新状态失败");
+										return responseBody;
+									}
+								} else {
+									//下载完成更新状态
+									try {
+										FileManagerModel.dao.updataFileStatus(
+												txtName, FileStatus.FINISH);
+									} catch (Exception e) {
+										e.printStackTrace();
+										responseBody.setStatus(1);
+										responseBody.setMes(txtName + "下载完成更新状态失败");
+										return responseBody;
+									}
+								}
+							} catch (Exception e) {
+								e.printStackTrace();
+								responseBody.setStatus(1);
+								responseBody.setMes("IP为:" + ftpAddress + "的FTP连接失败");
+								return responseBody;
+							}
+					} else {
+						try {
+							FileManagerModel.dao.updataFileStatus(
+									txtName, FileStatus.FAIL);
+						} catch (Exception e) {
+							e.printStackTrace();
+							responseBody.setStatus(1);
+							responseBody.setMes(txtName + "下载前更新状态失败,修改失败状态时失败");
+							return responseBody;
+						}
+					}
+				}
+			} else if (rt == 0) {
+				responseBody.setStatus(1);
+				responseBody.setMes("下载DESC文件失败:"+fielName);
+				return responseBody;
+			}
+		}
+		return responseBody;
+	}
 	/**
 	 * 转换时间
 	 * 
@@ -327,8 +239,8 @@ public class FtpService {
 	 * 解析目录名
 	 * 
 	 * @param distinguish
-	 * @param standard_type
-	 * @param analytical_rule
+	 * @param analysis_rule // 解析规则 // 固定式，解析式
+	 * @param day_rule
 	 * @param search_path1
 	 * @param search_path2
 	 * @param file_name1
@@ -342,8 +254,8 @@ public class FtpService {
 	 */
 
 	public ArrayList<String> directoryName(String ftp_id,
-			String work_directory_id, String distinguish, String standard_type,
-			int analytical_rule, String search_path1, String search_path2,
+			String work_directory_id, String distinguish, String analysis_rule,
+			String day_rule, String search_path1, String search_path2,
 			String file_name1, String file_name2, String file_name3,
 			String file_name4, String file_name5, String file_name6,
 			String description_file) {
@@ -351,14 +263,14 @@ public class FtpService {
 		ArrayList<String> list1 = new ArrayList<String>();
 		Date date = new Date();
 		// 获取日期
-		listWorkDirectory = date(file_name4, date, analytical_rule);
+		listWorkDirectory = date(file_name4, date, Integer.parseInt(day_rule));
 		// 获取目录名
 		List<Record> listDirectory = ServiceUtil.dao.getWorkDirectoryById(work_directory_id);
 		String workName = "";
 		for (int i = 0; i < listDirectory.size(); i++) {
 			workName = listDirectory.get(i).get("working_path");
 		}
-		if (standard_type.equals("2")) {
+		if (analysis_rule.equals("2")) {
 			for (String str : listWorkDirectory) {
 				String directoryName = "";
 				String search_path = str.substring(0, 6);

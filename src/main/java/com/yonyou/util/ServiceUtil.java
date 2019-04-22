@@ -181,4 +181,15 @@ public class ServiceUtil extends BaseModel<ServiceUtil> {
 		return list;
 	}
 	
+	/**
+	 * 根据ID获取FTP流信息
+	 * @param flowTypeCode
+	 * @return
+	 */
+	public List<Record> getBsFtpFlow(String id) {
+		String sql = "select * from bs_ftp_flow where  id ='" + id + "'";
+		List<Record> list = Db.use(xx.DS_EOVA).find(sql);
+		return list;
+	}
+	
 }
