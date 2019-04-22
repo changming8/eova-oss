@@ -170,7 +170,7 @@ public class MetadataController extends BaseController {
 			if (checkExit(tableName)) {
 				// 存在的话 查询是否有数据
 				String countSql = "select count(*) as COUNT from " + tableName;
-				List<Record> countList = Db.use(xx.DS_EOVA).find(countSql);
+				List<Record> countList = Db.use(xx.DS_MAIN).find(countSql);
 				if (Integer.valueOf(countList.get(0).get("count").toString()) > 0) {
 					renderJson(Easy.fail("表已存在数据,无法重新创建"));
 					return;
@@ -179,8 +179,8 @@ public class MetadataController extends BaseController {
 					boolean succeed = Db.tx(new IAtom() {
 						@Override
 						public boolean run() throws SQLException {
-							Db.use(xx.DS_EOVA).update(" DROP TABLE " + objs[0].toString()+";");
-							Db.use(xx.DS_EOVA).update(objs[1].toString()+";");
+							Db.use(xx.DS_MAIN).update(" DROP TABLE " + objs[0].toString()+";");
+							Db.use(xx.DS_MAIN).update(objs[1].toString()+";");
 							//xx.info("sql语句执行结果: "+a+"===="+b);
 							return true;
 						}
@@ -191,7 +191,7 @@ public class MetadataController extends BaseController {
 					}
 				}
 			} else {
-				Db.use(xx.DS_EOVA).update(tempColumnSql.toString());
+				Db.use(xx.DS_MAIN).update(tempColumnSql.toString());
 			}
 			
 			//更新建表状态
@@ -626,7 +626,7 @@ public class MetadataController extends BaseController {
 
 	public boolean checkExit(String tableName) {
 		String tableSql = "select * from information_schema.tables where table_name='" + tableName + "'";
-		List<Record> columnDetailList = Db.use(xx.DS_EOVA).find(tableSql);
+		List<Record> columnDetailList = Db.use(xx.DS_MAIN).find(tableSql);
 		if (columnDetailList.size() > 0) {
 			return true;
 		}

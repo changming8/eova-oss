@@ -69,7 +69,7 @@ public class OFConfig extends EovaConfig {
 	@Override
 	protected void mapping(HashMap<String, ActiveRecordPlugin> arps) {
 		// 获取主数据源的ARP
-		ActiveRecordPlugin main = arps.get(xx.DS_MAIN);
+		ActiveRecordPlugin main = arps.get(xx.DS_EOVA);
 		// 自定义业务Model映射往这里加
 		main.addMapping("user_info", UserInfo.class);
 		main.addMapping("users", Users.class);
