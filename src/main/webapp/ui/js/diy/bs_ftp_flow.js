@@ -60,7 +60,12 @@ window.onload=function(){
     }
     if (type == "1") {
         $search_path.unmask();
+        $("#search_path" + id ).validatebox('options').required = isRequired;
+        $("#search_path" + id ).validatebox('validate');
         $file_name.unmask();
+        $("#file_name" + id ).validatebox('options').required = isRequired;
+        $("#file_name" + id ).validatebox('validate');
+        $file_name.required = isRequired;
         $response_file.mask();
         $file_type.mask();
         $day_rule.mask();
@@ -70,6 +75,7 @@ window.onload=function(){
         $file_name2.mask();
         $file_name4.mask();
         $file_name6.mask();
+        $description_file.mask();
         $('input[name="response_file"]').val('');
         $('input[name="file_type"]').val('');
         $('input[name="search_path1"]').val('');
@@ -116,6 +122,7 @@ $analysis_rule.eovacombo({onChange: function (oldValue, newValue) {
         $file_name2.mask();
         $file_name4.mask();
         $file_name6.mask();
+        $description_file.mask();
         $('input[name="search_path"]').val('');
         $('input[name="file_name"]').val('');
         $('input[name="response_file"]').val('');
@@ -142,6 +149,7 @@ $analysis_rule.eovacombo({onChange: function (oldValue, newValue) {
         $file_name2.mask();
         $file_name4.mask();
         $file_name6.mask();
+        $description_file.mask();
         $('input[name="response_file"]').val('');
         $('input[name="file_type"]').val('');
         $('input[name="search_path1"]').val('');
