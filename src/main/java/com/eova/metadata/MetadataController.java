@@ -116,6 +116,7 @@ public class MetadataController extends BaseController {
 			String length = columnDetailList.get(i).get("FIELD_LENGTH");
 			String fieldName = columnDetailList.get(i).get("FIELD_NAME");//字段描述
 			String def_value = columnDetailList.get(i).get("DEF_VALUE");//默认值
+			Boolean auto = columnDetailList.get(i).get("enable_auto");//列是否自增模式 
 			boolean unique = false;//唯一约束
 			if(null !=columnDetailList.get(i).get("UNIQUE_CONSTRAIN")) {
 				unique = columnDetailList.get(i).get("UNIQUE_CONSTRAIN");
@@ -130,16 +131,18 @@ public class MetadataController extends BaseController {
 				nullFlag = columnDetailList.get(i).get("NULL_FLAG");// 空值标识——0：能为空；1：不能为空
 			}
 			
-			
 			tempColumnSql.append(columnName + " " + fieldType);
 			if (null != length && !"".equals(length.trim())) {
 				tempColumnSql.append(" (" + length + ")");
 			}
 			if (keyFlag) {
-				tempColumnSql.append(" not null primary key");
+				tempColumnSql.append(" primary key not null ");
 			}  else if (nullFlag) {
 				tempColumnSql.append(" not null");
 			}  
+			if(null!= auto&&auto) {
+				tempColumnSql.append(" auto_increment ");
+			}
 			if (unique) {
 				tempColumnSql.append(" UNIQUE ");
 			}  
