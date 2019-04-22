@@ -89,10 +89,10 @@ public class OFConfig extends EovaConfig {
 	@Override
 	protected void plugin(Plugins plugins) {
 //RedisManager对应redis管理器
-		RedisPlugin main = new RedisPlugin("main", "localhost");
-		RedisPlugin eova = new RedisPlugin("eova", "localhost");
-		plugins.add(main);
-		plugins.add(eova);
+		RedisPlugin pklock = new RedisPlugin("PKLOCK", "localhost");
+		RedisPlugin tablelock = new RedisPlugin("TABLELOCK", "localhost");
+		plugins.add(pklock);
+		plugins.add(tablelock);
 	}
 
 	/**
