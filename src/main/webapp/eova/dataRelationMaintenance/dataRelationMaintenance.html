@@ -11,6 +11,8 @@
 				<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="deleteModal()">删除</a>
 				<a href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon1063',plain:true" onclick="importExcelOpen()">导入</a>
 				<a href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon779',plain:true" onclick="exportExcel()">导出</a>
+				<span>切换表</span><select id="slaveSelect" class="easyui-combobox" style="width:200px;"></select>
+				<span>查询条件列</span><select id="queryWhere" class="easyui-combobox" style="width:200px;"></select>
 				<input id="master_ss" class="easyui-searchbox" style="width:300px"
 				    data-options="searcher:doSearchMaster,prompt:'',menu:'#master_t'"></input>
 				<div id="master_t" style="width:120px" data-options="onClick:menuHandler" class="easyui-menu">
@@ -18,8 +20,6 @@
 				    <div class="menu-sep"></div>
 				    <div data-options="name:'slave_dd',disabled:true" id="dis">映射表</div>
 				</div>
-				<span>切换表</span><select id="slaveSelect" class="easyui-combobox" style="width:200px;"></select>
-				<span>查询条件列</span><select id="queryWhere" class="easyui-combobox" style="width:200px;"></select>
 			</div>	
     		<table id="master_"  class="easyui-datagrid" toolbar="#tb">
     			
@@ -287,6 +287,8 @@ function save(){
 	$("#data2").dialog("close");
 	var master_id=$("#master_").datagrid("getSelections");
 	table_slave_col2("slave_","/dataRelationMaintenance/startUpContrast/"+increment+"-"+master_id[0].id+"-"+$("#slaveSelect").combo("getText"));
+	$("#master_").datagrid("clearSelections")
+	$("#dataRelation2").datagrid("clearSelections")
 }
 function doSearch(value,name){
 	column("bs_md_def");
@@ -363,6 +365,7 @@ function menuHandler(item){
 function deleteModal(){
 	var slave=$("#slave_").datagrid("getSelections");
 	var master=$("#master_").datagrid("getSelections");
+	
 	if(slave.length<1||master.length<1){
 		$.messager.show({
 			title:'操作提示',
@@ -407,6 +410,8 @@ function deleteModal(){
 	})
 	var master_id=$("#master_").datagrid("getSelections");
 	table_slave_col2("slave_","/dataRelationMaintenance/startUpContrast/"+increment+"-"+master_id[0].id+"-"+$("#slaveSelect").combo("getText"));
+	$("#slave_").datagrid("clearSelections");
+	$("#master_").datagrid("clearSelections");
 }
 function closeDataRelation(){
 	$("#data").dialog("close");
