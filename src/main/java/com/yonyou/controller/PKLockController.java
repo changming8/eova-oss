@@ -85,7 +85,7 @@ public class PKLockController extends BaseController {
 	public void query() throws Exception {
 
 		List<Record> list = new ArrayList<>();
-		Map<Object, Object> map = Redis.use("PKLOCK").hgetAll("PKLOCK");
+		Map<Object, Object> map = Redis.use(xx.DS_EOVA).hgetAll("PKLOCK");
 		for (Object obj : map.keySet()) {
 			Record record = new Record();
 			LockObject lock = (LockObject) map.get(obj);
@@ -109,7 +109,7 @@ public class PKLockController extends BaseController {
 		String params = getPara("rows");
 		JSONObject obj = (((JSONArray) JSONObject.parse(params)).getJSONObject(0));
 		String id = obj.getString("id");
-		Redis.use("PKLOCK").hdel("PKLOCK", id);
+		Redis.use(xx.DS_EOVA).hdel("PKLOCK", id);
 		renderJson(Easy.sucess());
 	}
 }

@@ -82,7 +82,7 @@ public class LockUtils {
 			}
 		}
 		for (String table : tableNames) {
-			Redis.use("TABLELOCK").set(table, "");
+			Redis.use(xx.DS_EOVA).set(table, "");
 		}
 		return true;
 
@@ -97,7 +97,7 @@ public class LockUtils {
 	 */
 	public synchronized static boolean unLockTable(List<String> tableNames) {
 		for (String table : tableNames) {
-			Redis.use("TABLELOCK").del(table);
+			Redis.use(xx.DS_EOVA).del(table);
 		}
 		return true;
 		
@@ -107,7 +107,7 @@ public class LockUtils {
 	 */
 	public synchronized static boolean checktableLockExist(String table) {
 
-		return Redis.use("TABLELOCK").exists(table);
+		return Redis.use(xx.DS_EOVA).exists(table);
 
 	}
 }
