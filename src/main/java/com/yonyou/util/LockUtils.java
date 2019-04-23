@@ -3,6 +3,7 @@ package com.yonyou.util;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.eova.common.utils.xx;
 import com.jfinal.plugin.redis.Cache;
 import com.jfinal.plugin.redis.Redis;
 import com.yonyou.base.LockObject;
@@ -32,7 +33,8 @@ public class LockUtils {
 		LockObject obj =new LockObject();
 		obj.setDetail(detail);
 		obj.setLockDate(DateUtil.findSystemDateString());
-		Redis.use("PKLOCK").set(pk, obj);
+//		Redis.use("PKLOCK").set(pk, obj);
+		Redis.use(xx.DS_EOVA).hset("PKLOCK", pk, obj);
 		return true;
 
 	}
@@ -42,7 +44,8 @@ public class LockUtils {
 	 */
 	public synchronized static boolean checkLockExist(String pk) {
 
-		return Redis.use("PKLOCK").exists(pk);
+//		return Redis.use("PKLOCK").exists(pk);
+		return Redis.use(xx.DS_EOVA).hexists("PKLOCK", pk);
 
 	}
 
@@ -59,7 +62,8 @@ public class LockUtils {
 		if (!checkLockExist(pk)) {
 			return false;
 		}
-		Redis.use("PKLOCK").del(pk);
+//		Redis.use("PKLOCK").del(pk);
+		Redis.use(xx.DS_EOVA).hdel("PKLOCK", pk);
 		return true;
 
 	}
