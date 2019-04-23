@@ -1,6 +1,9 @@
 package com.yonyou.controller;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
@@ -28,10 +31,14 @@ import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.render.Render;
 import com.jfinal.render.RenderException;
+import com.jfinal.upload.UploadFile;
 import com.yonyou.util.UUID;
 
+import jxl.Cell;
 import jxl.CellView;
+import jxl.Sheet;
 import jxl.Workbook;
+import jxl.read.biff.BiffException;
 import jxl.write.Alignment;
 import jxl.write.Label;
 import jxl.write.VerticalAlignment;
@@ -244,7 +251,29 @@ public class DataRelationMaintenanceController extends BaseController{
 		List<Record> recordData = Db.use(xx.DS_MAIN).find(sql);
 		renderJson(recordData);
 	}
-
+	/*
+	 * 删除映射关系
+	 */
+	public void deleteModal() {
+		String increment=getPara(0);
+		String masterId=getPara(1);
+		String slaveIds=getPara(2);
+		String slaveTable=getPara(3);
+		
+		String[] slaveId=slaveIds.split(",");
+		StringBuffer sb=new StringBuffer();
+		for(String s:slaveId) {
+			sb.append("'"+s+"',");
+		}
+		String sql="delete from "+increment+ " where mdid='"+masterId+"' and dest_table='"+slaveTable+"'";
+		String slave_id=sb.substring(0,sb.lastIndexOf(","));
+		int isTrue=Db.delete(sql+" and destid in("+slave_id+")");
+		if(isTrue>0) {
+			renderJson("{\"message\":\"删除成功\"}");
+			return;
+		}
+		renderJson("{\"message\":\"删除失败\"}");
+	}
 	/*
 	 * 导出映射
 	 */
@@ -264,7 +293,7 @@ public class DataRelationMaintenanceController extends BaseController{
 			// 添加工作表并设置Sheet的名字
 			WritableSheet sheet = wb.createSheet(exportSlave, 0);
 			//记录当前索引
-			int row=0,row2=0;
+			int row=0;
 			//主映射表头
 			String masterTableId = Db.use(xx.DS_EOVA).queryStr("select id from bs_metadata where data_code='" + exportMaster + "'");
 			List<String> masterColCNName = Db.use(xx.DS_EOVA).query("select field_name from bs_metadata_b where pid='" + masterTableId + "'");
@@ -331,7 +360,7 @@ public class DataRelationMaintenanceController extends BaseController{
 			for(int i=0;i<slaveData.size();i++) { 
 				Record record = slaveData.get(i);
 				for(int j=0;j<slaveColENName.size();j++) {
-					Label sortLabel6 = new Label((row2+4)+j,(i+1),record.getStr(slaveColENName.get(j)));
+					Label sortLabel6 = new Label((row)+j,(i+1),record.getStr(slaveColENName.get(j)));
 					sortLabel6.setCellFormat(codeCF);
 					sheet.addCell(sortLabel6);
 				}
@@ -346,13 +375,75 @@ public class DataRelationMaintenanceController extends BaseController{
 				wb.close();
 		}
 	}
+	/*
+	 * 导出执行前
+	 */
 	public void excelBefore() {
 		String increment = getPara(0);
 		String exportSlave = getPara(1);
 		String exportMaster = getPara(2);
 		render(new excelRender(increment,exportSlave,exportMaster));
 	}
-	
+	/*
+	 * 导入excel数据
+	 */
+	public void excelImport() throws BiffException, IOException {
+		UploadFile fi= getFile();
+		File file=new File(fi.getUploadPath());
+		FileInputStream fio=null;
+		try {
+			fio=new FileInputStream(file.getPath()+"\\"+fi.getOriginalFileName());
+			Workbook wk=Workbook.getWorkbook(fio);
+			Sheet[] sheet=wk.getSheets();
+			
+			String destTableName=sheet[0].getName();
+			StringBuffer sb=new StringBuffer();
+			StringBuffer sb2=new StringBuffer();
+			
+			int rows=sheet[0].getRows();
+			for(int i=0;i<rows;i++) {
+				if((i+1)>=rows) {
+					break;
+				}
+				Cell cell1 = sheet[0].getCell( 5 , (i+1) );
+				Cell cell2 = sheet[0].getCell( 6 , (i+1) );
+				if(cell1==null||"".equals(cell1)||cell2==null||"".equals(cell2)) {
+					continue;
+				}
+				sb.append(cell1.getContents()+",");
+				sb2.append(cell2.getContents()+",");
+			}
+			String[] mdid=sb.substring(0,sb.lastIndexOf(",")).split(",");
+			String[] destid=sb2.substring(0,sb2.lastIndexOf(",")).split(",");
+			String tableName=fi.getOriginalFileName().substring(0,fi.getOriginalFileName().lastIndexOf("."));
+			
+			Record record = new Record();
+			
+			record.set("md_column", "id");
+			record.set("dest_table", destTableName);
+			record.set("dest_column", "id");
+			for(int i=0;i<mdid.length;i++) {
+				int count=Db.use(xx.DS_MAIN).queryInt("select count(1) from "+
+				tableName+" where dest_table='"+destTableName+"' and "
+				+ "mdid='"+mdid[i]+"' and destid='"+destid[i]+"'");
+				if(count>0) {
+					continue;
+				}
+				record.set("id",UUID.getUnqionPk());
+				record.set("mdid",mdid[i]);
+				record.set("destid",destid[i]);
+				Db.use(xx.DS_MAIN).save(tableName, record);
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if(fio!=null) {
+				fio.close();
+			}
+		}
+		renderJson("{\"message\":\"导入成功\"}");
+	}
 	
 class excelRender extends Render{
 		private final String CONTENT_TYPE = "application/msexcel;charset=" + getEncoding();
