@@ -6,10 +6,14 @@
  */
 package com.oss.model;
 
+import java.util.List;
+
 import com.eova.common.base.BaseModel;
 import com.eova.common.utils.xx;
 import com.eova.config.EovaConfig;
 import com.eova.core.meta.ColumnMeta;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Record;
 import com.yonyou.util.UUID;
 /**
  * 元数据子表
@@ -21,6 +25,12 @@ public class MetadataDetail extends BaseModel<MetadataDetail> {
 	private static final long serialVersionUID = 1064291771401662738L;
 
 	public static final MetadataDetail dao = new MetadataDetail();
+	
+	
+	//获取元数据子表引用关系列 
+	public List<Record> findMetadataBodLinkyById(String id){
+		return  Db.use(xx.DS_EOVA).find("select id as field_id ,field_code,field_name from bs_metadata_b where link_status = 1 and pid = ? ", id);
+	}
 	
 	public MetadataDetail() {
 		

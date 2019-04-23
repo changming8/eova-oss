@@ -43,7 +43,7 @@ public class Metadata extends BaseModel<Metadata> {
 	
 	//根据表是否存在某个schema
 	public List<Record> findTableByTableName(String tableName){
-		return  Db.use(xx.DS_EOVA).find("select * from information_schema.tables where table_schema = 'fidata'  and  table_name = ?", tableName);
+		return  Db.use(xx.DS_MAIN).find("select * from information_schema.tables where table_schema = 'fidata'  and  table_name = ?", tableName);
 	}
 	
 	//批量保存子表
@@ -57,21 +57,23 @@ public class Metadata extends BaseModel<Metadata> {
 	}
 	//查询元数据是否存数据行
 	public List<Record> findCountyByTableName(String tableName){
-		return  Db.use(xx.DS_EOVA).find("select count(*) as COUNT from ?", tableName);
+		String sql = "SELECT id FROM " +tableName;
+		return  Db.use(xx.DS_MAIN).find(sql);
 	}
 	//drop table   删除表
 	public int dropTableByName(String tableName) {
-		return Db.update("DROP TABLE ?", tableName);
+		String sql = "DROP TABLE " +tableName;
+		return Db.use(xx.DS_MAIN).update(sql);
 	}
 	
 	//create table  创建表
 	public int createTableBySql(String sql) {
-		return Db.update(sql);
+		return Db.use(xx.DS_MAIN).update(sql);
 	}
 	
 	//更新建表状态 
 	public int updateCreateTableStatue(String id) {
-		return Db.update("update bs_metadata set create_status = 1 where id = ?",id);
+		return Db.use(xx.DS_EOVA).update("update bs_metadata set create_status = 1 where id = ?",id);
 	}
 	
 	

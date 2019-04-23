@@ -69,13 +69,13 @@ public class MetadataController extends BaseController {
 		Record record = new Record();
 		record = metadataList.get(0).remove("ID");
 		record.set("ID", id);
-		String data_code = record.get("DATA_CODE").toString();
+		String data_code = record.get("data_code").toString();
 		String code = record.get("code").toString();
 		record.remove("DATA_CODE");
 		long t = System.currentTimeMillis();
 		String serialCode = data_code + "_" + t;
 		String coden = code+"_"+t;
-		record.set("DATA_CODE", serialCode);
+		record.set("data_code", serialCode);
 		record.set("code", coden);
 		record.set("create_status", 0);
 		// 保存元数据主表
@@ -105,29 +105,29 @@ public class MetadataController extends BaseController {
 		
 		// 获取key获取数据库类型字段 从MYSQL_DATEBASE_TYPE获取
 		List<Record> columnDetailList = metadata.findMetadataBodyById(json.getString("id"));
-		StringBuffer tempColumnSql = new StringBuffer(" CREATE TABLE ");
+		StringBuilder tempColumnSql = new StringBuilder(" CREATE TABLE ");
 		String tableName = json.getString("data_code");
 		objs[0]=tableName;
 		tempColumnSql.append(tableName + " ( ");
 		for (int i = 0; i < columnDetailList.size(); i++) {
-			String columnName = columnDetailList.get(i).get("FIELD_CODE");
-			String fieldType = columnDetailList.get(i).get("FIELD_TYPE");
-			String length = columnDetailList.get(i).get("FIELD_LENGTH");
-			String fieldName = columnDetailList.get(i).get("FIELD_NAME");//字段描述
-			String def_value = columnDetailList.get(i).get("DEF_VALUE");//默认值
+			String columnName = columnDetailList.get(i).get("field_code");
+			String fieldType = columnDetailList.get(i).get("field_type");
+			String length = columnDetailList.get(i).get("field_length");
+			String fieldName = columnDetailList.get(i).get("field_name");//字段描述
+			String def_value = columnDetailList.get(i).get("def_value");//默认值
 			Boolean auto = columnDetailList.get(i).get("enable_auto");//列是否自增模式 
 			boolean unique = false;//唯一约束
-			if(null !=columnDetailList.get(i).get("UNIQUE_CONSTRAIN")) {
-				unique = columnDetailList.get(i).get("UNIQUE_CONSTRAIN");
+			if(null !=columnDetailList.get(i).get("unique_constrain")) {
+				unique = columnDetailList.get(i).get("unique_constrain");
 			}
 			boolean keyFlag = false;
-			if(null != columnDetailList.get(i).get("KEY_FLAG")) {
-				keyFlag = columnDetailList.get(i).get("KEY_FLAG");
+			if(null != columnDetailList.get(i).get("key_flag")) {
+				keyFlag = columnDetailList.get(i).get("key_flag");
 			}
 			
 			boolean nullFlag = false;
-			if(null != columnDetailList.get(i).get("NULL_FLAG")) {
-				nullFlag = columnDetailList.get(i).get("NULL_FLAG");// 空值标识——0：能为空；1：不能为空
+			if(null != columnDetailList.get(i).get("null_flag")) {
+				nullFlag = columnDetailList.get(i).get("null_flag");// 空值标识——0：能为空；1：不能为空
 			}
 			
 			tempColumnSql.append(columnName + " " + fieldType);
@@ -135,18 +135,18 @@ public class MetadataController extends BaseController {
 				tempColumnSql.append(" (" + length + ")");
 			}
 			if (keyFlag) {
-				tempColumnSql.append(" primary key not null ");
+				tempColumnSql.append(" PRIMARY KEY NOT NULL ");
 			}  else if (nullFlag) {
-				tempColumnSql.append(" not null");
+				tempColumnSql.append(" NOT NULL");
 			}  
 			if(null!= auto&&auto) {
-				tempColumnSql.append(" auto_increment ");
+				tempColumnSql.append(" AUTO_INCREMENT ");
 			}
 			if (unique) {
 				tempColumnSql.append(" UNIQUE ");
 			}  
 			if(null != def_value&&!def_value.equals("")){
-				tempColumnSql.append(" DEFAULT ").append(def_value);
+				tempColumnSql.append(" DEFAULT ").append("'").append(def_value).append("'");
 			}  
 			if(fieldName!= null&&!fieldName.equals("")) {
 				tempColumnSql.append(" COMMENT '").append(fieldName).append("' ");
@@ -167,7 +167,7 @@ public class MetadataController extends BaseController {
 				// 存在的话 查询是否有数据
 				//String countSql = "select count(*) as COUNT from " + tableName;
 				List<Record> countList = metadata.findCountyByTableName(tableName);
-				if (Integer.valueOf(countList.get(0).get("count").toString()) > 0) {
+				if (countList.size() > 0) {
 					renderJson(Easy.fail("表已存在数据,无法重新创建"));
 					return;
 				} else {
@@ -188,12 +188,13 @@ public class MetadataController extends BaseController {
 			} else {
 				metadata.createTableBySql(tempColumnSql.toString());
 			}
-			
 			//更新建表状态
 			metadata.updateCreateTableStatue(json.getString("id"));
 			renderJson(Easy.sucess());
 			return;
+			
 		} catch (Exception e) {
+			e.printStackTrace();
 			renderJson(Easy.fail("保存失败, 请联系管理员"));
 		}
 	}
