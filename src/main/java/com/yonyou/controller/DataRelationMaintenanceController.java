@@ -339,15 +339,14 @@ public class DataRelationMaintenanceController extends BaseController{
 					sheet.addCell(sortLabel6);
 				}
 			}
-			
+			row=row+3;
 			//slave
-			
 			sb.delete(0, sb.length());
 			String slaveTableId = Db.use(xx.DS_EOVA).queryStr("select id from bs_metadata where data_code='" + exportSlave + "'");
 			List<String> slaveColCNName = Db.use(xx.DS_EOVA).query("select field_name from bs_metadata_b where pid='" + slaveTableId + "'");
 			
 			for (int i = 0; i < slaveColCNName.size(); i++) {
-				Label sortLabel5 = new Label((++row+3), 0, slaveColCNName.get(i));
+				Label sortLabel5 = new Label((row+1)+i, 0, slaveColCNName.get(i));
 				sortLabel5.setCellFormat(codeCF); 
 				sheet.addCell(sortLabel5); 
 			}
@@ -360,7 +359,7 @@ public class DataRelationMaintenanceController extends BaseController{
 			for(int i=0;i<slaveData.size();i++) { 
 				Record record = slaveData.get(i);
 				for(int j=0;j<slaveColENName.size();j++) {
-					Label sortLabel6 = new Label((row)+j,(i+1),record.getStr(slaveColENName.get(j)));
+					Label sortLabel6 = new Label((row+1)+j,(i+1),record.getStr(slaveColENName.get(j)));
 					sortLabel6.setCellFormat(codeCF);
 					sheet.addCell(sortLabel6);
 				}
@@ -400,13 +399,15 @@ public class DataRelationMaintenanceController extends BaseController{
 			StringBuffer sb=new StringBuffer();
 			StringBuffer sb2=new StringBuffer();
 			
+			Cell c=sheet[0].findLabelCell("mdid");
+			Cell c2=sheet[0].findLabelCell("destid");
 			int rows=sheet[0].getRows();
 			for(int i=0;i<rows;i++) {
 				if((i+1)>=rows) {
 					break;
 				}
-				Cell cell1 = sheet[0].getCell( 5 , (i+1) );
-				Cell cell2 = sheet[0].getCell( 6 , (i+1) );
+				Cell cell1 = sheet[0].getCell( c.getColumn() , (i+1) );
+				Cell cell2 = sheet[0].getCell( c2.getColumn() , (i+1) );
 				if(cell1==null||"".equals(cell1)||cell2==null||"".equals(cell2)) {
 					continue;
 				}

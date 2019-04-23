@@ -136,8 +136,8 @@ function importExcel(){
 		});
 		return;
 	}
-	var suffix=$("#upload_id").val().substring($("#upload_id").val().lastIndexOf("."),$("#upload_id").val().length);
-	if(suffix==".xls"||suffix==".xlsx"){
+	var suffix=$("#upload_id").val().substring($("#upload_id").val().lastIndexOf(".")+1,$("#upload_id").val().length);
+	if(suffix!="xls"&&suffix!="xlsx"){
 		$.messager.show({
 			title:'操作提示',
 			msg:'只支持后缀为.xls,.xlsx数据文件进行上传',
