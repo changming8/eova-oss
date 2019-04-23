@@ -1,13 +1,16 @@
 <link rel="stylesheet" type="text/css" href="/eova/plugins/easyui1.7/jquery-easyui-1.7.0/themes/gray/easyui.css">
 <link rel="stylesheet" type="text/css" href="/eova/plugins/easyui1.7/jquery-easyui-1.7.0/themes/icon.css">
+<link rel="stylesheet" type="text/css" href="/eova/ui/icon/icon.css">
 <body class="easyui-layout">
 <div data-options="region:'center',fit:false,border:false,split:false">
     <div id="contentLayout" class="easyui-layout" data-options="fit:true">
     	<div data-options="region:'north',title:'数据关系定义维护',split:true" style="height:370px;">
     		<div id="tb" style="background-color:#fafafa">
     			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-tip',plain:true" onclick="blockDataModal()">主数据</a>
-				<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="queryModal()">增加</a>
+				<a href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon724',plain:true" onclick="queryModal()">增加</a>
 				<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="deleteModal()">删除</a>
+				<a href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon1063',plain:true" onclick="importExcel()">导入</a>
+				<a href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon779',plain:true" onclick="exportExcel()">导出</a>
 				<input id="master_ss" class="easyui-searchbox" style="width:300px"
 				    data-options="searcher:doSearchMaster,prompt:'',menu:'#master_t'"></input>
 				<div id="master_t" style="width:120px" data-options="onClick:menuHandler" class="easyui-menu">
@@ -50,19 +53,19 @@
 		<div id="data2" class="easyui-dialog" title="数据关系维护" style="width:600px;height:500px;"
 		    data-options="iconCls:'icon-filter',modal:false,collapsible:true,buttons:'#bb2'">
 		    <div id="tb4" style="background-color:#fafafa">
+		    	<select id="queryWhere2" class="easyui-combobox" style="width:32%"></select>
 		    	<input id="dataRelationSearch2" class="easyui-searchbox" style="width:65%"
 						    data-options="searcher:doSearch2,prompt:'',menu:'#slave_ss'"></input>
 						<div id="slave_ss" style="width:120px">
 						    <div data-options="name:'sport'">模糊查询</div>
 						</div>
-				<select id="queryWhere2" class="easyui-combobox" style="width:32%"></select>
 			</div>
 		    <table id="dataRelation2" class="easyui-datagrid" toolbar="#tb4">
                     
             </table>
 		</div>
 		<div id="bb2">
-			<a href="#" class="easyui-linkbutton" onclick="save()">保存对照</a>
+			<a href="#" class="easyui-linkbutton" onclick="save()">保存</a>
 			<a href="#" class="easyui-linkbutton" onclick="closeDataRelation()">取消</a>
 		</div>
     </div>
@@ -100,6 +103,29 @@ $(function(){
 })
 </script>
 <script type="text/javascript">//按钮组
+function importExcel(){
+	
+}
+function exportExcel(){
+	var exportSlave=$("#slaveSelect").combo("getText");
+	if(globalDataName.length<1||exportSlave.length<1){
+		$.messager.show({
+			title:'操作提示',
+			msg:'请选择主数据与切换表进行导出',
+			timeout:1000,
+			width:260,
+			height:100,
+			showType:'slide'
+		});
+		return;
+	}
+	$.messager.confirm('数据导出Excel', '是否导出该数据记录?', function(r){
+		if (r){
+			// exit action;
+			window.location.href="/dataRelationMaintenance/excelBefore/"+increment+"-"+exportSlave+"-"+globalDataName;
+		}
+	});
+}
 function queryModal(){
 	if($("#slaveSelect").combo("getText").length<1){
 		$.messager.show({
@@ -114,7 +140,7 @@ function queryModal(){
 	}
 	$("#data2").dialog("open");
 	slaveColumns("/dataRelationMaintenance/queryBsStyle/bs_style_b-bs_style_b-bs_style_b-"+findSelect);
-	tableSlave("dataRelation2","/dataRelationMaintenance/queryMaster/"+$("#slaveSelect").combo("getText"),null);
+	tableSlave("dataRelation2","/dataRelationMaintenance/queryFilterContrast/"+$("#slaveSelect").combo("getText")+"-"+increment,null);
 	if(columns_slave==""){
 		return;
 	}
@@ -203,7 +229,7 @@ function doSearch2(value,name){
 		});
 		return;
 	}
-	tableSlave("dataRelation2","/dataRelationMaintenance/queryWhere/"+$("#slaveSelect").combo("getText")+"-"+value+"-"+$("#queryWhere2").combo("getText"));
+	tableSlave("dataRelation2","/dataRelationMaintenance/queryFilterContrast/"+$("#slaveSelect").combo("getText")+"-"+increment+"-"+value+"-"+$("#queryWhere2").combo("getText"));
 }
 function doSearchMaster(value,name){
 	if($("#queryWhere").combo("getValue")=="请选择查询条件列"||$("#queryWhere").combo("getValue").length<1){

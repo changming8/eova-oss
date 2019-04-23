@@ -20,6 +20,9 @@ public class MetadataBodyIntercept extends MetaObjectIntercept {
 		List<Record> metadataList = Db.use(xx.DS_EOVA).find(metadataSql);
 		String database_type = metadataList.get(0).get("database_type");
 		String field_type =ac.record.getStr("field_type");
+		//校验数据库类型的关键字配置参数,若包含关键字返回错误信息
+		//List<Record> metadataBodyList = ac.records;
+		
 		if(database_type.equals("2")) {
 			//转小写
 			ac.record.set("field_type", field_type.toLowerCase());
