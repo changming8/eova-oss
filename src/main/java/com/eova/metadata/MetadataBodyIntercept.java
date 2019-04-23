@@ -9,6 +9,12 @@ import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.yonyou.util.UUID;
 
+/**
+ * 自定义元数据子表拦截器
+ * 
+ * @author jaker
+ * @date 2019-4-22
+ */
 public class MetadataBodyIntercept extends MetaObjectIntercept {
 
 	@Override
