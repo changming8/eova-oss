@@ -32,7 +32,6 @@ import com.eova.widget.WidgetManager;
 import com.jfinal.aop.Before;
 import com.jfinal.core.Controller;
 import com.jfinal.kit.JsonKit;
-import com.jfinal.kit.LogKit;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.IAtom;
 import com.jfinal.plugin.activerecord.Record;
@@ -54,7 +53,8 @@ public class MetadataController extends BaseController {
 	final Controller ctrl = this;
 	/** 自定义拦截器 **/
 	protected SingleIntercept intercept = null;
-
+	protected Metadata metadata = new Metadata();
+	
 	public void copy() throws Exception {
 
 		Object j = keepPara("rows").getAttr("rows");
@@ -62,10 +62,9 @@ public class MetadataController extends BaseController {
 		JSONObject json = (JSONObject) jsonlist.get(0);
 		// 复制元数据
 		// 先查询 先复制以时间戳为结尾复制到元数据主表中 子表直接复制
-		String metadataSql = "select * from bs_metadata where dr=0 and  id ='" + json.getString("id") + "'";
-		String metadatadetailSql = "select * from bs_metadata_b where dr=0 and  pid ='"+ json.getString("id") + "'";
-		List<Record> metadataList = Db.use(xx.DS_EOVA).find(metadataSql);
-		List<Record> metadataDetailList = Db.use(xx.DS_EOVA).find(metadatadetailSql);
+		//Metadata meta= new Metadata();
+		List<Record> metadataList = metadata.findMetadataById(json.getString("id"));
+		List<Record> metadataDetailList = metadata.findMetadataBodyById(json.getString("id"));
 		String id = UUID.getUnqionPk();
 		Record record = new Record();
 		record = metadataList.get(0).remove("ID");
@@ -79,15 +78,15 @@ public class MetadataController extends BaseController {
 		record.set("DATA_CODE", serialCode);
 		record.set("code", coden);
 		record.set("create_status", 0);
-		// 插入
-		Db.use(xx.DS_EOVA).save("bs_metadata", record);
+		// 保存元数据主表
+		metadata.save(record);
 		// 复制子表字段信息
-
 		for (int i = 0; i < metadataDetailList.size(); i++) {
 			metadataDetailList.get(i).set("pid", id);
 			metadataDetailList.get(i).set("ID", UUID.getUnqionPk());
 		}
-		Db.use(xx.DS_EOVA).batchSave("bs_metadata_b", metadataDetailList, 30);
+		//批量保存元数据子表字段信息
+		metadata.batchSave(metadataDetailList,50);
 		renderJson(Easy.sucess());
 	}
 
@@ -102,10 +101,10 @@ public class MetadataController extends BaseController {
 			return;
 		}
 		final Object[] objs = new Object[2];
+		
+		
 		// 获取key获取数据库类型字段 从MYSQL_DATEBASE_TYPE获取
-		String columnSql = "select* from bs_metadata_b where dr=0 and  pid ='" + json.getString("id")
-				+ "'";
-		List<Record> columnDetailList = Db.use(xx.DS_EOVA).find(columnSql);
+		List<Record> columnDetailList = metadata.findMetadataBodyById(json.getString("id"));
 		StringBuffer tempColumnSql = new StringBuffer(" CREATE TABLE ");
 		String tableName = json.getString("data_code");
 		objs[0]=tableName;
@@ -166,8 +165,8 @@ public class MetadataController extends BaseController {
 		try {
 			if (checkExit(tableName)) {
 				// 存在的话 查询是否有数据
-				String countSql = "select count(*) as COUNT from " + tableName;
-				List<Record> countList = Db.use(xx.DS_MAIN).find(countSql);
+				//String countSql = "select count(*) as COUNT from " + tableName;
+				List<Record> countList = metadata.findCountyByTableName(tableName);
 				if (Integer.valueOf(countList.get(0).get("count").toString()) > 0) {
 					renderJson(Easy.fail("表已存在数据,无法重新创建"));
 					return;
@@ -176,9 +175,8 @@ public class MetadataController extends BaseController {
 					boolean succeed = Db.tx(new IAtom() {
 						@Override
 						public boolean run() throws SQLException {
-							Db.use(xx.DS_MAIN).update(" DROP TABLE " + objs[0].toString()+";");
-							Db.use(xx.DS_MAIN).update(objs[1].toString()+";");
-							//xx.info("sql语句执行结果: "+a+"===="+b);
+							metadata.dropTableByName(objs[0].toString());
+							metadata.createTableBySql(objs[1].toString());
 							return true;
 						}
 					});
@@ -188,17 +186,16 @@ public class MetadataController extends BaseController {
 					}
 				}
 			} else {
-				Db.use(xx.DS_MAIN).update(tempColumnSql.toString());
+				metadata.createTableBySql(tempColumnSql.toString());
 			}
 			
 			//更新建表状态
-			Db.use(xx.DS_EOVA).update("update bs_metadata set create_status = 1 where id =" +json.getString("id"));
+			metadata.updateCreateTableStatue(json.getString("id"));
 			renderJson(Easy.sucess());
 			return;
 		} catch (Exception e) {
 			renderJson(Easy.fail("保存失败, 请联系管理员"));
 		}
-		// renderJson(Easy.sucess());
 	}
 
 	public void saveBatch() throws Exception {
@@ -238,8 +235,8 @@ public class MetadataController extends BaseController {
 				updateRecord.add(re);
 			}
 		}
-		Db.use(xx.DS_EOVA).batchSave("bs_metadata_b", insertRecord, 50);
-		Db.use(xx.DS_EOVA).batchUpdate("bs_metadata_b", updateRecord, 50);
+		metadata.batchSave(insertRecord, 50);
+		metadata.batchUpdate(updateRecord, 50);
 		renderJson(Easy.sucess());
 	}
 
@@ -418,8 +415,7 @@ public class MetadataController extends BaseController {
 		// 导入元数据主表  保存table主信息 到主表 
 		//importMetaObject(ds, type, table, name, code, pk);
 		//check 元数据是否存在,存在更改编码_1
-		String countSql = "select * from bs_metadata where dr=0 and data_code='" + code+"'";
-		List<Record> countList = Db.use(xx.DS_EOVA).find(countSql);
+		List<Record> countList = metadata.findMetadataBodyByDataCode(code);
 		if(countList.size()>0) {
 			code = code+"_1";
 		}
@@ -466,85 +462,6 @@ public class MetadataController extends BaseController {
 			metadataDetail.save();
 			//autoBindDict(table, code, o.getString("REMARKS"), mi.getEn());
 		}
-	}
-
-	/**
-	 * 自动根据字典 将对应的字段 设置成 下拉框 并生成表达式
-	 * 
-	 * @param tableName
-	 * @param objectCode
-	 * @param o
-	 * @param mi
-	 */
-	private void autoBindDict(String tableName, String objectCode, String remarks, String fieldName) {
-		if (xx.isEmpty(remarks)) {
-			return;
-		}
-		if ((remarks.contains(":") || remarks.contains("：")) && remarks.contains("=")) {
-			String dictTable = EovaConfig.getProps().get("main_dict_table");
-			String exp = String.format("select value ID,name CN from %s where object = '%s' and field = '%s'",
-					dictTable, tableName, fieldName);
-			String sql = "update eova_field set type = '下拉框', exp = ? where object_code = ? and en = ?";
-			Db.use(xx.DS_EOVA).update(sql, exp, objectCode, fieldName);
-			LogKit.info("自动绑定字典成功");
-		}
-	}
-
-	/**
-	 * 导入元对象
-	 *
-	 * @param ds
-	 * @param type
-	 * @param table
-	 * @param name
-	 * @param code
-	 * @param pkName
-	 */
-	private void importMetaObject(String ds, String type, String table, String name, String code, String pkName) {
-		if (!xx.isEmpty(pkName)) {
-			pkName = pkName.toLowerCase();
-		}
-		MetaObject mo = new MetaObject();
-		// 编码
-		mo.set("code", code);
-		// 名称
-		mo.set("name", name);
-		// 主键
-		mo.set("pk_name", pkName);
-		// 数据源
-		mo.set("data_source", ds);
-		// 表或视图
-		if (type.equalsIgnoreCase(DsUtil.TABLE)) {
-			mo.set("table_name", table);
-		} else {
-			mo.set("view_name", table);
-			if (xx.isMysql()) {
-				// TODO 暂停自动配置视图，手工在拦截器里实现 新增，修改，删除
-				// 获取视图的sql语句 PS:不自动获取手写也行，但是必须是标准带别名sql
-				// String db = DsUtil.getDbNameByConfigName(ds);
-				// Record recrod = Db.use(xx.DS_EOVA).findFirst("select VIEW_DEFINITION from
-				// information_schema.VIEWS v where v.TABLE_SCHEMA = ? and v.TABLE_NAME = ?",
-				// db, table);
-				// String sql = recrod.getStr("VIEW_DEFINITION");
-				// mo.set("view_sql", sql);
-
-				// 解析View Sql
-				// ViewFactory vf = new ViewFactory(mo.getStr("view_sql"));
-				// 自动生成元数据配置
-				// MetaObjectConfig config = new MetaObjectConfig();
-				// config.setView(vf.parse());
-				// mo.setConfig(config);
-				// // 自动生成元字段关联表名
-				// Collection<Column> columns = vf.getColumns();
-				// for (Column c : columns) {
-				// String en = c.getName();
-				// String tableName = DbUtil.getEndName(c.getTable());
-				// MetaField.dao.updateTableNameByCode(code, en, tableName);
-				// }
-			}
-		}
-
-		mo.save();
 	}
 
 	// 查找表结构表头
@@ -614,8 +531,7 @@ public class MetadataController extends BaseController {
 	}
 
 	public boolean checkExit(String tableName) {
-		String tableSql = "select * from information_schema.tables where table_schema ='fidata'  and  table_name='" + tableName + "'";
-		List<Record> columnDetailList = Db.use(xx.DS_MAIN).find(tableSql);
+		List<Record> columnDetailList = metadata.findTableByTableName(tableName);
 		if (columnDetailList.size() > 0) {
 			return true;
 		}
