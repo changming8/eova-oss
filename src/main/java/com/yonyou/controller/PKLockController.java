@@ -78,7 +78,7 @@ public class PKLockController extends BaseController {
 	}
 
 	/**
-	 * 数据查询 //页面开启是否翻译exp 表达式内容 直接显示内容 编辑时可翻译
+	 * 基于redis查询
 	 * 
 	 * @throws Exception
 	 */
