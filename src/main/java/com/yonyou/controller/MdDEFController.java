@@ -110,7 +110,18 @@ public class MdDEFController extends BaseController {
 
 		Db.use(xx.DS_EOVA).batchSave("bs_style_b", slist, 1000);
 	}
-
+	
+	
+	public void queryDataFlowById() {
+		String b_table_name=getPara(0);
+		String mcode=getPara(1);
+		String sql = "SELECT bs_md_def.id,bs_md_def.mdd_code ,bs_md_def_b.id as bid ,dest_table from bs_md_def_b INNER JOIN bs_md_def  on bs_md_def_b.pid = bs_md_def.id where mdd_code = '"+mcode+"' and bs_md_def_b.dest_table ='"+b_table_name+"'";
+		List<Record> record=Db.use(xx.DS_EOVA).find(sql);
+		renderJson(record);
+	}
+	
+	
+	
 	/**
 	 * 主子分别保存时 获取主表的主键
 	 * 

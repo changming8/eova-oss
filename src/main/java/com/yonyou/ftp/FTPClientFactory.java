@@ -189,9 +189,10 @@ public class FTPClientFactory extends BasePooledObjectFactory<FTPClient> {
 					os = new FileOutputStream(localFile);
 					client.retrieveFile(file.getName(), os);
 					os.close();
+					//读取到文件则代表读取成功
+					flag = true;
 				}
 			}
-			flag = true;
 			System.out.println("下载文件成功");
 		} catch (Exception e) {
 			System.out.println("下载文件失败");
@@ -327,7 +328,7 @@ public class FTPClientFactory extends BasePooledObjectFactory<FTPClient> {
 			  InputStream is = null; 
 			 try {
 				 is = client.retrieveFileStream(path);
-				 BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+				 BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 				 String line="";
 				 while ((line = reader.readLine()) != null) {
 	                System.out.println(line);
