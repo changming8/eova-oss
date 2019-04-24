@@ -12,24 +12,6 @@
     var $file_name6= $('#file_name6');//
     var $description_file= $('#description_file');//DESC or DESC.OK or DESC.ERR
 
-$(document).ready(function(){
-    
-    // 初始禁用
-    $search_path.mask();
-    $file_name.mask();
-    $response_file.mask();
-    $file_type.mask();
-    $day_rule.mask();
-    $search_path1.mask();
-    $search_path2.mask();
-    $file_name1.mask();
-    $file_name2.mask();
-    $file_name4.mask();
-    $file_name6.mask();
-    $description_file.mask();
-    
-});
-
 window.onload=function(){
 	var type = $('input[name="analysis_rule"]').val();
 	if (type == "") {
@@ -51,7 +33,6 @@ window.onload=function(){
         $('input[name="search_path1"]').val('');
         $('input[name="file_name1"]').val('');
         $('input[name="file_name2"]').val('');
-        //$file_type.eovacombo().setValue("");
         $day_rule.eovacombo().setValue("");
         $search_path2.eovacombo().setValue("");
         $file_name4.eovacombo().setValue("");
@@ -81,7 +62,6 @@ window.onload=function(){
         $('input[name="search_path1"]').val('');
         $('input[name="file_name1"]').val('');
         $('input[name="file_name2"]').val('');
-        //$file_type.eovacombo().setValue("");
         $day_rule.eovacombo().setValue("");
         $search_path2.eovacombo().setValue("");
         $file_name4.eovacombo().setValue("");
@@ -91,11 +71,8 @@ window.onload=function(){
     if (type == "2") {
     	$search_path.mask();
         $file_name.mask();
-        $('input[name="search_path"]').val('');
-        $('input[name="file_name"]').val('');
         $response_file.unmask();
         $file_type.unmask();
-        $analytical_rule.unmask();
         $search_path1.unmask();
         $search_path2.unmask();
         $file_name1.unmask();
@@ -130,7 +107,6 @@ $analysis_rule.eovacombo({onChange: function (oldValue, newValue) {
         $('input[name="search_path1"]').val('');
         $('input[name="file_name1"]').val('');
         $('input[name="file_name2"]').val('');
-        //$file_type.eovacombo().setValue("");
         $day_rule.eovacombo().setValue("");
         $search_path2.eovacombo().setValue("");
         $file_name4.eovacombo().setValue("");
@@ -150,23 +126,10 @@ $analysis_rule.eovacombo({onChange: function (oldValue, newValue) {
         $file_name4.mask();
         $file_name6.mask();
         $description_file.mask();
-        $('input[name="response_file"]').val('');
-        $('input[name="file_type"]').val('');
-        $('input[name="search_path1"]').val('');
-        $('input[name="file_name1"]').val('');
-        $('input[name="file_name2"]').val('');
-        //$file_type.eovacombo().setValue("");
-        $day_rule.eovacombo().setValue("");
-        $search_path2.eovacombo().setValue("");
-        $file_name4.eovacombo().setValue("");
-        $file_name6.eovacombo().setValue("");
-        $description_file.eovacombo().setValue("");
     }
     if (newValue == "2") {
     	$search_path.mask();
         $file_name.mask();
-        $('input[name="search_path"]').val('');
-        $('input[name="file_name"]').val('');
         $response_file.unmask();
         $file_type.unmask();
         $day_rule.unmask();
