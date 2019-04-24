@@ -8,20 +8,20 @@
     		<div id="tb" style="background-color:#fafafa">
     			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-tip',plain:true" onclick="blockDataModal()">主数据</a>
 				<a href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon724',plain:true" onclick="queryModal()">增加</a>
-				<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="deleteModal()">删除</a>
+				<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="deleteModal()">解除约束</a>
 				<a href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon1063',plain:true" onclick="importExcelOpen()">导入</a>
 				<a href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon779',plain:true" onclick="exportExcel()">导出</a>
 				<span>切换表</span><select id="slaveSelect" class="easyui-combobox" style="width:200px;"></select>
 				<span>查询条件列</span><select id="queryWhere" class="easyui-combobox" style="width:200px;"></select>
 				<input id="master_ss" class="easyui-searchbox" style="width:300px"
-				    data-options="searcher:doSearchMaster,prompt:'',menu:'#master_t'"></input>
-				<div id="master_t" style="width:120px" data-options="onClick:menuHandler" class="easyui-menu">
-				    <div data-options="name:'master_mm'">主数据</div>
+				    data-options="searcher:doSearchMaster,prompt:''"></input>
+				<!-- <div id="master_t" style="width:120px" data-options="onClick:menuHandler" class="easyui-menu">
+				   	<div data-options="name:'master_mm'">主数据</div>
 				    <div class="menu-sep"></div>
 				    <div data-options="name:'slave_dd',disabled:true" id="dis">映射表</div>
-				</div>
+				</div> -->
 			</div>	
-    		<table id="master_"  class="easyui-datagrid" toolbar="#tb">
+    		<table id="master_"  class="easyui-datagrid" toolbar="#tb" data-options="fit:true">
     			
     		</table>
     	</div>
@@ -29,7 +29,7 @@
 	    	<div id="tb2" style="background-color:#fafafa">
 				
 			</div>
-           	<table id="slave_" class="easyui-datagrid" toolbar="#tb2">
+           	<table id="slave_" class="easyui-datagrid" toolbar="#tb2" data-options="fit:true">
                     
             </table>
         </div>
@@ -113,6 +113,8 @@ var increment=0;
 $(function(){
 	closeDataRelation();
 	$("#queryWhere2").combo({"editable":false});
+	$("#queryWhere").combo({"editable":false});
+	$("#slaveSelect").combo({"editable":false});
     $('#win').window({
     	minimizable:false,
     	maximizable:false
@@ -320,7 +322,7 @@ function doSearchMaster(value,name){
 		});
 		return;
 	}
-	if(masterOrSlaveWhere==globalDataName){
+	if($("#slaveSelect").combo("getText")==globalDataName){
 		table_master2("master_","/dataRelationMaintenance/queryWhere/"+masterOrSlaveWhere+"-"+value+"-"+$("#queryWhere").combo("getValue"));
 	}else{
 		searchSlaveWhere="slaveWhere";
@@ -732,8 +734,8 @@ function table_slave_col1(tableName,url){
 
 					   }
 					});
-	    	var item = $('#master_t').menu('findItem', '映射表');
-	    	$('#master_t').menu('enableItem', item.target);
+	    	//var item = $('#master_t').menu('findItem', '映射表');
+	    	//$('#master_t').menu('enableItem', item.target);
 	    },
 	    onCheck:function(rowIndex,rowData){
 	    	
@@ -804,7 +806,8 @@ function ajaxSelect(){
 			var str=[];
 			var strNames="";
 			var strId="";
-			//console.info(data);
+			console.info(data);
+			data.rows.push({"id":globalDataId,"md_table":globalDataName});
 			$('#slaveSelect').combobox({ 
 			   data:data.rows,
 			   valueField:'id', 
@@ -818,14 +821,6 @@ function ajaxSelect(){
 			findSelect=data.rows[0].id;
 			strNames=data.rows[0].md_table;
 			globalDataName2=data.rows[0].md_table;
-			//globalDataName=data.rows[0].md_table;
-			/* for(var i=0;i<data.rows.length;i++){
-				globalDataName2=data.rows[0].md_table;
-				strId=data.rows[0].id;
-				strNames=data.rows[0].md_table;
-				str.push({"value":data.rows[i].id,"text":data.rows[i].md_table});
-			} */
-			//$("#slaveSelect").combobox("loadData", str);
 			$("#slaveSelect").combobox("select",strNames );
 			column3("bs_style_b");
 			table_slave_col("master_col","/dataRelationMaintenance/queryBsStyle/bs_style_b-bs_style_b-bs_style_b-"+strId);
@@ -835,9 +830,23 @@ function ajaxSelect(){
 }
 $("#slaveSelect").combobox({
 	onSelect:function(record){
+		if(record.md_table==globalDataName){
+			table_master2("master_","/dataRelationMaintenance/queryWhere/"+record.md_table+"-"+''+"-"+$("#queryWhere").combo("getValue"));
+			$('#queryWhere').combobox({ 
+				   data:columns_field3[0],
+				   valueField:'field', 
+				   textField:'title',
+				   //value:"数据", // 未测试过当selectId不在数据集合中有何情况
+				   onLoadSuccess: function () {
+
+				   }
+				});
+			return;
+		}
 		findSelect=record.id;
 		globalDataName2=record.md_table;
 		var table_id=record.id;
+		
 		column3("bs_style_b");
 		table_slave_colss("master_col","/dataRelationMaintenance/queryBsStyle/bs_style_b-bs_style_b-bs_style_b-"+table_id);
 	}
