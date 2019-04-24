@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>接口数据浏览</title>
+<link rel="stylesheet" type="text/css"
+	href="/eova/plugins/easyui1.7/jquery-easyui-1.7.0/themes/gray/easyui.css">
+<link rel="stylesheet" type="text/css"
+	href="/eova/plugins/easyui1.7/jquery-easyui-1.7.0/themes/icon.css">
+<link rel="stylesheet" type="text/css" href="/eova/ui/icon/icon.css">
+</head>
+<body class="easyui-layout">
+	<div data-options="region:'west',title:'接口分类筛选',split:true" id="west"
+		style="width: 400px;">
+		<table class="easyui-datagrid" style="width: 393px; height: 250px"
+			data-options="fit:true,singleSelect:false" id="initTable"
+			toolbar="#tb">
+		</table>
+		<div id="tb" style="background-color:#fafafa">
+			<a id="initTemplate" href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon0',plain:true">模板初始化</a>
+			<span>接口分类：</span><select class="easyui-combobox" id="sys_class" style="width:50%"
+				></select>
+		</div>
+	</div>
+	<div data-options="region:'center',title:'接口数据浏览'"
+		style="padding: 5px; background: #eee;">
+			
+	</div>
+</body>
+<script type="text/javascript"
+	src="/eova/plugins/easyui1.7/jquery-easyui-1.7.0/jquery.min.js"></script>
+<script type="text/javascript"
+	src="/eova/plugins/easyui1.7/jquery-easyui-1.7.0/jquery.easyui.min.js"></script>
+<script type="text/javascript"
+	src="/eova/plugins/easyui1.7/jquery-easyui-1.7.0/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript">//接口数据分类
+	$(function() {
+		initSelect();
+	})
+	function initSelect() {
+		$.ajax({
+			url : "/interfaceDataBrowsingController/queryClass",
+			type : "get",
+			dataType : "json",
+			success : function(data) {
+				$('#sys_class').combobox(
+						{
+							data : data,
+							valueField : 'id',
+							textField : 'sy_regeist_name',
+							//value:"数据", // 未测试过当selectId不在数据集合中有何情况
+							onLoadSuccess : function() {
+								$("#sys_class").combo({"editable":false});
+								$("#sys_class").combobox("select",
+										data[0].sy_regeist_name);
+								initTable(data[0].id);
+							},
+							onSelect:function(record){
+								initTable(record.id);
+							}
+						});
+			}
+		})
+	}
+	function initTable(id) {
+		var columns=[];
+		columns.push([{
+			"field":"id",
+			"title":"id",
+			"width":100
+		},{
+			"field":"data_code",
+			"title":"表名称",
+			"width":100
+		},{
+			"field":"data_name",
+			"title":"元数据名称",
+			"width":100
+		}]);
+		$("#initTable").datagrid({
+			url : "/interfaceDataBrowsingController/queryClassTable/"+id,
+			columns : columns,
+			fitColumns : true,
+			striped : true,
+			idField : "id",
+			height : 658,
+			pagination : true,
+			singleSelect : true,
+			rownumbers : true,
+			pageNumber : 1,
+			pageSize : 15,
+			pagePosition : "bottom",
+			pageList : [ 15, 30, 50, 100, 200, 500, 1000, 2000 ],
+			onLoadSuccess : function(data) {
+				
+			},
+			onCheck : function(rowIndex, rowData) {
+				
+			}
+		});
+	}
+	
+</script>
+<script type="text/javascript">
+	$("#initTemplate").click(function(){
+		var data=$("#initTable").datagrid("getSelections");
+		if(data==""||data.length<1){
+			$.messager.show({
+				title:'操作提示',
+				msg:'请选择需要初始化的数据表',
+				timeout:1000,
+				width:260,
+				height:100,
+				showType:'slide'
+			});
+			return;
+		}
+		console.info(data);
+		$.ajax({
+			url:'/interfaceDataBrowsingController/initTemplate/'+data[0].id,
+			type:"post",
+			dataType:"json",
+			success:function(data){
+				$.messager.show({
+					title:'操作提示',
+					msg:data.message,
+					timeout:1000,
+					width:260,
+					height:100,
+					showType:'slide'
+				});
+			},
+			error:function(xhr,s,e){
+				$.messager.show({
+					title:'操作提示',
+					msg:'服务器异常',
+					timeout:1000,
+					width:260,
+					height:100,
+					showType:'slide'
+				});
+			}
+		})
+	})
+</script>
+</html>
