@@ -48,7 +48,12 @@ import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
 import jxl.write.WriteException;
 
-public class DataRelationMaintenanceController extends BaseController{
+/**
+ * 
+ * @author tanglibing
+ *	数据关系定义
+ */
+public class DataRelationMaintenanceController extends BaseController {
 
 	final Controller ctrl = this;
 
@@ -65,7 +70,15 @@ public class DataRelationMaintenanceController extends BaseController{
 	public void dataFlow() {
 		render("/eova/dataflow/dataFlow.html");
 	}
-
+	
+	/*
+	 * 数据流程queryById
+	 */
+	public void queryDataFlowById() {
+		String flow_id=getPara(0);
+		List<Record> record=Db.use(xx.DS_EOVA).find("select * from v_bs_flow where id='"+flow_id+"'");
+		renderJson(record);
+	}
 	/*
 	 * dataRelationMaintenance大部分查询
 	 * 
@@ -251,34 +264,37 @@ public class DataRelationMaintenanceController extends BaseController{
 		List<Record> recordData = Db.use(xx.DS_MAIN).find(sql);
 		renderJson(recordData);
 	}
+
 	/*
 	 * 删除映射关系
 	 */
 	public void deleteModal() {
-		String increment=getPara(0);
-		String masterId=getPara(1);
-		String slaveIds=getPara(2);
-		String slaveTable=getPara(3);
-		
-		String[] slaveId=slaveIds.split(",");
-		StringBuffer sb=new StringBuffer();
-		for(String s:slaveId) {
-			sb.append("'"+s+"',");
+		String increment = getPara(0);
+		String masterId = getPara(1);
+		String slaveIds = getPara(2);
+		String slaveTable = getPara(3);
+
+		String[] slaveId = slaveIds.split(",");
+		StringBuffer sb = new StringBuffer();
+		for (String s : slaveId) {
+			sb.append("'" + s + "',");
 		}
-		String sql="delete from "+increment+ " where mdid='"+masterId+"' and dest_table='"+slaveTable+"'";
-		String slave_id=sb.substring(0,sb.lastIndexOf(","));
-		int isTrue=Db.delete(sql+" and destid in("+slave_id+")");
-		if(isTrue>0) {
+		String sql = "delete from " + increment + " where mdid='" + masterId + "' and dest_table='" + slaveTable + "'";
+		String slave_id = sb.substring(0, sb.lastIndexOf(","));
+		int isTrue = Db.delete(sql + " and destid in(" + slave_id + ")");
+		if (isTrue > 0) {
 			renderJson("{\"message\":\"删除成功\"}");
 			return;
 		}
 		renderJson("{\"message\":\"删除失败\"}");
 	}
+
 	/*
 	 * 导出映射
 	 */
 	@SuppressWarnings("deprecation")
-	public void exportExcel(OutputStream os,String increment,String exportMaster,String exportSlave) throws IOException, WriteException {
+	public void exportExcel(OutputStream os, String increment, String exportMaster, String exportSlave)
+			throws IOException, WriteException {
 		// 创建工作簿
 		WritableWorkbook wb = null;
 		try {
@@ -292,74 +308,81 @@ public class DataRelationMaintenanceController extends BaseController{
 			cellView.setSize(10 * 550);
 			// 添加工作表并设置Sheet的名字
 			WritableSheet sheet = wb.createSheet(exportSlave, 0);
-			//记录当前索引
-			int row=0;
-			//主映射表头
-			String masterTableId = Db.use(xx.DS_EOVA).queryStr("select id from bs_metadata where data_code='" + exportMaster + "'");
-			List<String> masterColCNName = Db.use(xx.DS_EOVA).query("select field_name from bs_metadata_b where pid='" + masterTableId + "'");
+			// 记录当前索引
+			int row = 0;
+			// 主映射表头
+			String masterTableId = Db.use(xx.DS_EOVA)
+					.queryStr("select id from bs_metadata where data_code='" + exportMaster + "'");
+			List<String> masterColCNName = Db.use(xx.DS_EOVA)
+					.query("select field_name from bs_metadata_b where pid='" + masterTableId + "'");
 			for (int i = 0; i < masterColCNName.size(); i++) {
 				Label sortLabel = new Label(i, 0, masterColCNName.get(i));
 				sortLabel.setCellFormat(codeCF);
 				sheet.addCell(sortLabel);
 				row++;
 			}
-			//master
-			StringBuffer sb=new StringBuffer();
-			List<String> masterColENName = Db.use(xx.DS_EOVA).query("select field_code from bs_metadata_b where pid='" + masterTableId + "'");
-			for(int i=0;i<masterColENName.size();i++) {
-				sb.append(masterColENName.get(i)+",");
+			// master
+			StringBuffer sb = new StringBuffer();
+			List<String> masterColENName = Db.use(xx.DS_EOVA)
+					.query("select field_code from bs_metadata_b where pid='" + masterTableId + "'");
+			for (int i = 0; i < masterColENName.size(); i++) {
+				sb.append(masterColENName.get(i) + ",");
 			}
-			String masterQueryCol=sb.substring(0,sb.lastIndexOf(","));
-			List<Record> masterData=Db.use(xx.DS_MAIN).find("select "+masterQueryCol+" from "+exportMaster);
-			for(int i=0;i<masterData.size();i++) { 
+			String masterQueryCol = sb.substring(0, sb.lastIndexOf(","));
+			List<Record> masterData = Db.use(xx.DS_MAIN).find("select " + masterQueryCol + " from " + exportMaster);
+			for (int i = 0; i < masterData.size(); i++) {
 				Record record = masterData.get(i);
-				for(int j=0;j<masterColENName.size();j++) {
-					Label sortLabel6 = new Label(j,(i+1),record.getStr(masterColENName.get(j)));
+				for (int j = 0; j < masterColENName.size(); j++) {
+					Label sortLabel6 = new Label(j, (i + 1), record.getStr(masterColENName.get(j)));
 					sortLabel6.setCellFormat(codeCF);
 					sheet.addCell(sortLabel6);
 				}
 			}
-			
-			//映射表id信息
-			Label mdid = new Label((row+1),0,"mdid");
+
+			// 映射表id信息
+			Label mdid = new Label((row + 1), 0, "mdid");
 			mdid.setCellFormat(codeCF);
 			sheet.addCell(mdid);
-			Label destid = new Label((row+2),0,"destid");
+			Label destid = new Label((row + 2), 0, "destid");
 			destid.setCellFormat(codeCF);
 			sheet.addCell(destid);
-			
-			final String[] tempCol= {"mdid","destid"};
-			//查询当前映射
-			List<Record> queryMapping=Db.use(xx.DS_MAIN).find("select mdid,destid from "+ increment+" where dest_table='"+exportSlave+"'");
-			for(int i=0;i<queryMapping.size();i++) { 
+
+			final String[] tempCol = { "mdid", "destid" };
+			// 查询当前映射
+			List<Record> queryMapping = Db.use(xx.DS_MAIN)
+					.find("select mdid,destid from " + increment + " where dest_table='" + exportSlave + "'");
+			for (int i = 0; i < queryMapping.size(); i++) {
 				Record record = queryMapping.get(i);
-				for(int j=0;j<2;j++) {
-					Label sortLabel6 = new Label((row+1)+j,(i+1),record.getStr(tempCol[j]));
+				for (int j = 0; j < 2; j++) {
+					Label sortLabel6 = new Label((row + 1) + j, (i + 1), record.getStr(tempCol[j]));
 					sortLabel6.setCellFormat(codeCF);
 					sheet.addCell(sortLabel6);
 				}
 			}
-			row=row+3;
-			//slave
+			row = row + 3;
+			// slave
 			sb.delete(0, sb.length());
-			String slaveTableId = Db.use(xx.DS_EOVA).queryStr("select id from bs_metadata where data_code='" + exportSlave + "'");
-			List<String> slaveColCNName = Db.use(xx.DS_EOVA).query("select field_name from bs_metadata_b where pid='" + slaveTableId + "'");
-			
+			String slaveTableId = Db.use(xx.DS_EOVA)
+					.queryStr("select id from bs_metadata where data_code='" + exportSlave + "'");
+			List<String> slaveColCNName = Db.use(xx.DS_EOVA)
+					.query("select field_name from bs_metadata_b where pid='" + slaveTableId + "'");
+
 			for (int i = 0; i < slaveColCNName.size(); i++) {
-				Label sortLabel5 = new Label((row+1)+i, 0, slaveColCNName.get(i));
-				sortLabel5.setCellFormat(codeCF); 
-				sheet.addCell(sortLabel5); 
+				Label sortLabel5 = new Label((row + 1) + i, 0, slaveColCNName.get(i));
+				sortLabel5.setCellFormat(codeCF);
+				sheet.addCell(sortLabel5);
 			}
-			List<String> slaveColENName = Db.use(xx.DS_EOVA).query("select field_code from bs_metadata_b where pid='" + slaveTableId + "'");
-			for(int i=0;i<slaveColENName.size();i++) {
-				sb.append(slaveColENName.get(i)+",");
+			List<String> slaveColENName = Db.use(xx.DS_EOVA)
+					.query("select field_code from bs_metadata_b where pid='" + slaveTableId + "'");
+			for (int i = 0; i < slaveColENName.size(); i++) {
+				sb.append(slaveColENName.get(i) + ",");
 			}
-			String slaveQueryCol=sb.substring(0,sb.lastIndexOf(","));
-			List<Record> slaveData=Db.use(xx.DS_MAIN).find("select "+slaveQueryCol+" from "+exportSlave);
-			for(int i=0;i<slaveData.size();i++) { 
+			String slaveQueryCol = sb.substring(0, sb.lastIndexOf(","));
+			List<Record> slaveData = Db.use(xx.DS_MAIN).find("select " + slaveQueryCol + " from " + exportSlave);
+			for (int i = 0; i < slaveData.size(); i++) {
 				Record record = slaveData.get(i);
-				for(int j=0;j<slaveColENName.size();j++) {
-					Label sortLabel6 = new Label((row+1)+j,(i+1),record.getStr(slaveColENName.get(j)));
+				for (int j = 0; j < slaveColENName.size(); j++) {
+					Label sortLabel6 = new Label((row + 1) + j, (i + 1), record.getStr(slaveColENName.get(j)));
 					sortLabel6.setCellFormat(codeCF);
 					sheet.addCell(sortLabel6);
 				}
@@ -374,6 +397,7 @@ public class DataRelationMaintenanceController extends BaseController{
 				wb.close();
 		}
 	}
+
 	/*
 	 * 导出执行前
 	 */
@@ -381,72 +405,72 @@ public class DataRelationMaintenanceController extends BaseController{
 		String increment = getPara(0);
 		String exportSlave = getPara(1);
 		String exportMaster = getPara(2);
-		render(new excelRender(increment,exportSlave,exportMaster));
+		render(new excelRender(increment, exportSlave, exportMaster));
 	}
+
 	/*
 	 * 导入excel数据
 	 */
 	public void excelImport() throws BiffException, IOException {
-		UploadFile fi= getFile();
-		File file=new File(fi.getUploadPath());
-		FileInputStream fio=null;
+		UploadFile fi = getFile();
+		File file = new File(fi.getUploadPath());
+		FileInputStream fio = null;
 		try {
-			fio=new FileInputStream(file.getPath()+"\\"+fi.getOriginalFileName());
-			Workbook wk=Workbook.getWorkbook(fio);
-			Sheet[] sheet=wk.getSheets();
-			
-			String destTableName=sheet[0].getName();
-			StringBuffer sb=new StringBuffer();
-			StringBuffer sb2=new StringBuffer();
-			
-			Cell c=sheet[0].findLabelCell("mdid");
-			Cell c2=sheet[0].findLabelCell("destid");
-			int rows=sheet[0].getRows();
-			for(int i=0;i<rows;i++) {
-				if((i+1)>=rows) {
+			fio = new FileInputStream(file.getPath() + "\\" + fi.getOriginalFileName());
+			Workbook wk = Workbook.getWorkbook(fio);
+			Sheet[] sheet = wk.getSheets();
+
+			String destTableName = sheet[0].getName();
+			StringBuffer sb = new StringBuffer();
+			StringBuffer sb2 = new StringBuffer();
+
+			Cell c = sheet[0].findLabelCell("mdid");
+			Cell c2 = sheet[0].findLabelCell("destid");
+			int rows = sheet[0].getRows();
+			for (int i = 0; i < rows; i++) {
+				if ((i + 1) >= rows) {
 					break;
 				}
-				Cell cell1 = sheet[0].getCell( c.getColumn() , (i+1) );
-				Cell cell2 = sheet[0].getCell( c2.getColumn() , (i+1) );
-				if(cell1==null||"".equals(cell1)||cell2==null||"".equals(cell2)) {
+				Cell cell1 = sheet[0].getCell(c.getColumn(), (i + 1));
+				Cell cell2 = sheet[0].getCell(c2.getColumn(), (i + 1));
+				if (cell1 == null || "".equals(cell1) || cell2 == null || "".equals(cell2)) {
 					continue;
 				}
-				sb.append(cell1.getContents()+",");
-				sb2.append(cell2.getContents()+",");
+				sb.append(cell1.getContents() + ",");
+				sb2.append(cell2.getContents() + ",");
 			}
-			String[] mdid=sb.substring(0,sb.lastIndexOf(",")).split(",");
-			String[] destid=sb2.substring(0,sb2.lastIndexOf(",")).split(",");
-			String tableName=fi.getOriginalFileName().substring(0,fi.getOriginalFileName().lastIndexOf("."));
-			
+			String[] mdid = sb.substring(0, sb.lastIndexOf(",")).split(",");
+			String[] destid = sb2.substring(0, sb2.lastIndexOf(",")).split(",");
+			String tableName = fi.getOriginalFileName().substring(0, fi.getOriginalFileName().lastIndexOf("."));
+
 			Record record = new Record();
-			
+
 			record.set("md_column", "id");
 			record.set("dest_table", destTableName);
 			record.set("dest_column", "id");
-			for(int i=0;i<mdid.length;i++) {
-				int count=Db.use(xx.DS_MAIN).queryInt("select count(1) from "+
-				tableName+" where dest_table='"+destTableName+"' and "
-				+ "mdid='"+mdid[i]+"' and destid='"+destid[i]+"'");
-				if(count>0) {
+			for (int i = 0; i < mdid.length; i++) {
+				int count = Db.use(xx.DS_MAIN).queryInt("select count(1) from " + tableName + " where dest_table='"
+						+ destTableName + "' and " + "mdid='" + mdid[i] + "' and destid='" + destid[i] + "'");
+				if (count > 0) {
 					continue;
 				}
-				record.set("id",UUID.getUnqionPk());
-				record.set("mdid",mdid[i]);
-				record.set("destid",destid[i]);
+				record.set("id", UUID.getUnqionPk());
+				record.set("mdid", mdid[i]);
+				record.set("destid", destid[i]);
 				Db.use(xx.DS_MAIN).save(tableName, record);
 			}
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
-			if(fio!=null) {
+			if (fio != null) {
 				fio.close();
 			}
 		}
 		renderJson("{\"message\":\"导入成功\"}");
 	}
-	
-class excelRender extends Render{
+
+	class excelRender extends Render {
 		private final String CONTENT_TYPE = "application/msexcel;charset=" + getEncoding();
 
 		private final String increment;
@@ -462,11 +486,13 @@ class excelRender extends Render{
 
 			fileName = increment + ".xls";
 		}
+
 		@Override
 		public void render() {
 			response.reset();
 			try {
-				response.setHeader("Content-disposition", "attachment; filename=" + URLEncoder.encode(fileName, getEncoding()));
+				response.setHeader("Content-disposition",
+						"attachment; filename=" + URLEncoder.encode(fileName, getEncoding()));
 			} catch (UnsupportedEncodingException e1) {
 				e1.printStackTrace();
 			}
@@ -474,8 +500,8 @@ class excelRender extends Render{
 			OutputStream os = null;
 			try {
 				os = response.getOutputStream();
-				exportExcel(os,increment,exportMaster,exportSlave);
-				//ExcelUtil.createExcel(os, data, items, object);
+				exportExcel(os, increment, exportMaster, exportSlave);
+				// ExcelUtil.createExcel(os, data, items, object);
 			} catch (Exception e) {
 				throw new RenderException(e);
 			} finally {
