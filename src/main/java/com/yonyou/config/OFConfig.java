@@ -25,6 +25,7 @@ import com.oss.test.TestController;
 import com.yonyou.controller.DataRelationMaintenanceController;
 import com.yonyou.controller.FTPController;
 import com.yonyou.controller.MdDEFController;
+import com.yonyou.controller.PKLockController;
 import com.yonyou.model.FileManagerModel;
 import com.yonyou.quartz.controller.QuartzController;
 
@@ -53,6 +54,7 @@ public class OFConfig extends EovaConfig {
 		me.add("/dataRelationMaintenance", DataRelationMaintenanceController.class);
 		me.add("/flow", QuartzController.class);
 		me.add("/ftp", FTPController.class);
+		me.add("/PKLockController", PKLockController.class);
 		// 排除不需要登录拦截的URI 语法同SpringMVC拦截器配置 @see
 		// com.eova.common.utils.util.AntPathMatcher
 		LoginInterceptor.excludes.add("/test/**");
@@ -91,10 +93,10 @@ public class OFConfig extends EovaConfig {
 	@Override
 	protected void plugin(Plugins plugins) {
 //RedisManager对应redis管理器
-		RedisPlugin main = new RedisPlugin("main", "localhost");
-		RedisPlugin eova = new RedisPlugin("eova", "localhost");
-		plugins.add(main);
+		RedisPlugin eova = new RedisPlugin(xx.DS_EOVA, "localhost");
+		RedisPlugin main = new RedisPlugin(xx.DS_MAIN, "localhost");
 		plugins.add(eova);
+		plugins.add(main);
 	}
 
 	/**

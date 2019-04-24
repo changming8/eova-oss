@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
 import com.jfinal.plugin.activerecord.Record;
 import com.yonyou.base.ResponseBody;
 import com.yonyou.model.FileManagerModel;
@@ -341,15 +342,15 @@ public class FtpService {
 		// 判断连接是否成功
 		if (rt) {
 			try {
-				if(!LockUtils.pkLock(responseBody.getId()+responseBody.getFlowtypeId())) {
-					responseBody.setStatus(1);
-					responseBody.setMes("资源被占用："+fielName);
-					return;
-				}
+//				if(!LockUtils.pkLock(responseBody.getId(),responseBody.getFlowtypeId())) {
+//					responseBody.setStatus(1);
+//					responseBody.setMes("资源被占用："+fielName);
+//					return;
+//				}
 				// 获取desc中的txt
 				listTxt = new FTPClientFactory(ftpAddress, ftpPort, ftpUsername, ftpPassword)
 						.readFile(workDirectoryName);
-				LockUtils.unpkLock(responseBody.getId()+responseBody.getFlowtypeId());
+//				LockUtils.unpkLock(responseBody.getId()+responseBody.getFlowtypeId());
 			} catch (Exception e) {
 				e.printStackTrace();
 				responseBody.setStatus(1);
@@ -364,13 +365,7 @@ public class FtpService {
 				try {
 					// 下载前更新状态
 					up = FileManagerModel.dao.updataFileStatus(txtName, FileStatus.UPDATING);
-				} catch (Exception e1) {
-					e1.printStackTrace();
-					LockUtils.pkLock(responseBody.getId()+responseBody.getFlowtypeId(), workDirectoryName);
-					//获取desc中的txt
-					listTxt = translate4desc.execute(workDirectoryName);
-					LockUtils.unpkLock(responseBody.getId()+responseBody.getFlowtypeId());
-				} catch (Exception e) {
+				}  catch (Exception e) {
 					e.printStackTrace();
 					responseBody.setStatus(1);
 					responseBody.setMes(txtName + "下载前更新状态失败,文件名:" + fielName);
