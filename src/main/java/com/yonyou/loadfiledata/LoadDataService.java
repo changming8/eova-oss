@@ -17,7 +17,6 @@ import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.yonyou.base.ResponseBody;
 import com.yonyou.model.FileManagerModel;
-import com.yonyou.util.ServiceUtil;
 import com.yonyou.util.FileCharsetDetector;
 import com.yonyou.util.FileUtil;
 
@@ -28,125 +27,152 @@ import com.yonyou.util.FileUtil;
 public class LoadDataService {
 
 	/**
-	 * 数据库表load数据文件
+	 * load数据文件
 	 * @param id
 	 * @return
 	 */
 	public ResponseBody loadData(String id) {
 		
-		List<Record> listProduct = Db.use(xx.DS_MAIN).find("select * from bs_load_flow where id ='" + id + "'");//拼接DESC文件路径和文件名数据
+		List<Record> listProduct = Db.use(xx.DS_EOVA).find("select * from bs_load_flow where id ='" + id + "'");//拼接DESC文件路径和文件名数据
+		//DESC对应数据库表
+		String table_name = listProduct.get(0).get("table_code");
+		if ( table_name == null || "".equals(table_name)) 
+			return getResponseBody("DESC文件对应表名为空,任务终止",id,1,1);
+		
 		ResponseBody responseBody = new ResponseBody();
 		
-		//拼接DESC文件名
-		String ftp_id = listProduct.get(0).get("ftp_id");// ftpID
-		String work_directory_id = listProduct.get(0).get("workdirectory_id");// 工作目录ID
-		String distinguish = listProduct.get(0).get("distinguish");// 大小写
-		String analysis_rule = listProduct.get(0).get("analysis_rule");// 规范规则
-		String day_rule = listProduct.get(0).get("day_rule");// 日期解析规则
-		String file_name = listProduct.get(0).get("file_name");
-		String search_path1 = listProduct.get(0).get("search_path1");// 搜索路径1
-		String search_path2 = listProduct.get(0).get("search_path2");// 搜索路径2
-		String file_name1 = listProduct.get(0).get("file_name1");
-		String file_name2 = listProduct.get(0).get("file_name2");
-		String file_name3 = listProduct.get(0).get("file_name3");
-		String file_name4 = listProduct.get(0).get("file_name4");
-		String file_name5 = listProduct.get(0).get("file_name5");
-		String file_name6 = listProduct.get(0).get("file_name6");
-		String description_file = listProduct.get(0).get("description_file");
-		String table_name = listProduct.get(0).get("table_code");
-		
-		if (analysis_rule.equals("2")) {
+		//解析规则
+		String analysis_rule = listProduct.get(0).get("analysis_rule");
+		if (analysis_rule.equals("2")) {//固定式
 			// 获取全路径信息
-			ArrayList<String> list = directoryName(ftp_id, work_directory_id, distinguish,
-					analysis_rule, day_rule, search_path1,
-					search_path2, file_name1, file_name2, file_name3,
-					file_name4, file_name5, file_name6, description_file);
+			List<String> list = null;
+			try {
+				list = getDESCName( listProduct );
+				if (list ==null || list.size() == 0) {
+					return getResponseBody("未获取到DESC文件名",id,1,1);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				return getResponseBody("获取DESC文件名异常",id,1,1);
+			} 
+			
 			for (String str : list) {
-				// DESC文件名
-				String fielName = str.substring(str.lastIndexOf("/") + 1);
 				
-				responseBody = loadEveryFile( fielName, table_name );
+				responseBody = loadEveryFile( str, table_name, id );
 			}
-		} else {
-			responseBody = loadEveryFile( file_name, table_name );
+		} else if(analysis_rule.equals("1")) {//解析式
+			String file_name = listProduct.get(0).get("file_name"); 
+			if ( file_name == null || "".equals(file_name)) {
+				return getResponseBody("固定式DESC文件名为空",id,1,1);
+			}
+			responseBody = loadEveryFile( file_name, table_name, id );
 		}
-		
 		return responseBody;
+	}
+	
+	public static boolean exportData2File( String tableName) {
+		
+		boolean flag = false;
+		
+		return flag;
 	}
 	
 	/**
 	 * 对文件进行相关校验，校验成功后load到指定数据库表
 	 * @param fielName DESC文件名(不包含路径)
 	 * @param table_name 描述文件对应表名
+	 * @param id 数据load环节id
 	 * @return 日志对象
 	 */
-	private static ResponseBody loadEveryFile( String fielName, String table_name ) {
+	private static ResponseBody loadEveryFile( String fileName, String table_name, String id ) {
 		
 		ResponseBody responseBody = new ResponseBody();
 		List<Record> dataList = null;
 		FileManagerModel fmm = new FileManagerModel();
 		FileCharsetDetector detector = new FileCharsetDetector();
 		try {
-			dataList = fmm.queryDataFileByDesc( fielName, "2");
+			dataList = fmm.queryDataFileByDesc( fileName, "2");
+			if (dataList ==null || dataList.size() == 0) {
+				return getResponseBody("未获取到DESC文件名",id,1,1);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			responseBody.setStatus(1);
-			responseBody.setMes("根据DESC文件获取数据文件异常");
-			return responseBody;
-		}
+			return getResponseBody("根据DESC文件获取数据文件异常",id,1,1);
+		} 
+		
 		for( Record data : dataList ) {
+		
+			try {
+				fmm.updataFileStatus(fileName, "201");//更新为导入中状态
+			} catch (Exception e1) {
+				e1.printStackTrace();
+				return getResponseBody("更新"+ fileName +"数据文件状态失败",id,1,1);
+			} 
+			//文件id
 			String dataname = data.getStr("dataname");
+			String fileId = data.getStr("id");
 			if ( dataname == null||"".equals(dataname)) {
-				responseBody.setStatus(1);
-				responseBody.setMes("文件名为空");
-				responseBody.setObjectid(data.getStr("id"));
-				responseBody.setObjecttype(1);
-				return responseBody;
+				try {
+					fmm.updataFileStatus(fileName, "203");//更新为导失败状态
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+				return getResponseBody("文件名为空",fileId,1,1);
 			}
+			//路径
 			String workpath = data.getStr( "workpath" );
 			if ( workpath == null || "".equals(workpath)) {
-				responseBody.setStatus(1);
-				responseBody.setMes("工作目录为空");
-				responseBody.setObjectid(data.getStr("id"));
-				responseBody.setObjecttype(1);
-				return responseBody;
+				try {
+					fmm.updataFileStatus(fileName, "203");//更新为导失败状态
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+				return getResponseBody("工作目录为空",fileId,1,1);
 			}
+			//字段序列
 			String fields = data.getStr( "field_1" );
 			if ( fields == null || "".equals(fields)) {
-				responseBody.setStatus(1);
-				responseBody.setMes("字段序列为空");
-				responseBody.setObjectid(data.getStr("id"));
-				responseBody.setObjecttype(1);
-				return responseBody;
+				try {
+					fmm.updataFileStatus(fileName, "203");//更新为导失败状态
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+				return getResponseBody("字段序列为空",fileId,1,1);
 			}
+			//字段序列>4000拼field_2
 			String field_2 = data.getStr( "field_2" );
 			if ( field_2 != null && !"".equals(field_2)) 
 				fields += field_2;
+			//校验路径规范
 			StringBuffer fileFullPath = new StringBuffer();
-			if (workpath.lastIndexOf("/")==workpath.length())
+			if (workpath.lastIndexOf("/")==workpath.length()-1)
 				fileFullPath.append(workpath).append(dataname);
 			else
 				fileFullPath.append(workpath).append("/").append(dataname);
 			
 			Connection conn = null;
-			try {
+			try {//切到业务数据库
 				conn = Db.use(xx.DS_MAIN).getConfig().getConnection();
 			} catch (SQLException e) {
 				e.printStackTrace();
-				responseBody.setStatus(1);
-				responseBody.setMes("获取数据库连接失败");
-				responseBody.setObjectid(data.getStr("id"));
-				responseBody.setObjecttype(1);
-				return responseBody;
-			}	
+				try {
+					fmm.updataFileStatus(fileName, "203");//更新为导失败状态
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+				return getResponseBody("获取数据库连接失败",fileId,1,1);
+			}
+			//校验字段序列
 			if (!checkColumns(table_name, fields, conn)) {
-				responseBody.setStatus(1);
-				responseBody.setMes("字段序与数据库表列不匹配");
-				responseBody.setObjectid(data.getStr("id"));
-				responseBody.setObjecttype(1);
-				return responseBody;
+				try {
+					fmm.updataFileStatus(fileName, "203");//更新为导失败状态
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+				return getResponseBody("字段序与数据库表列不匹配",fileId,1,1);
 			}
 			String fileFullName = fileFullPath.toString();
+			//数据文件转UTF-8
 			try {
 				if ( !"UTF-8".equals(detector.guessFileEncoding(new File(fileFullName), 2))) {
 					// 数据文件转UTF-8 编码
@@ -154,47 +180,52 @@ public class LoadDataService {
 				}
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
-				responseBody.setStatus(1);
-				responseBody.setMes("字符集转换：数据文件不存在");
-				responseBody.setObjectid(data.getStr("id"));
-				responseBody.setObjecttype(1);
-				return responseBody;
+				try {
+					fmm.updataFileStatus(fileName, "203");//更新为导失败状态
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+				return getResponseBody("字符集转换：数据文件不存在",fileId,1,1);
 			} catch (IOException e) {
 				e.printStackTrace();
-				responseBody.setStatus(1);
-				responseBody.setMes("字符集转换：文件处理IO异常");
-				responseBody.setObjectid(data.getStr("id"));
-				responseBody.setObjecttype(1);
-				return responseBody;
+				try {
+					fmm.updataFileStatus(fileName, "203");//更新为导失败状态
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+				return getResponseBody("字符集转换：文件处理IO异常",fileId,1,1);
 			} catch (Exception e) {
 				e.printStackTrace();
-				responseBody.setStatus(1);
-				responseBody.setMes("字符集转换：转换异常");
-				responseBody.setObjectid(data.getStr("id"));
-				responseBody.setObjecttype(1);
-				return responseBody;
-			}
-			// 替换为linux换行符
+				try {
+					fmm.updataFileStatus(fileName, "203");//更新为导失败状态
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+				return getResponseBody("字符集转换：转换异常",fileId,1,1);
+			} 
+			// 数据文件换行符替换为linux换行符
 			try {
 				FileUtil.fixSymbol(fileFullName);
 			} catch (IOException e) {
 				e.printStackTrace();
-				responseBody.setStatus(1);
-				responseBody.setMes("换行符替换：数据文件换行符异常");
-				responseBody.setObjectid(data.getStr("id"));
-				responseBody.setObjecttype(1);
-				return responseBody;
+				try {
+					fmm.updataFileStatus(fileName, "203");//更新为导失败状态
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+				return getResponseBody("换行符替换：数据文件换行符异常",fileId,1,1);
 			}
-			// 文件去Bom头
+			// 数据文件去Bom头
 			try {
 				FileUtil.trimBom(fileFullName);
 			} catch (IOException e) {
 				e.printStackTrace();
-				responseBody.setStatus(1);
-				responseBody.setMes("处理数据文件Bom头异常");
-				responseBody.setObjectid(data.getStr("id"));
-				responseBody.setObjecttype(1);
-				return responseBody;
+				try {
+					fmm.updataFileStatus(fileName, "203");//更新为导失败状态
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+				return getResponseBody("处理数据文件Bom头异常",fileId,1,1);
 			}
 			// 数据导入
 			int nData = 0;
@@ -202,22 +233,30 @@ public class LoadDataService {
 				nData = LoadFileData.loadLocalFile(fileFullName, table_name, fields, conn);
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
-				responseBody.setStatus(1);
-				responseBody.setMes( "数据Load:" + fileFullName + "数据文不存在");
-				responseBody.setObjectid(data.getStr("id"));
-				responseBody.setObjecttype(1);
-				return responseBody;
+				try {
+					fmm.updataFileStatus(fileName, "203");//更新为导失败状态
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+				return getResponseBody("数据Load:" + fileFullName + "数据文不存在",fileId,1,1);
 			} catch (SQLException e) {
 				e.printStackTrace();
-				responseBody.setStatus(1);
-				responseBody.setMes( "数据Load:SQL异常");
-				responseBody.setObjectid(data.getStr("id"));
-				responseBody.setObjecttype(1);
-				return responseBody;
+				try {
+					fmm.updataFileStatus(fileName, "203");//更新为导失败状态
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+				return getResponseBody("数据Load:SQL异常" + fileFullName + "数据文不存在",fileId,1,1);
 			}
 			responseBody.setStatus(0);
-			responseBody.setMes("数据文件load成功，实际处理"+ nData + "条数据" + new Date());
-			responseBody.setObjectid(data.getStr("id"));
+			if (responseBody.getMes()!=null)
+				responseBody.setMes(responseBody.getMes()+"\n数据文件load成功，实际处理"+ nData + "条数据" + new Date());
+			else
+				responseBody.setMes("数据文件load成功，实际处理"+ nData + "条数据" + new Date());
+			if (responseBody.getObjectid()!=null)
+				responseBody.setObjectid(responseBody.getObjectid()+","+fileId);
+			else 
+				responseBody.setObjectid(fileId);
 			responseBody.setObjecttype(1);
 		}
 		return responseBody;
@@ -231,9 +270,9 @@ public class LoadDataService {
 	 * @param analytical_rule
 	 * @return
 	 */
-	public static ArrayList<String> date(String file_name4, Date date,
+	public static List<String> date(String file_name4, Date date,
 			int analytical_rule) {
-		ArrayList<String> list = new ArrayList<String>();
+		List<String> list = new ArrayList<String>();
 		SimpleDateFormat df1 = new SimpleDateFormat(file_name4);
 		for (int i = 0; i < analytical_rule + 1; i++) {
 			Calendar calendar = Calendar.getInstance();
@@ -246,97 +285,74 @@ public class LoadDataService {
 		return list;
 	}
 
-	/**
-	 * 解析IUA
-	 * 
-	 * @param file_name6
-	 * @return
-	 */
-	public String IUA(String file_name6) {
-		String file_name6a = "";
-		if (file_name6.equals("1")) {
-			file_name6a = "I";
-		} else if (file_name6.equals("2")) {
-			file_name6a = "U";
-		} else if (file_name6.equals("3")) {
-			file_name6a = "A";
-		}
-		return file_name6a;
-	}
-
-	/**
-	 * 解析目录名
-	 * 
-	 * @param distinguish
-	 * @param analysis_rule
-	 * @param day_rule
-	 * @param search_path1
-	 * @param search_path2
-	 * @param file_name1
-	 * @param file_name2
-	 * @param file_name3
-	 * @param file_name4
-	 * @param file_name5
-	 * @param file_name6
-	 * @param description_file
-	 * @return
-	 */
-
-	public ArrayList<String> directoryName(String ftp_id,
-			String work_directory_id, String distinguish, String analysis_rule,
-			String day_rule, String search_path1, String search_path2,
-			String file_name1, String file_name2, String file_name3,
-			String file_name4, String file_name5, String file_name6,
-			String description_file) {
-		ArrayList<String> listWorkDirectory = new ArrayList<String>();
-		ArrayList<String> list1 = new ArrayList<String>();
-		Date date = new Date();
-		// 获取日期
-		listWorkDirectory = date(file_name4, date, Integer.parseInt(day_rule));
-		// IUA
-		String file_name6a = IUA(file_name6);
-		// 获取目录名
-		List<Record> listDirectory = new ServiceUtil().getWorkDirectoryById(work_directory_id);
-		String workName =  listDirectory.get(0).get("working_path");
-		if (analysis_rule.equals("2")) {
-			for (String str : listWorkDirectory) {
-				String directoryName = "";
-				String search_path = str.substring(0, 6);
-				directoryName = workName + search_path1 + "/"
-						+ search_path + "/" + file_name1 + "-" + file_name2
-						+ "-" + file_name3 + "-" + str + "-" + file_name5 + "-"
-						+ file_name6a + description_file;
-				list1.add(directoryName);
+	private List<String> getDESCName(List<Record> list) throws Exception{
+		
+		if ( list ==null || list.size()==0)
+			throw new Exception();
+		//获取解析方式
+		String analysis_rule = list.get(0).get("analysis_rule");
+		if ( analysis_rule ==null || "".equals( analysis_rule ))
+			throw new Exception();
+		
+		List<String> resuts = new ArrayList<String>();
+		//连接符
+		String concatws = "-";
+		//获取取数据天数
+		String day_rule = list.get(0).get("day_rule");
+		if ( day_rule ==null || "".equals( day_rule ))
+			throw new Exception();
+		//日期格式
+		String file_name4 = list.get(0).get("file_name4");
+		if ( file_name4 ==null || "".equals( file_name4 ))
+			throw new Exception();
+		//文件名前缀
+		String file_name1 = list.get(0).get("file_name1");
+		if ( file_name1 ==null || "".equals( file_name1 ))
+			throw new Exception();
+		String file_name2 = list.get(0).get("file_name2");
+		if ( file_name2 ==null || "".equals( file_name2 ))
+			throw new Exception();
+		String file_name3 = list.get(0).get("file_name3");
+		if ( file_name3 ==null || "".equals( file_name3 ))
+			throw new Exception();
+		//文件名后缀
+		String file_name5 = list.get(0).get("file_name5");
+		if ( file_name5 ==null || "".equals( file_name5 ))
+			throw new Exception();
+		String file_name6 = list.get(0).get("file_name6");
+		if ( file_name6 ==null || "".equals( file_name6 ))
+			throw new Exception();
+		String description_file = list.get(0).get("description_file");
+		if ( description_file ==null || "".equals( description_file ))
+			throw new Exception();
+		// 大小写
+		String distinguish = list.get(0).get("distinguish");// 大小写
+		if ( distinguish ==null || "".equals( distinguish ))
+			throw new Exception();
+		//获取文件名日期段
+		List<String> dateNames = date( file_name4, new Date(), Integer.parseInt(day_rule));
+		
+		for ( String dateName : dateNames) {
+			StringBuilder descname = new StringBuilder();
+			descname.append(file_name1).append(concatws).append(file_name2).append(concatws)
+				.append(file_name3).append(concatws).append(dateName).append(concatws)
+				.append(file_name5).append(concatws).append(file_name6).append(description_file);
+			if (distinguish.equals("1")) {
+				resuts.add(descname.toString().toUpperCase());
+			}
+			else if(distinguish.equals("2")) {
+				resuts.add(descname.toString().toLowerCase());
 			}
 		}
-		return list1;
-	}
-
-	/**
-	 * 大小写转换
-	 * 
-	 * @return
-	 */
-	public static String Capitalization(String str, String distinguish) {
-		String capitalization = str;
-		if (distinguish.equals("1")) {
-			// 大写转换
-			capitalization = str.toUpperCase();
-		} else if (distinguish.equals("2")) {
-			// 小写转换
-			capitalization = str.toLowerCase();
-		}
-		return capitalization;
-	}
-	
-	public static void main(String[] args) {
-		System.out.println("123".lastIndexOf("3"));
+		return resuts;
 	}
 	
 	/**
-     * 获取表中所有字段名称
+     * 校验DESC文件中字段序列也数据库表相应是否一致
      * @param tableName 表名
-     * @return
+     * @param columns 表名
+     * @param conn 数据库连接
+     * @return 校验结果
      */
 	private static boolean checkColumns(String tableName, String columns, Connection conn ) {
 
@@ -350,7 +366,6 @@ public class LoadDataService {
 			flag = true;
         } catch (SQLException e) {
             e.printStackTrace();
-            return flag;
         } finally{
 			try {
 				pStemt.close();
@@ -360,4 +375,21 @@ public class LoadDataService {
 		}
         return flag;
     }
+	
+	/**
+	 * 构建ResponseBody
+	 * @param mes 消息内容
+	 * @param Objectid 数据主键
+	 * @param status 执行状态
+	 * @param objecttype 功能类型
+	 * @return
+	 */
+	private static ResponseBody getResponseBody(String mes, String Objectid, int status, int objecttype ) {
+		ResponseBody spbody = new ResponseBody();
+		spbody.setStatus(status);
+		spbody.setMes(mes);
+		spbody.setObjectid(Objectid);
+		spbody.setObjecttype(objecttype);
+		return spbody;
+	}
 }

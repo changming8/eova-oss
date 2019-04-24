@@ -54,7 +54,7 @@ public class BaseMetaIntercept extends MetaObjectIntercept {
 		String id = ac.record.get(objectField);
 		for (int i = 0; i < objects.size(); i++) {
 //			获取业务拦拦截器（待扩展）
-			intercept = TemplateUtil.initMetaObjectIntercept(objects.getString(i));
+//			intercept = TemplateUtil.initMetaObjectIntercept(objects.getString(i));
 
 			String sql = "delete from " + objects.getString(i) + " where " + fields.getString(i) + " =? ";
 			Db.use(xx.DS_EOVA).update(sql, id);

@@ -1,13 +1,18 @@
 <link rel="stylesheet" type="text/css" href="/eova/plugins/easyui1.7/jquery-easyui-1.7.0/themes/gray/easyui.css">
 <link rel="stylesheet" type="text/css" href="/eova/plugins/easyui1.7/jquery-easyui-1.7.0/themes/icon.css">
+<link rel="stylesheet" type="text/css" href="/eova/ui/icon/icon.css">
 <body class="easyui-layout">
 <div data-options="region:'center',fit:false,border:false,split:false">
     <div id="contentLayout" class="easyui-layout" data-options="fit:true">
     	<div data-options="region:'north',title:'数据关系定义维护',split:true" style="height:370px;">
     		<div id="tb" style="background-color:#fafafa">
     			<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-tip',plain:true" onclick="blockDataModal()">主数据</a>
-				<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="queryModal()">增加</a>
+				<a href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon724',plain:true" onclick="queryModal()">增加</a>
 				<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-cancel',plain:true" onclick="deleteModal()">删除</a>
+				<a href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon1063',plain:true" onclick="importExcelOpen()">导入</a>
+				<a href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon779',plain:true" onclick="exportExcel()">导出</a>
+				<span>切换表</span><select id="slaveSelect" class="easyui-combobox" style="width:200px;"></select>
+				<span>查询条件列</span><select id="queryWhere" class="easyui-combobox" style="width:200px;"></select>
 				<input id="master_ss" class="easyui-searchbox" style="width:300px"
 				    data-options="searcher:doSearchMaster,prompt:'',menu:'#master_t'"></input>
 				<div id="master_t" style="width:120px" data-options="onClick:menuHandler" class="easyui-menu">
@@ -15,8 +20,6 @@
 				    <div class="menu-sep"></div>
 				    <div data-options="name:'slave_dd',disabled:true" id="dis">映射表</div>
 				</div>
-				<span>切换表</span><select id="slaveSelect" class="easyui-combobox" style="width:200px;"></select>
-				<span>查询条件列</span><select id="queryWhere" class="easyui-combobox" style="width:200px;"></select>
 			</div>	
     		<table id="master_"  class="easyui-datagrid" toolbar="#tb">
     			
@@ -50,19 +53,19 @@
 		<div id="data2" class="easyui-dialog" title="数据关系维护" style="width:600px;height:500px;"
 		    data-options="iconCls:'icon-filter',modal:false,collapsible:true,buttons:'#bb2'">
 		    <div id="tb4" style="background-color:#fafafa">
+		    	<select id="queryWhere2" class="easyui-combobox" style="width:32%"></select>
 		    	<input id="dataRelationSearch2" class="easyui-searchbox" style="width:65%"
 						    data-options="searcher:doSearch2,prompt:'',menu:'#slave_ss'"></input>
 						<div id="slave_ss" style="width:120px">
 						    <div data-options="name:'sport'">模糊查询</div>
 						</div>
-				<select id="queryWhere2" class="easyui-combobox" style="width:32%"></select>
 			</div>
 		    <table id="dataRelation2" class="easyui-datagrid" toolbar="#tb4">
                     
             </table>
 		</div>
 		<div id="bb2">
-			<a href="#" class="easyui-linkbutton" onclick="save()">保存对照</a>
+			<a href="#" class="easyui-linkbutton" onclick="save()">保存</a>
 			<a href="#" class="easyui-linkbutton" onclick="closeDataRelation()">取消</a>
 		</div>
     </div>
@@ -72,9 +75,22 @@
     			
     </table>
 </div>
+<div id="win" class="easyui-window" title="Excel数据导入" style="width:400px;height:250px;text-align:left;padding:20px 15px 7px 15px"
+    data-options="iconCls:'eova-icon779',modal:true">
+    <span style="color:red;">*</span><span>Ps:谨记</span><br/>
+		     <span style="color:red;">*</span><span>请优先导出模板在进行导入，以防数据导入失败</span><br/>
+		     <span style="color:red;">*</span><span>文件名为映射表名</span><br/>
+		      <span style="color:red;">*</span><span>sheet为对照名</span><br/>
+		     <br/>
+		     <form action="/dataRelationMaintenance/excelImport" method="post" enctype="multipart/form-data" id="uploadForm">
+		     <input  type="file" id="upload_id" name="upload_id" style="width:300px;">
+		     <a href="#" class="easyui-linkbutton" onclick="importExcel()">导入</a>
+		     </form>
+</div>
 <script type="text/javascript" src="/eova/plugins/easyui1.7/jquery-easyui-1.7.0/jquery.min.js"></script>
 <script type="text/javascript" src="/eova/plugins/easyui1.7/jquery-easyui-1.7.0/jquery.easyui.min.js"></script>
 <script type="text/javascript" src="/eova/plugins/easyui1.7/jquery-easyui-1.7.0/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="/eova/dataRelationMaintenance/js/ajaxfileupload.js"></script>
 <!-- <script type="text/javascript" src="/eova/dataRelationMaintenance/js/dataRelationMaintenance.js"></script> -->
 <script type="text/javascript">//全局变量
 var columns_field;
@@ -97,9 +113,91 @@ var increment=0;
 $(function(){
 	closeDataRelation();
 	$("#queryWhere2").combo({"editable":false});
+    $('#win').window({
+    	minimizable:false,
+    	maximizable:false
+    });
+	 $('#win').window("close");
 })
 </script>
 <script type="text/javascript">//按钮组
+function importExcelOpen(){
+	$("#win").window('open');
+}
+function importExcel(){
+	if($("#upload_id").val()==""){
+		$.messager.show({
+			title:'操作提示',
+			msg:'请选择数据文件上传',
+			timeout:1000,
+			width:260,
+			height:100,
+			showType:'slide'
+		});
+		return;
+	}
+	var suffix=$("#upload_id").val().substring($("#upload_id").val().lastIndexOf(".")+1,$("#upload_id").val().length);
+	if(suffix!="xls"&&suffix!="xlsx"){
+		$.messager.show({
+			title:'操作提示',
+			msg:'只支持后缀为.xls,.xlsx数据文件进行上传',
+			timeout:1000,
+			width:260,
+			height:100,
+			showType:'slide'
+		});
+		return;
+	}
+	$.ajaxFileUpload({
+        url : '/dataRelationMaintenance/excelImport',   //提交的路径
+        secureuri : false, // 是否启用安全提交，默认为false
+        fileElementId : 'upload_id', // file控件id
+        type:"post",
+        dataType : 'json',
+        success : function(data, status) {
+        	$.messager.show({
+    			title:'操作提示',
+    			msg:data.message,
+    			timeout:1000,
+    			width:260,
+    			height:100,
+    			showType:'slide'
+    		});
+        },
+        error : function(data, status) {
+        	$.messager.show({
+    			title:'操作提示',
+    			msg:"数据导入失败",
+    			timeout:1000,
+    			width:260,
+    			height:100,
+    			showType:'slide'
+    		});
+        }
+    });
+	//var file=$("#upload").submit();
+	$("#win").window('close');;
+}
+function exportExcel(){
+	var exportSlave=$("#slaveSelect").combo("getText");
+	if(globalDataName.length<1||exportSlave.length<1){
+		$.messager.show({
+			title:'操作提示',
+			msg:'请选择主数据与切换表进行导出',
+			timeout:1000,
+			width:260,
+			height:100,
+			showType:'slide'
+		});
+		return;
+	}
+	$.messager.confirm('数据导出Excel', '是否导出数据映射?', function(r){
+		if (r){
+			// exit action;
+			window.location.href="/dataRelationMaintenance/excelBefore/"+increment+"-"+exportSlave+"-"+globalDataName;
+		}
+	});
+}
 function queryModal(){
 	if($("#slaveSelect").combo("getText").length<1){
 		$.messager.show({
@@ -114,7 +212,7 @@ function queryModal(){
 	}
 	$("#data2").dialog("open");
 	slaveColumns("/dataRelationMaintenance/queryBsStyle/bs_style_b-bs_style_b-bs_style_b-"+findSelect);
-	tableSlave("dataRelation2","/dataRelationMaintenance/queryMaster/"+$("#slaveSelect").combo("getText"),null);
+	tableSlave("dataRelation2","/dataRelationMaintenance/queryFilterContrast/"+$("#slaveSelect").combo("getText")+"-"+increment,null);
 	if(columns_slave==""){
 		return;
 	}
@@ -186,6 +284,11 @@ function save(){
 			});
 		}
 	})
+	$("#data2").dialog("close");
+	var master_id=$("#master_").datagrid("getSelections");
+	table_slave_col2("slave_","/dataRelationMaintenance/startUpContrast/"+increment+"-"+master_id[0].id+"-"+$("#slaveSelect").combo("getText"));
+	$("#master_").datagrid("clearSelections")
+	$("#dataRelation2").datagrid("clearSelections")
 }
 function doSearch(value,name){
 	column("bs_md_def");
@@ -203,7 +306,7 @@ function doSearch2(value,name){
 		});
 		return;
 	}
-	tableSlave("dataRelation2","/dataRelationMaintenance/queryWhere/"+$("#slaveSelect").combo("getText")+"-"+value+"-"+$("#queryWhere2").combo("getText"));
+	tableSlave("dataRelation2","/dataRelationMaintenance/queryFilterContrast/"+$("#slaveSelect").combo("getText")+"-"+increment+"-"+value+"-"+$("#queryWhere2").combo("getText"));
 }
 function doSearchMaster(value,name){
 	if($("#queryWhere").combo("getValue")=="请选择查询条件列"||$("#queryWhere").combo("getValue").length<1){
@@ -221,10 +324,8 @@ function doSearchMaster(value,name){
 		table_master2("master_","/dataRelationMaintenance/queryWhere/"+masterOrSlaveWhere+"-"+value+"-"+$("#queryWhere").combo("getValue"));
 	}else{
 		searchSlaveWhere="slaveWhere";
-		//column3("bs_style_b");
 		table_slave_cols("master_col","/dataRelationMaintenance/queryBsStyle/bs_style_b-bs_style_b-bs_style_b-"+$("#slaveSelect").combo("getValue"));
 		table_slave_col2("slave_","/dataRelationMaintenance/queryWhere/"+$("#slaveSelect").combo("getText")+"-"+value+"-"+$("#queryWhere").combo("getValue"));
-		//searchSlaveWhere=null;
 	}
 }
 function menuHandler(item){
@@ -236,15 +337,6 @@ function menuHandler(item){
 			return;
 		}
 		masterOrSlaveWhere=globalDataName;
-    	//str.push({"value":"请选择查询条件列","text":"查询条件列"});
-    	/* for(var i=0;i<columns_field3[0].length;i++){
-			//globalDataName=data.rows[0].md_table;
-			str.push({"value":columns_field3[0][i].field,"text":columns_field3[0][i].field});
-		}
-    	console.info(columns_field3); */
-    	/* $("#queryWhere").combo({"editable":false});
-		$("#queryWhere").combobox("loadData", str);
-		$("#queryWhere").combobox("select", "请选择查询条件列"); */
 		$('#queryWhere').combobox({ 
 			   data:columns_field3[0],
 			   valueField:'field', 
@@ -255,19 +347,10 @@ function menuHandler(item){
 			   }
 			});
 	}else{
-		//console.info(columns_field5);
 		if(columns_field5==""){
 			return;
 		}
 		masterOrSlaveWhere="slave"
-		/* str.push({"value":"请选择查询条件列","text":"查询条件列"});
-    	for(var i=0;i<columns_field5[0].length;i++){
-			//globalDataName=data.rows[0].md_table;
-			str.push({"value":columns_field5[0][i].field,"text":columns_field5[0][i].field});
-		}
-    	$("#queryWhere").combo({"editable":false});
-		$("#queryWhere").combobox("loadData", str);
-		$("#queryWhere").combobox("select", "请选择查询条件列"); */
 		$('#queryWhere').combobox({ 
 			   data:columns_field5[0],
 			   valueField:'field', 
@@ -282,6 +365,7 @@ function menuHandler(item){
 function deleteModal(){
 	var slave=$("#slave_").datagrid("getSelections");
 	var master=$("#master_").datagrid("getSelections");
+	
 	if(slave.length<1||master.length<1){
 		$.messager.show({
 			title:'操作提示',
@@ -324,10 +408,15 @@ function deleteModal(){
 			});
 		}
 	})
+	var master_id=$("#master_").datagrid("getSelections");
+	table_slave_col2("slave_","/dataRelationMaintenance/startUpContrast/"+increment+"-"+master_id[0].id+"-"+$("#slaveSelect").combo("getText"));
+	$("#slave_").datagrid("clearSelections");
+	$("#master_").datagrid("clearSelections");
 }
 function closeDataRelation(){
 	$("#data").dialog("close");
 	$("#data2").dialog("close");
+	$("#win").dialog("close");
 }
 function blockDataModal(){
 	$("#data").dialog("open");
@@ -390,14 +479,10 @@ function tableSlave(tableName,url,wheres){
 	    pagePosition:"bottom",
 	    pageList:[15,30,50,100,200,500,1000,2000],
 	    onLoadSuccess:function(data){
-	    	//columns_field.splice(0,columns_field.length);
+	    	
 	    },
 	    onCheck:function(rowIndex,rowData){
-	    	/* globalDataId=rowData.id;
-	    	globalDataName=rowData.md_table_val;
-	    	masterOrSlaveWhere=globalDataName;
-	    	increment=rowData.mid_table; */
-	    	//console.info(rowData);
+	    	
 	    }
 	});
 }
@@ -494,19 +579,15 @@ function table_master1(tableName,url){
 	    	var str=[];
 	    	str.push({"value":"请选择查询条件列","text":"查询条件列"});
 	    	for(var i=0;i<columns_field3[0].length;i++){
-				//globalDataName=data.rows[0].md_table;
 				str.push({"value":columns_field3[0][i].field,"text":columns_field3[0][i].field});
 			}
 	    	$("#queryWhere").combo({"editable":false});
 			$("#queryWhere").combobox("loadData", str);
 			$("#queryWhere").combobox("select", "请选择查询条件列");
-	    	//columns_field3.splice(0,columns_field3.length);
 	    	ajaxSelect();
 	    },
 	    onCheck:function(rowIndex,rowData){
-	    	//if(startUp_table==true){
 	    		table_slave_col2("slave_","/dataRelationMaintenance/startUpContrast/"+increment+"-"+rowData.id+"-"+$("#slaveSelect").combo("getText"));
-	    	//}
 	    }
 	});
 }
@@ -530,10 +611,6 @@ function table_master2(tableName,url){
 	    	
 	    },
 	    onCheck:function(rowIndex,rowData){
-	    	/* if(startUp_table==true){
-	    		console.info("search:");
-	    		console.info(rowData);
-	    	} */
     		table_slave_col2("slave_","/dataRelationMaintenance/startUpContrast/"+increment+"-"+rowData.id+"-"+$("#slaveSelect").combo("getText"));
 	    }
 	});

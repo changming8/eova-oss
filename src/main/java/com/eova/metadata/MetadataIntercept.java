@@ -1,13 +1,12 @@
-/**
- * Copyright (c) 2013-2016, Jieven. All rights reserved.
- *
- * Licensed under the GPL license: http://www.gnu.org/licenses/gpl.txt
- * To use it on other terms please contact us at 1623736450@qq.com
- */
 package com.eova.metadata;
 
 
-
+/**
+ * 自定义元数据拦截器
+ * 
+ * @author jaker
+ * @date 2019-4-22
+ */
 import com.eova.aop.AopContext;
 import com.eova.common.utils.xx;
 import com.eova.template.single.SingleIntercept;

@@ -6,10 +6,14 @@
  */
 package com.oss.model;
 
+import java.util.List;
+
 import com.eova.common.base.BaseModel;
 import com.eova.common.utils.xx;
 import com.eova.config.EovaConfig;
 import com.eova.core.meta.ColumnMeta;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Record;
 import com.yonyou.util.UUID;
 /**
  * 元数据
@@ -22,6 +26,61 @@ public class Metadata extends BaseModel<Metadata> {
 
 	public static final Metadata dao = new Metadata();
 	
+	//查询元数据主表根据主键
+	public List<Record> findMetadataById(String id){
+		return  Db.use(xx.DS_EOVA).find("select * from bs_metadata where dr=0 and  id = ?", id);
+	}
+	
+	//根据pid 查询子表数据
+	public List<Record> findMetadataBodyById(String pid){
+		return  Db.use(xx.DS_EOVA).find("select * from bs_metadata_b where dr=0 and  pid = ?", pid);
+	}
+	
+	//根据code 获取元数据 
+	public List<Record> findMetadataBodyByDataCode(String code){
+		return  Db.use(xx.DS_EOVA).find("select * from bs_metadata where dr = 0 and data_code = ?", code);
+	}
+	
+	//根据表是否存在某个schema
+	public List<Record> findTableByTableName(String tableName){
+		return  Db.use(xx.DS_MAIN).find("select * from information_schema.tables where table_schema = 'fidata'  and  table_name = ?", tableName);
+	}
+	
+	//批量保存子表
+	public int[] batchSave(List<Record> list,int count) {
+		return Db.use(xx.DS_EOVA).batchSave("bs_metadata_b", list, count);
+	}
+	
+	//批量更新
+	public int[] batchUpdate(List<Record> list,int count) {
+		return Db.use(xx.DS_EOVA).batchUpdate("bs_metadata_b", list, count);
+	}
+	//查询元数据是否存数据行
+	public List<Record> findCountyByTableName(String tableName){
+		String sql = "SELECT id FROM " +tableName;
+		return  Db.use(xx.DS_MAIN).find(sql);
+	}
+	//drop table   删除表
+	public int dropTableByName(String tableName) {
+		String sql = "DROP TABLE " +tableName;
+		return Db.use(xx.DS_MAIN).update(sql);
+	}
+	
+	//create table  创建表
+	public int createTableBySql(String sql) {
+		return Db.use(xx.DS_MAIN).update(sql);
+	}
+	
+	//更新建表状态 
+	public int updateCreateTableStatue(String id) {
+		return Db.use(xx.DS_EOVA).update("update bs_metadata set create_status = 1 where id = ?",id);
+	}
+	
+	
+	
+	public boolean save (Record record) {
+		return Db.use(xx.DS_EOVA).save("bs_metadata", record);
+	}
 	public Metadata() {
 		
 	}
@@ -30,7 +89,6 @@ public class Metadata extends BaseModel<Metadata> {
 		if (EovaConfig.isLowerCase) {
 			col.name = col.name.toLowerCase();
 		}
-		
 		//默认设置数据库字段值  列名称对应
 		this.set("id", UUID.getUnqionPk());
 		this.set("data_code", objectCode);

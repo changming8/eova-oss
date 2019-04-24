@@ -9,6 +9,7 @@ import com.eova.common.base.BaseController;
 import com.eova.common.utils.xx;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
+import com.yonyou.ftp.FtpService;
 import com.yonyou.util.UUID;
 
 public class FTPController extends BaseController {
@@ -31,5 +32,13 @@ public class FTPController extends BaseController {
 		// 插入
     	Db.use(xx.DS_EOVA).save("bs_ftp_registry", record);
     	renderJson(Easy.sucess());
+	}
+	
+	public void test() {
+		String id = getSelectValue("id");
+		System.out.println(id);
+		FtpService fs=new FtpService();
+		fs.File_Name(id);
+		renderJson(Easy.sucess());
 	}
 }
