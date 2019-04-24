@@ -182,7 +182,6 @@ public class FTPClientFactory extends BasePooledObjectFactory<FTPClient> {
 			client.enterLocalPassiveMode();
 			client.setRemoteVerificationEnabled(false);
 			// 查看有哪些文件夹 以确定切换的ftp路径正确
-			String[] a = client.listNames();
 			FTPFile[] ftpFiles = client.listFiles();
 			for (FTPFile file : ftpFiles) {
 				if (filename.equalsIgnoreCase(file.getName())) {

@@ -33,12 +33,12 @@ public class FTPController extends BaseController {
     	Db.use(xx.DS_EOVA).save("bs_ftp_registry", record);
     	renderJson(Easy.sucess());
 	}
-	
-	public void test() {
-		String id = getSelectValue("id");
+
+	public void  test() {
+		String	id=getSelectValue("id");
 		System.out.println(id);
-		FtpService fs=new FtpService();
-		fs.File_Name(id);
+		FtpService service=new FtpService();
+		service.File_Name(id);
 		renderJson(Easy.sucess());
 	}
 }
