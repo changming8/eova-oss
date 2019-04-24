@@ -192,4 +192,16 @@ public class ServiceUtil extends BaseModel<ServiceUtil> {
 		return list;
 	}
 	
+	
+	/**
+	 * 根据ID获取描述信息
+	 * @param flowTypeCode
+	 * @return
+	 */
+	public List<Record> getBsDicts(String id) {
+		String sql = "select * from dicts  where id ='" + id + "'";
+		List<Record> list = Db.use(xx.DS_EOVA).find(sql);
+		return list;
+	}
+	
 }

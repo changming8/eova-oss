@@ -1,12 +1,16 @@
 package com.yonyou.ftp;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPClientConfig;
@@ -137,8 +141,8 @@ public class FTPClientFactory extends BasePooledObjectFactory<FTPClient> {
             	return false;
             }
             if (!client.changeWorkingDirectory(path)) {
-            	logger.error("***************************ftp文件路径不存在**************************");
-            	return false;
+            	//目录不存在循环创建
+            	CreateDirecroty(path);
             }
             inputStream = new FileInputStream(file);
             logger.debug("***************************"+new Date()+"  开始上传");
@@ -155,71 +159,200 @@ public class FTPClientFactory extends BasePooledObjectFactory<FTPClient> {
     }
     
     /**
-	  * 下载文件
-	 * @param txtFileDir 源文件全路径（包含文件名）
-	 * @param fileName   文件名
-	 * @param txtTargetDir 目标路径以"/"结尾
+	 * * 下载文件 *
+	 * 
+	 * @param pathname
+	 *            FTP服务器文件目录 *
+	 * @param filename
+	 *            文件名称 *
+	 * @param localpath
+	 *            下载后的文件路径 *
+	 * @return
 	 */
-	public int downLoadFile( String txtFileDir, String fileName, String txtTargetDir ) {
-		
-	
-		logger.debug("***************************"+new Date()+"  开始开始");
-		int returnValue = 0;
-		long start = System.currentTimeMillis();
-		OutputStream ios = null;
-           try {
-               client.setFileType(FTPClient.BINARY_FILE_TYPE);
-               //设置操作系统环境
-               FTPClientConfig conf = new FTPClientConfig( OsUtil.getOSname());
-               client.configure(conf);
-               //判断是否连接成功
-               int reply = client.getReplyCode();
-               if (!FTPReply.isPositiveCompletion(reply)) {
-            	   client.disconnect();
-                   logger.error("FTP server refused connection.");
-                   return returnValue;
-               }
-               //设置访问被动模式
-               client.setRemoteVerificationEnabled(false);
-               client.enterLocalPassiveMode();
-               
-//               修正文件路径
-               boolean dir = client.changeWorkingDirectory(txtFileDir);
-               if (dir) {
-            	   
-            	   File localFile = new File( txtTargetDir+fileName ); 
-            	   ios = new FileOutputStream( localFile );
-            	   FTPFile f = client.mlistFile(txtFileDir+fileName );
-            	   boolean flag = client.retrieveFile(f.getName(), ios);
-            	   logger.debug("***************************下载"+flag+" 耗时："+(System.currentTimeMillis()-start));
-            	   returnValue = 1;
-               }else {
-            	   logger.error("ftp服务路径不存在.");
-            	   return returnValue;
-               }
-           } 
-           catch (Exception e) {
-               e.printStackTrace();
-               logger.error(new Date()+"  ftp下载文件发生错误");
-           }
-           finally {
-               if(client != null)  try {client.disconnect();} catch (IOException ioe) {}  
-               try {
-            	   ios.close();
+
+	public boolean downLoadFile(String pathname, String filename, String localpath) {
+		boolean flag = false;
+		OutputStream os = null;
+		try {
+			System.out.println("开始下载文件");
+			// 切换FTP目录
+			boolean changeFlag = client.changeWorkingDirectory(pathname);
+			System.err.println("changeFlag==" + changeFlag);
+ 
+			client.enterLocalPassiveMode();
+			client.setRemoteVerificationEnabled(false);
+			// 查看有哪些文件夹 以确定切换的ftp路径正确
+			FTPFile[] ftpFiles = client.listFiles();
+			for (FTPFile file : ftpFiles) {
+				if (filename.equalsIgnoreCase(file.getName())) {
+					File localFile = new File(localpath + "/" + file.getName());
+					os = new FileOutputStream(localFile);
+					client.retrieveFile(file.getName(), os);
+					os.close();
+				}
+			}
+			flag = true;
+			System.out.println("下载文件成功");
+		} catch (Exception e) {
+			System.out.println("下载文件失败");
+			e.printStackTrace();
+		} finally {
+			if (client.isConnected()) {
+				try {
+					client.disconnect();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-           }
-		return returnValue;
+			}
+			if (null != os) {
+				try {
+					os.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return flag;
+
 	}
 	
-	public static void main(String[] args) {
-		try {
-//			new FTPClientFactory("127.0.0.1", 21, "test", "test").downLoadFile("/main/", "aaaaaa.txt", "d:/target/");
-			new FTPClientFactory("127.0.0.1", 21, "test", "test").sendFile("/","d:/target/aaaaaa.txt", "aaaaaa.txt");
-		} catch (Exception e) {
-			e.printStackTrace();
+		// 改变目录路径
+		public boolean changeWorkingDirectory(String directory) {
+			boolean flag = true;
+			try {
+				flag = client.changeWorkingDirectory(directory);
+				if (flag) {
+					System.out.println("进入文件夹" + directory + " 成功！");
+	 
+				} else {
+					System.out.println("进入文件夹" + directory + " 失败！开始创建文件夹");
+				}
+			} catch (IOException ioe) {
+				ioe.printStackTrace();
+			}
+			return flag;
+		}
+
+	
+		// 判断ftp服务器文件是否存在
+		public boolean existFile(String path){
+			try {
+				boolean flag = false;
+				FTPFile[] ftpFileArr = client.listFiles(path);
+				if (ftpFileArr.length > 0) {
+					flag = true;
+				}
+				return flag;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return false;
+			}
+		}
+
+	
+		// 创建多层目录文件，如果有ftp服务器已存在该文件，则不创建，如果无，则创建
+		public boolean CreateDirecroty(String remote) throws IOException {
+			boolean success = true;
+			String directory = remote + "/";
+			// 如果远程目录不存在，则递归创建远程服务器目录
+			if (!directory.equalsIgnoreCase("/") && !changeWorkingDirectory(new String(directory))) {
+				int start = 0;
+				int end = 0;
+				if (directory.startsWith("/")) {
+					start = 1;
+				} else {
+					start = 0;
+				}
+				end = directory.indexOf("/", start);
+				String path = "";
+				String paths = "";
+				while (true) {
+					String subDirectory = new String(remote.substring(start, end).getBytes("GBK"), "iso-8859-1");
+					
+					if(subDirectory==null||subDirectory.trim().equals("")) {
+						start = end + 1;
+						end = directory.indexOf("/", start);
+						continue;
+					}
+					path = path + "/" + subDirectory;
+					if (!existFile(path)) {
+						if (makeDirectory(subDirectory)) {
+							changeWorkingDirectory(subDirectory);
+						} else {
+							System.out.println("创建目录[" + subDirectory + "]失败");
+							changeWorkingDirectory(subDirectory);
+						}
+					} else {
+						changeWorkingDirectory(subDirectory);
+					}
+	 
+					paths = paths + "/" + subDirectory;
+					start = end + 1;
+					end = directory.indexOf("/", start);
+					// 检查所有目录是否创建完毕
+					if (end <= start) {
+						break;
+					}
+				}
+			}
+			return success;
 		}
 		
-	}
+		// 创建目录
+		public boolean makeDirectory(String dir) {
+			boolean flag = true;
+			try {
+				flag = client.makeDirectory(dir);
+				if (flag) {
+					System.out.println("创建文件夹" + dir + " 成功！");
+	 
+				} else {
+					System.out.println("创建文件夹" + dir + " 失败！");
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return flag;
+		}
+
+
+		/**
+		 * 逐行读取文件
+		 * @param path
+		 * @return
+			 */
+		public List<String> readFile(String path){
+			 List<String> list = new ArrayList<String>();
+			  InputStream is = null; 
+			 try {
+				 is = client.retrieveFileStream(path);
+				 BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+				 String line="";
+				 while ((line = reader.readLine()) != null) {
+	                System.out.println(line);
+	                list.add(line);
+	            }
+				 reader.close();
+				 if(is!=null) {
+					 is.close();
+				 }
+				 // 主动调用一次getReply()把接下来的226消费掉. 这样做是可以解决这个返回null问题
+		         client.getReply();
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+			 	return list;
+			
+		}
+		public static void main(String[] args) {
+			try {
+				new FTPClientFactory("172.20.10.7", 2121, "root", "root").readFile("/bus/201904/M001-DEPART002-FMP-20190422-001-I.DESC");
+	//			new FTPClientFactory("172.20.10.7", 2121, "root", "root").sendFile("/bus/201904/","/users/liuzemin/desktop/test/M113-DEPART113-FMP-20190422-001-I.DESC", "M113-DEPART113-FMP-20190422-001-I.DESC");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+		}
 }
