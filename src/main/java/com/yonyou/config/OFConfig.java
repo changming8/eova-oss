@@ -117,6 +117,8 @@ public class OFConfig extends EovaConfig {
 				"select  field_code 编码 ,field_name 名称  from bs_metadata_b where pid = (select id from bs_metadata where data_code = ? ) and (unique_constraint = 1 or  key_flag = 1) ");
 		exps.put("bs_metadata_column_ref",
 				"select  field_code 编码 ,field_name 名称  from bs_metadata_b where pid = (select id from bs_metadata where data_code = ? ) and (key_flag =1 or unique_constraint =1)");
+		
+		exps.put("bs_md_def_b_ref","select mdd_code 主数据映射编码,dest_table 映射表 from v_bs_data_flow where field_id = ?");
 		// 用法，级联动态在页面改变SQL和参数
 		// $xxx.eovacombo({exp : 'selectAreaByLv2AndPid,aaa,10'}).reload();
 		// $xxx.eovafind({exp : 'selectAreaByLv2AndPid,aaa,10'});
