@@ -65,18 +65,18 @@ public class FtpService {
 				ftpPassword = ftpList.get(q).get("ftp_password");
 			}
 			System.out.println("地址:" + ftpAddress + "端口：" + ftpPort + "帐号：" + ftpUsername + "密码：" + ftpPassword);
-			responseBody.setId(id);
+			responseBody.setObjectid(id);
 			responseBody.setFlowtypeId(flowtypeId);
 			// 上传
 			if (ftpflowAttribute.equals("1")) {
 				if (analysis_rule.equals("2")) {
 					// 解析式
 					// DESC.ERR&DESC.OK需要读取两个文件
-					if (descriptionFile.equals("DESC.ERR&DESC.OK")) {
-						list = directoryName(distinguish, analysis_rule, day_rule, "", "", fileName1, fileName2,
-								fileName3, fileName4, fileName5, fileName6, "DESC.ERR", date, ftpPath, directoryName);
-						list2 = directoryName(distinguish, analysis_rule, day_rule, "", "", fileName1, fileName2,
-								fileName3, fileName4, fileName5, fileName6, "DESC.OK", date, ftpPath, directoryName);
+					if (descriptionFile.equals(".DESC.ERR&DESC.OK")) {
+						list = directoryName(distinguish, analysis_rule, day_rule, searchPath1, searchPath2, fileName1, fileName2,
+								fileName3, fileName4, fileName5, fileName6, ".DESC.ERR", date, ftpPath, directoryName);
+						list2 = directoryName(distinguish, analysis_rule, day_rule, searchPath1, searchPath2, fileName1, fileName2,
+								fileName3, fileName4, fileName5, fileName6, ".DESC.OK", date, ftpPath, directoryName);
 						// 上传DESC.ERR
 						for (String str : list) {
 							String path[] = str.split(",");
@@ -172,14 +172,14 @@ public class FtpService {
 				// 判断固定、解析
 				if (analysis_rule.equals("2")) {
 					// DESC.ERR&DESC.OK需要读取两个文件
-					if (descriptionFile.equals("DESC.ERR&DESC.OK")) {
+					if (descriptionFile.equals(".DESC.ERR&DESC.OK")) {
 						// 获取全路径信息
 						list = directoryName(distinguish, analysis_rule, day_rule, searchPath1, searchPath2, fileName1,
-								fileName2, fileName3, fileName4, fileName5, fileName6, "DESC.ERR", date, ftpPath,
+								fileName2, fileName3, fileName4, fileName5, fileName6, ".DESC.ERR", date, ftpPath,
 								directoryName);
 						// 获取全路径信息
 						list2 = directoryName(distinguish, analysis_rule, day_rule, searchPath1, searchPath2, fileName1,
-								fileName2, fileName3, fileName4, fileName5, fileName6, "DESC.OK", date, ftpPath,
+								fileName2, fileName3, fileName4, fileName5, fileName6, ".DESC.OK", date, ftpPath,
 								directoryName);
 						for (String str : list) {
 							str = str.split(",")[0];
@@ -295,18 +295,18 @@ public class FtpService {
 		try {
 			if (new FTPClientFactory(ftpAddress, ftpPort, ftpUsername, ftpPassword).sendFile(directoryName,
 					workDirectoryName, fielName)) {
-				responseBody.setMes(fielName + "上传文件成功,文件名:" + fielName);
+				responseBody.setMes(directoryName + "上传文件成功,文件名:" + fielName);
 				return;
 			} else {
 				responseBody.setStatus(1);
-				responseBody.setMes(fielName + "上传文件失败,文件名:" + fielName);
+				responseBody.setMes(directoryName + "上传文件失败,文件名:" + fielName);
 				return;
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			responseBody.setStatus(1);
-			responseBody.setMes("文件上传时失败:" + fielName);
+			responseBody.setMes(directoryName+"文件上传时失败,文件名:" + fielName);
 			return;
 		}
 
@@ -336,7 +336,7 @@ public class FtpService {
 		} catch (Exception e) {
 			e.printStackTrace();
 			responseBody.setStatus(1);
-			responseBody.setMes("IP为:" + ftpAddress + "的FTP连接失败,文件名:" + fielName);
+			responseBody.setMes("IP为:" + ftpAddress + "的FTP连接失败,文件名:"+directoryName + fielName);
 			return;
 		}
 		// 判断连接是否成功
@@ -344,7 +344,7 @@ public class FtpService {
 			try {
 //				if(!LockUtils.pkLock(responseBody.getId(),responseBody.getFlowtypeId())) {
 //					responseBody.setStatus(1);
-//					responseBody.setMes("资源被占用："+fielName);
+//					responseBody.setMes("资源PK锁被占用："+fielName);
 //					return;
 //				}
 				// 获取desc中的txt
@@ -354,7 +354,7 @@ public class FtpService {
 			} catch (Exception e) {
 				e.printStackTrace();
 				responseBody.setStatus(1);
-				responseBody.setMes("获取" + workDirectoryName + "中的TXT文件失败,文件名:" + fielName);
+				responseBody.setMes("读取" + workDirectoryName + "中的TXT文件流信息失败" );
 				return;
 			}
 
@@ -368,7 +368,7 @@ public class FtpService {
 				}  catch (Exception e) {
 					e.printStackTrace();
 					responseBody.setStatus(1);
-					responseBody.setMes(txtName + "下载前更新状态失败,文件名:" + fielName);
+					responseBody.setMes(txtName + "下载前更新状态失败,父级文件名:"+workDirectoryName );
 					return;
 				}
 				if (up >= 1) {
@@ -472,10 +472,10 @@ public class FtpService {
 				String directoryName2 = "";// 本地路径
 				String search_path = formatDate(str, file_name4, search_path2);
 				ftpdirectoryName2 = ftpPath + "/" + search_path1 + "/" + search_path + "/" + file_name1 + "-"
-						+ file_name2 + "-" + file_name3 + "-" + str + "-" + file_name5 + "-" + file_name6 + "."
+						+ file_name2 + "-" + file_name3 + "-" + str + "-" + file_name5 + "-" + file_name6 
 						+ description_file;
 				directoryName2 = directoryName + "/" + file_name1 + "-" + file_name2 + "-" + file_name3 + "-" + str
-						+ "-" + file_name5 + "-" + file_name6 + "." + description_file;
+						+ "-" + file_name5 + "-" + file_name6 + description_file;
 				list1.add(ftpdirectoryName2 + "," + directoryName2);
 			}
 
