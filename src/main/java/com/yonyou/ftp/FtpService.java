@@ -341,8 +341,7 @@ public class FtpService {
 		List<String> listTxt = new ArrayList<String>();
 		boolean rt = false;
 		try {
-			rt = new FTPClientFactory(ftpAddress, ftpPort, ftpUsername, ftpPassword).downLoadFile(dirPath, fielName,
-					directoryName);
+			rt = new FTPClientFactory(ftpAddress, ftpPort, ftpUsername, ftpPassword).existFile(dirPath);
 		} catch (Exception e) {
 			e.printStackTrace();
 			responseBody.setStatus(1);
