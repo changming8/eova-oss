@@ -7,22 +7,6 @@ package com.yonyou.base;
 public class ResponseBody {
 	private int status;
 	private String mes;
-	String  id;
-	public String getId() {
-		return id;
-	}
-	public void setId(String id) {
-		this.id = id;
-	}
-	public String getFlowtypeId() {
-		return flowtypeId;
-	}
-	public void setFlowtypeId(String flowtypeId) {
-		this.flowtypeId = flowtypeId;
-	}
-	String flowtypeId;
-		
-	
 	public int getObjecttype() {
 		return objecttype;
 	}

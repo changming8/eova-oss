@@ -66,7 +66,7 @@ public class FtpService {
 			}
 			System.out.println("地址:" + ftpAddress + "端口：" + ftpPort + "帐号：" + ftpUsername + "密码：" + ftpPassword);
 			responseBody.setObjectid(id);
-			responseBody.setFlowtypeId(flowtypeId);
+			responseBody.setObjecttype(Integer.parseInt(flowtypeId));
 			// 上传
 			if (ftpflowAttribute.equals("1")) {
 				if (analysis_rule.equals("2")) {
