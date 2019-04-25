@@ -89,14 +89,14 @@ public class FtpService {
 							//判断文件是否上传过,防止重复上传
 							boolean flag=false;
 							try {
-								flag=new FTPClientFactory(ftpAddress, ftpPort, ftpUsername, ftpPassword).existFile(ftpFilepath+"/"+fileName);
+								flag = FileManagerModel.dao.checkDescExistOfType(fielName,"2");
 							} catch (Exception e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
 							if(!flag) {
 								uploadFile(ftpAddress, ftpPort, ftpUsername, ftpPassword, fielName, ftpFilepath, filepath,
-									responseBody);
+									"1",responseBody);
 							}
 						}
 						// 上传DESC.OK
@@ -113,14 +113,14 @@ public class FtpService {
 							//判断文件是否上传过,防止重复上传
 							boolean flag=false;
 							try {
-								flag=new FTPClientFactory(ftpAddress, ftpPort, ftpUsername, ftpPassword).existFile(ftpFilepath+"/"+fileName);
+								flag = FileManagerModel.dao.checkDescExistOfType(fielName,"2");
 							} catch (Exception e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
 							if(!flag) {
 								uploadFile(ftpAddress, ftpPort, ftpUsername, ftpPassword, fielName, ftpFilepath, filepath,
-									responseBody);
+									"1",responseBody);
 							}
 						}
 
@@ -141,13 +141,13 @@ public class FtpService {
 							//判断文件是否上传过,防止重复上传
 							boolean flag=false;
 							try {
-								flag=new FTPClientFactory(ftpAddress, ftpPort, ftpUsername, ftpPassword).existFile(ftpFilepath+"/"+fileName);
+								flag = FileManagerModel.dao.checkDescExistOfType(fielName,"2");
 							} catch (Exception e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
 							if(!flag) {
-							uploadFile(ftpAddress, ftpPort, ftpUsername, ftpPassword, fielName, ftpFilepath, filepath,
+							uploadFile(ftpAddress, ftpPort, ftpUsername, ftpPassword, fielName, ftpFilepath, filepath,"1",
 									responseBody);
 							}
 						}
@@ -157,14 +157,14 @@ public class FtpService {
 					//判断文件是否上传过
 					boolean flag=false;
 					try {
-						flag=new FTPClientFactory(ftpAddress, ftpPort, ftpUsername, ftpPassword).existFile(ftpPath + "/" + searchPath+"/"+"fileName");
+						flag = FileManagerModel.dao.checkDescExistOfType(fileName,"2");
 					} catch (Exception e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 					if(!flag) {
 						uploadFile(ftpAddress, ftpPort, ftpUsername, ftpPassword, fileName, ftpPath + "/" + searchPath+"/",
-							directoryName + "/" + fileName, responseBody);
+							directoryName + "/" + fileName,"2", responseBody);
 					}
 				}
 
@@ -288,14 +288,23 @@ public class FtpService {
 	 * @param fielName          文件名
 	 * @param directoryName     目标目录
 	 * @param workDirectoryName 源路径，包含文件名
+	 * @param type 上传类型 1-解析式 2-固定式
 	 * @return
 	 */
 	public void uploadFile(String ftpAddress, int ftpPort, String ftpUsername, String ftpPassword, String fielName,
-			String directoryName, String workDirectoryName, ResponseBody responseBody) {
+			String directoryName, String workDirectoryName,String type, ResponseBody responseBody) {
 		String dirPath = workDirectoryName.substring(0, workDirectoryName.lastIndexOf("/") + 1);
 		try {
 			if (new FTPClientFactory(ftpAddress, ftpPort, ftpUsername, ftpPassword).sendFile(directoryName,
 					dirPath, fielName)) {
+				//上传成功记录数据，解析式和固定式用不同方法处理
+				if(type.equals("1")) {
+					FileManagerModel.dao.SaveDescAnalysisFile(FTPClientFactory.trimPath(workDirectoryName),
+							FTPClientFactory.trimPath(directoryName));
+				}else {
+					FileManagerModel.dao.SaveDescFixedFile(FTPClientFactory.trimPath(workDirectoryName),
+							FTPClientFactory.trimPath(directoryName));
+				}
 				responseBody.setMes(directoryName + "上传文件成功,文件名:" + fielName);
 				return;
 			} else {
