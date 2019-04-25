@@ -195,8 +195,13 @@ public class DataRelationMaintenanceController extends BaseController {
 		String objectCode = getPara(0);
 		String para1 = getPara(1);
 		String para2 = getPara(2);
-
-		String sql = "select * from " + objectCode + " where " + para2 + " like '%" + para1 + "%'";
+		
+		String sql="";
+		if("".equals(para1)||para1==null) {
+			sql = "select * from " + objectCode + "";
+		}else {
+			sql = "select * from " + objectCode + " where " + para2 + " like '%" + para1 + "%'";
+		}
 		List<Record> record = Db.use(xx.DS_MAIN).find(sql);
 		renderJson(record);
 	}

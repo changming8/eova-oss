@@ -160,7 +160,7 @@ public class MetadataController extends BaseController {
 		}
 		tempColumnSql.append(" )");
 		objs[1]=tempColumnSql.toString();
-		// 建标动作
+		// 建表动作
 		// 存在的确认有没有数据,无数据才可以drop 重新执行建标 否则返回异常提示
 		try {
 			if (checkExit(tableName)) {
@@ -206,6 +206,10 @@ public class MetadataController extends BaseController {
 		JSONArray jsonlist = JSONArray.parseArray(j.toString());
 		List<Record> insertRecord = new ArrayList<Record>();
 		List<Record> updateRecord = new ArrayList<Record>();
+		
+		//获取数据里字段大小写类型 转换字段类型大小写问题
+		String  database_type= keepPara("rows").getPara("type");
+		//转参数大小写
 		for (int i = 0; i < jsonlist.size(); i++) {
 			JSONObject obj = jsonlist.getJSONObject(i);
 			if (obj.getBoolean("key_flag") != null && obj.getBoolean("key_flag")) {
@@ -225,7 +229,12 @@ public class MetadataController extends BaseController {
 			re.remove("pk_val");
 			re.remove("link_column_val");
 			re.remove("link_table_val");
-			
+			String field_type =re.getStr("field_type");
+			if(database_type.equals("2")) {
+				re.set("field_type", field_type.toLowerCase());
+			}else if(database_type.equals("1")) {
+				re.set("field_type", field_type.toUpperCase());
+			}
 			if (obj.getString("id") == null || obj.getString("id").equals("")) {
 				// 新增
 				re.set("id", UUID.getUnqionPk());

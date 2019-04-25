@@ -1,10 +1,10 @@
-<%// 后台执行逻辑并刷新通用按钮 %>
 <a href="javascript:void(0);" class="easyui-linkbutton"
 	data-options="iconCls:'${button.icon!}',plain:true"
 	onclick="eova_btn_${button.id}()">${button.name!}</a>
 <script type="text/javascript">
 	var eova_btn_${button.id} = function(){
-		var $widget = $('#${gridId}');
+		debugger;
+		var $widget = $('#bs_data_flow_b_grid');
         var rows = $.getWidgetSelections($widget);
         if (rows.length == "0") {
         	$.slideMsg($.I18N('请选择一行数据'));
@@ -13,9 +13,9 @@
 	    $.messager.confirm($.I18N('操作提示'), $.I18N('您确认执行当前操作'), function(ok) {
 			if (ok) {			
 	 		/*  debugger;  */	
-	 		console.log(rows[0].id);
-	 		var sid = rows[0].id;
-				window.location.href="javascript:parent.addTab('界面样式设置','/master_slave_grid/list/bs_style?query_sid_sid=555','icon-building')";
+	 		console.log(rows[0].flow_id);
+	 		var flowid = rows[0].flow_id;
+				window.location.href="javascript:parent.addTab('流程表状态定义','/FlowTableStatusDefController/list/tablestatus_def?query_flowid="+flowid+"','icon-building')";
 
 			}
 		});

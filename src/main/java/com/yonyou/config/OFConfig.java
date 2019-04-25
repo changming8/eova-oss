@@ -22,8 +22,10 @@ import com.oss.model.UserInfo;
 import com.oss.model.Users;
 import com.oss.product.ProductController;
 import com.oss.test.TestController;
+import com.yonyou.controller.DIYFormController;
 import com.yonyou.controller.DataRelationMaintenanceController;
 import com.yonyou.controller.FTPController;
+import com.yonyou.controller.FlowTableStatusDefController;
 import com.yonyou.controller.MdDEFController;
 import com.yonyou.controller.PKLockController;
 import com.yonyou.model.FileManagerModel;
@@ -54,7 +56,10 @@ public class OFConfig extends EovaConfig {
 		me.add("/dataRelationMaintenance", DataRelationMaintenanceController.class);
 		me.add("/flow", QuartzController.class);
 		me.add("/ftp", FTPController.class);
+
+		me.add("/DIYFormController", DIYFormController.class);
 		me.add("/PKLockController", PKLockController.class);
+		me.add("/FlowTableStatusDefController", FlowTableStatusDefController.class);
 		// 排除不需要登录拦截的URI 语法同SpringMVC拦截器配置 @see
 		// com.eova.common.utils.util.AntPathMatcher
 		LoginInterceptor.excludes.add("/test/**");
@@ -117,6 +122,8 @@ public class OFConfig extends EovaConfig {
 				"select  field_code 编码 ,field_name 名称  from bs_metadata_b where pid = (select id from bs_metadata where data_code = ? ) and (unique_constraint = 1 or  key_flag = 1) ");
 		exps.put("bs_metadata_column_ref",
 				"select  field_code 编码 ,field_name 名称  from bs_metadata_b where pid = (select id from bs_metadata where data_code = ? ) and (key_flag =1 or unique_constraint =1)");
+		
+		exps.put("bs_md_def_b_ref","select mdd_code 主数据映射编码,dest_table 映射表 from v_bs_data_flow where field_id = ?");
 		// 用法，级联动态在页面改变SQL和参数
 		// $xxx.eovacombo({exp : 'selectAreaByLv2AndPid,aaa,10'}).reload();
 		// $xxx.eovafind({exp : 'selectAreaByLv2AndPid,aaa,10'});

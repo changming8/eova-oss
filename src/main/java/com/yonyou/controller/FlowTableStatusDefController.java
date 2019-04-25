@@ -43,7 +43,7 @@ import com.yonyou.quartz.ExecuteThread;
  * @author: changjr
  * @date: date{time}
  */
-public class PKLockController extends BaseController {
+public class FlowTableStatusDefController extends BaseController {
 
 	final Controller ctrl = this;
 
@@ -52,12 +52,12 @@ public class PKLockController extends BaseController {
 
 	public void list() {
 
-		String menuCode = "pk_lock";
+		String menuCode = "tablestatus_def";
 
 		// 获取元数据
 		Menu menu = Menu.dao.findByCode(menuCode);
 		MenuConfig config = menu.getConfig();
-		String objectCode = "lock_log";
+		String objectCode = "tablestatus_def";
 		MetaObject object = MetaObject.dao.getByCode(objectCode);
 		if (object == null) {
 			throw new RuntimeException("元对象不存在,请检查是否存在?元对象编码=" + objectCode);
@@ -74,7 +74,7 @@ public class PKLockController extends BaseController {
 		setAttr("btnList", btnList);
 		setAttr("object", object);
 
-		render("/eova/PKLOCK/pklock.html");
+		render("/eova/DIY/tablestatusdef.html");
 	}
 
 	/**
@@ -83,23 +83,60 @@ public class PKLockController extends BaseController {
 	 * @throws Exception
 	 */
 	public void query() throws Exception {
+		/** 元对象业务拦截器 **/
+		MetaObjectIntercept intercept = null;
 
-		List<Record> list = new ArrayList<>();
-		Map<Object, Object> map = Redis.use(xx.DS_EOVA).hgetAll("PKLOCK");
-		for (Object obj : map.keySet()) {
-			Record record = new Record();
-			LockObject lock = (LockObject) map.get(obj);
-			record.set("id", obj.toString());
-			record.set("detail", lock.getDetail());
-			record.set("date", lock.getLockDate());
-			list.add(record);
+		/** 异常信息 **/
+		String errorInfo = "";
+		String objectCode = getPara(0);
+		String menuCode = getPara(1);
+		String[] params = getParaMap().get("query_flowid");
+		int pageNumber = getParaToInt(PageConst.PAGENUM, 1);
+		int pageSize = getParaToInt(PageConst.PAGESIZE, 100000);
+
+		MetaObject object = sm.meta.getMeta(objectCode);
+		Menu menu = Menu.dao.findByCode(menuCode);
+
+		intercept = TemplateUtil.initMetaObjectIntercept(object.getBizIntercept());
+
+		// 构建查询
+		List<Object> paras = new ArrayList<Object>();
+		String select = "select " + WidgetManager.buildSelect(object, RID());
+		String sql = WidgetManager.buildQuerySQL(ctrl, menu, object, intercept, paras, true);
+		if (params != null && params.length > 0) {
+			sql = sql + " where flow_id = '" + params[0] + "'";
 		}
-		Page page = new Page<>(list, 10000, 1, 1, list.size());
+		Page<Record> page = Db.use(object.getDs()).paginate(pageNumber, pageSize, select, sql, xx.toArray(paras));
+		// 查询后置任务
+		if (intercept != null) {
+			AopContext ac = new AopContext(ctrl, page.getList());
+			ac.object = object;
+			intercept.queryAfter(ac);
+		}
+
+		// 备份Value列，然后将值列转换成Key列
+		WidgetUtil.copyValueColumn(page.getList(), object.getPk(), object.getFields());
+		// 根据表达式将数据中的值翻译成汉字 根据object自定义是否开启exp表达式解析,默认打开 需要时手动关闭
+		if (null != object.get("is_enable_exp") && object.getBoolean("is_enable_exp") == true) {
+			WidgetManager.convertValueByExp(this, object.getFields(), page.getList());
+		}
+
 		// 构建JSON数据
 		StringBuilder sb = new StringBuilder(
 				String.format("{\"total\":%s,\"rows\": %s}", page.getTotalRow(), JsonKit.toJson(page.getList())));
 
+		// Footer
+		if (intercept != null) {
+			AopContext ac = new AopContext(ctrl, page.getList());
+			ac.object = object;
+			Kv footer = intercept.queryFooter(ac);
+			if (footer != null) {
+				sb.insert(sb.length() - 1, String.format(",\"footer\":[%s]", footer.toJson()));
+			}
+		}
+
 		renderJson(sb.toString());
+
 	}
 
 	/**
@@ -112,5 +149,22 @@ public class PKLockController extends BaseController {
 		Redis.use(xx.DS_EOVA).hdel("PKLOCK", id);
 		renderJson(Easy.sucess());
 	}
-
+	
+//	参照多选联动
+	public void multipleFind() {
+		Easy res =new Easy();
+		try {
+			Map<String, String[]> param = getParaMap();
+			String code = param.get("code")[0];
+			List<Record> records = Db.use(xx.DS_EOVA).find("select * from bs_metadata where  dr = 0 and data_code = ?", code);
+			
+			res.setData(records);
+			renderJson(res);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			res.setMsg("操作失败");
+			renderJson(res);
+		}
+	}
 }
