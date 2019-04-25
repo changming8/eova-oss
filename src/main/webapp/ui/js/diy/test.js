@@ -28,7 +28,6 @@ window.onload = function() {
 					$("input[name='table_id']").val(res.id);
 					$("input[name='table_name']").val(res.data_name);
 					$.slideMsg($.I18N('操作成功'));
-					$.widgetReLoad($widget);
 				} else {
 					$.alert($, result.msg);
 				}
