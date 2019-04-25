@@ -126,16 +126,22 @@ public class FTPClientFactory extends BasePooledObjectFactory<FTPClient> {
     /**
      * 上传文件 
      * @param path ftp服务端路径 必须以"/"结尾
-     * @param sendfile 本地文件路径（包含文件名）
+     * @param sendfile 本地文件路径
      * @param fileName 上传后文件名
      */
     public boolean sendFile( String path, String sendfile, String fileName ){
-    	
+    	System.out.println("文件上传，处理前ftp路径完整名:"+path);
+		System.out.println("文件上传，处理前本地路径完整名:"+sendfile);
+		//处理路径中多余的/ Windows下无法解析
+		path=trimPath(path);
+		sendfile=trimPath(sendfile);
+		System.out.println("文件上传，处理后ftp路径完整名:"+path);
+		System.out.println("文件上传，处理后本地路径完整名:"+sendfile);
         long start = System.currentTimeMillis();
         InputStream inputStream = null;
         boolean flag = false;
         try {
-            File file = new File(sendfile);
+            File file = new File(sendfile+fileName);
             if(!file.exists()) {
             	logger.error("***************************文件不存在**************************");
             	return false;
@@ -171,6 +177,13 @@ public class FTPClientFactory extends BasePooledObjectFactory<FTPClient> {
 	 */
 
 	public boolean downLoadFile(String pathname, String filename, String localpath) {
+		System.out.println("文件下载，处理前ftp路径完整名:"+pathname);
+		System.out.println("文件下载，处理前本地路径完整名:"+localpath);
+		//处理路径中多余的/ Windows下无法解析
+		pathname=trimPath(pathname);
+		localpath=trimPath(localpath);
+		System.out.println("文件下载，处理后ftp路径完整名:"+pathname);
+		System.out.println("文件下载，处理后本地路径完整名:"+localpath);
 		boolean flag = false;
 		OutputStream os = null;
 		try {
@@ -184,8 +197,9 @@ public class FTPClientFactory extends BasePooledObjectFactory<FTPClient> {
 			// 查看有哪些文件夹 以确定切换的ftp路径正确
 			FTPFile[] ftpFiles = client.listFiles();
 			for (FTPFile file : ftpFiles) {
+				System.out.println(file.getName());
 				if (filename.equalsIgnoreCase(file.getName())) {
-					File localFile = new File(localpath + "/" + file.getName());
+					File localFile = new File(localpath+ file.getName());
 					os = new FileOutputStream(localFile);
 					client.retrieveFile(file.getName(), os);
 					os.close();
@@ -219,6 +233,8 @@ public class FTPClientFactory extends BasePooledObjectFactory<FTPClient> {
 	
 		// 改变目录路径
 		public boolean changeWorkingDirectory(String directory) {
+			//处理路径中多余的/ Windows下无法解析
+			directory=trimPath(directory);
 			boolean flag = true;
 			try {
 				flag = client.changeWorkingDirectory(directory);
@@ -326,9 +342,11 @@ public class FTPClientFactory extends BasePooledObjectFactory<FTPClient> {
 		public List<String> readFile(String path){
 			 List<String> list = new ArrayList<String>();
 			  InputStream is = null; 
+			  InputStreamReader input=null;
 			 try {
 				 is = client.retrieveFileStream(path);
-				 BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+				 input=new InputStreamReader(is);
+				 BufferedReader reader = new BufferedReader(input);
 				 String line="";
 				 while ((line = reader.readLine()) != null) {
 	                System.out.println(line);
@@ -347,9 +365,32 @@ public class FTPClientFactory extends BasePooledObjectFactory<FTPClient> {
 			 	return list;
 			
 		}
+		
+		/**
+		 * 处理路径中多余的/
+		 * @param path
+		 * @return
+		 */
+		public static 	String  trimPath(String path) {
+			String[] arr=path.split("/");
+			StringBuffer sb=new  StringBuffer();
+			//linux mac系统路径以/开头
+			if(path.substring(0,1).equals("/")) {
+				sb.append("/");
+			}
+			for (String string : arr) {
+				if(string!=null&&!string.equals("")) {
+					sb.append(string+"/");
+				}
+			}
+			return sb.toString();
+			
+		}
 		public static void main(String[] args) {
 			try {
-				new FTPClientFactory("172.20.10.7", 2121, "root", "root").readFile("/bus/201904/M001-DEPART002-FMP-20190422-001-I.DESC");
+				System.out.println(trimPath("///user///home/afa/"));
+				System.out.println(trimPath("d://12312/2342/12312/"));
+//				System.out.println(new FTPClientFactory("192.168.43.233", 2121, "test", "test").changeWorkingDirectory("////bus/201904/"));
 	//			new FTPClientFactory("172.20.10.7", 2121, "root", "root").sendFile("/bus/201904/","/users/liuzemin/desktop/test/M113-DEPART113-FMP-20190422-001-I.DESC", "M113-DEPART113-FMP-20190422-001-I.DESC");
 			} catch (Exception e) {
 				e.printStackTrace();

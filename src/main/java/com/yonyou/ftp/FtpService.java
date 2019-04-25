@@ -292,9 +292,10 @@ public class FtpService {
 	 */
 	public void uploadFile(String ftpAddress, int ftpPort, String ftpUsername, String ftpPassword, String fielName,
 			String directoryName, String workDirectoryName, ResponseBody responseBody) {
+		String dirPath = workDirectoryName.substring(0, workDirectoryName.lastIndexOf("/") + 1);
 		try {
 			if (new FTPClientFactory(ftpAddress, ftpPort, ftpUsername, ftpPassword).sendFile(directoryName,
-					workDirectoryName, fielName)) {
+					dirPath, fielName)) {
 				responseBody.setMes(directoryName + "上传文件成功,文件名:" + fielName);
 				return;
 			} else {
