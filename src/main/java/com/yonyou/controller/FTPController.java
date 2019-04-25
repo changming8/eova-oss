@@ -19,18 +19,18 @@ public class FTPController extends BaseController {
 		JSONArray jsonlist = JSONArray.parseArray(j.toString());
 		JSONObject json = (JSONObject) jsonlist.get(0);
 		// 先查询 先复制以时间戳为结尾复制到FTP注册表中
-	    String metadataSql = "select * from bs_ftp_registry where id ='" + json.getString("id") + "'";
+	    String metadataSql = "select * from bs_ftp_flow where id ='" + json.getString("id") + "'";
 	    List<Record> metadataList = Db.use(xx.DS_EOVA).find(metadataSql);
 	    String id = UUID.getUnqionPk();
 	    Record record = new Record();
 		record = metadataList.get(0).remove("ID");
 		record.set("ID", id);
-		String code = record.get("FTP_CODE").toString();
-		record.remove("FTP_CODE");
+		String code = record.get("ftpflow_code").toString();
+		record.remove("ftpflow_code");
 		String serialCode = code + "_" + System.currentTimeMillis();
-		record.set("FTP_CODE",serialCode);
+		record.set("ftpflow_code",serialCode);
 		// 插入
-    	Db.use(xx.DS_EOVA).save("bs_ftp_registry", record);
+    	Db.use(xx.DS_EOVA).save("bs_ftp_flow", record);
     	renderJson(Easy.sucess());
 	}
 
