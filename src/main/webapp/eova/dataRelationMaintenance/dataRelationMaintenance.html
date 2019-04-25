@@ -460,7 +460,7 @@ function table(tableName,url,wheres){
 	    	globalDataId=rowData.id;
 	    	globalDataName=rowData.md_table_val;
 	    	masterOrSlaveWhere=globalDataName;
-	    	increment=rowData.mid_table;
+	    	increment=rowData.mid_reserve+""+rowData.mid_table;
 	    	//console.info(rowData);
 	    }
 	});
