@@ -29,6 +29,7 @@ import com.yonyou.controller.FlowTableStatusDefController;
 import com.yonyou.controller.InterfaceDataBrowsingController;
 import com.yonyou.controller.LoadFlowController;
 import com.yonyou.controller.MdDEFController;
+import com.yonyou.controller.MdStyleController;
 import com.yonyou.controller.PKLockController;
 import com.yonyou.controller.SqlFlowController;
 import com.yonyou.model.FileManagerModel;
@@ -57,21 +58,21 @@ public class OFConfig extends EovaConfig {
 		me.add("/test", TestController.class);
 		me.add("/product", ProductController.class);
 		me.add("/mddef", MdDEFController.class);
-		
+
 		me.add("/flow", QuartzController.class);
 		me.add("/ftp", FTPController.class);
 		me.add("/dataClean", DateCleanController.class);
 
+		me.add("/MdStyleController", MdStyleController.class);
 		me.add("/dataRelationMaintenance", DataRelationMaintenanceController.class);
-		me.add("/interfaceDataBrowsingController",InterfaceDataBrowsingController.class);
+		me.add("/interfaceDataBrowsingController", InterfaceDataBrowsingController.class);
 
-		
 		me.add("/DIYFormController", DIYFormController.class);
 		me.add("/PKLockController", PKLockController.class);
 		me.add("/FlowTableStatusDefController", FlowTableStatusDefController.class);
 		me.add("/sqlFlow", SqlFlowController.class);
 		me.add("/loadFlow", LoadFlowController.class);
-		
+
 		// 排除不需要登录拦截的URI 语法同SpringMVC拦截器配置 @see
 		// com.eova.common.utils.util.AntPathMatcher
 		LoginInterceptor.excludes.add("/test/**");
@@ -135,13 +136,16 @@ public class OFConfig extends EovaConfig {
 				"select  field_code 编码 ,field_name 名称  from bs_metadata_b where pid = (select id from bs_metadata where data_code = ? ) and (unique_constraint = 1 or  key_flag = 1) ");
 		exps.put("bs_metadata_column_ref",
 				"select  field_code 编码 ,field_name 名称  from bs_metadata_b where pid = (select id from bs_metadata where data_code = ? ) and (key_flag =1 or unique_constraint =1)");
-		
-		exps.put("bs_md_def_b_ref","select mdd_code 主数据映射编码,dest_table 映射表 from v_bs_data_flow where field_id = ?");
-		
-		exps.put("bs_clean_column_ref","select id ID ,field_code 名称 from bs_metadata_b where pid = (select table_id from bs_clean_flow where id = ? )");
-		exps.put("bs_md_def_b_ref_a","select dest_table 映射表,dest_column 映射字段 from bs_md_def_b where pid = ? ");
-		exps.put("bs_clean_bus_table_column_ref","SELECT id, field_code 字段 FROM bs_metadata_b WHERE pid = ? AND field_code NOT IN ( SELECT destfield_code FROM bs_clean_flow_b WHERE pid = ? )");
-		exps.put("bs_clean_link_table_column_ref","SELECT id, field_code 字段 FROM bs_metadata_b WHERE pid = (SELECT id from bs_metadata where data_code = ?) AND field_code NOT IN ( SELECT destfield_code FROM bs_clean_flow_b WHERE pid = ? )");
+
+		exps.put("bs_md_def_b_ref", "select mdd_code 主数据映射编码,dest_table 映射表 from v_bs_data_flow where field_id = ?");
+
+		exps.put("bs_clean_column_ref",
+				"select id ID ,field_code 名称 from bs_metadata_b where pid = (select table_id from bs_clean_flow where id = ? )");
+		exps.put("bs_md_def_b_ref_a", "select dest_table 映射表,dest_column 映射字段 from bs_md_def_b where pid = ? ");
+		exps.put("bs_clean_bus_table_column_ref",
+				"SELECT id, field_code 字段 FROM bs_metadata_b WHERE pid = ? AND field_code NOT IN ( SELECT destfield_code FROM bs_clean_flow_b WHERE pid = ? )");
+		exps.put("bs_clean_link_table_column_ref",
+				"SELECT id, field_code 字段 FROM bs_metadata_b WHERE pid = (SELECT id from bs_metadata where data_code = ?) AND field_code NOT IN ( SELECT destfield_code FROM bs_clean_flow_b WHERE pid = ? )");
 		// 用法，级联动态在页面改变SQL和参数
 		// $xxx.eovacombo({exp : 'selectAreaByLv2AndPid,aaa,10'}).reload();
 		// $xxx.eovafind({exp : 'selectAreaByLv2AndPid,aaa,10'});
