@@ -50,7 +50,10 @@ public class LockUtils {
 	}
 
 	/**
-	 * @Description:释放PK锁 成功返回true 失败false
+	 * @Description:
+	 * 
+	 * 				删除哈希表 key 中的一个或多个指定域，不存在的域将被忽略。
+	 * 
 	 * 
 	 * @param pk
 	 * 

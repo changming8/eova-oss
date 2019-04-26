@@ -109,11 +109,6 @@ public class ExecuteThread implements Runnable {
 			ResponseBody res = (ResponseBody) ExcuteClass.excuet(r.getStr("flowtype_executionclass"), null, "process",
 					r.getStr("flow_id"));
 
-//			释放锁table
-			LockUtils.unLockTable(tables);
-
-//			释放锁flow_id
-			LockUtils.unpkLock(r.getStr("flow_id"));
 //			结束时间
 			String endTime = DateUtil.findSystemDateString();
 			record.set("id", UUID.getUnqionPk());
@@ -130,6 +125,11 @@ public class ExecuteThread implements Runnable {
 			if (res.getStatus() != 0) {
 //				异常更新表状态
 				TableStatusLockUtils.unLockTableStatus_ERR(r.getStr("flow_id"));
+//				释放锁table
+				LockUtils.unLockTable(tables);
+
+//				释放锁flow_id
+				LockUtils.unpkLock(r.getStr("flow_id"));
 				record.set("endtime", endTime);
 				record.set("status", "执行失败");
 				record.set("message", res.getMes());
@@ -138,7 +138,11 @@ public class ExecuteThread implements Runnable {
 			}
 //			正常更新表状态
 			TableStatusLockUtils.unLockTableStatus_OK(r.getStr("flow_id"));
-			
+//			释放锁table
+			LockUtils.unLockTable(tables);
+
+//			释放锁flow_id
+			LockUtils.unpkLock(r.getStr("flow_id"));
 			record.set("endtime", endTime);
 			record.set("status", "执行成功");
 			record.set("message", res.getMes());
