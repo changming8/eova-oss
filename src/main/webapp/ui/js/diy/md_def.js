@@ -9,9 +9,7 @@ $(document).ready(function() {
 	var $md_column = $('#md_column');
 	var $dest_column = $('#dest_column');
 
-	// 初始禁用
 	$dest_column.mask();
- 	// 省级联市
 	$dest_table.eovafind({onChange: function (oldValue, newValue) {
 		$dest_column.eovafind().setValue("");
         if (newValue == "") {

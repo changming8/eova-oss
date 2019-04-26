@@ -15,7 +15,7 @@ import com.yonyou.base.LockObject;
  * @date: datedate{time}
  */
 public class LockUtils {
-	/*
+	/**
 	 * @Description:获取PK锁 成功返回true 失败false
 	 * 
 	 * @param pk
@@ -24,13 +24,13 @@ public class LockUtils {
 	 * 
 	 * @throws Exception
 	 */
-	public synchronized static boolean pkLock(String pk,String detail) {
+	public synchronized static boolean pkLock(String pk, String detail) {
 
 		boolean flag = checkLockExist(pk);
 		if (flag) {
 			return false;
 		}
-		LockObject obj =new LockObject();
+		LockObject obj = new LockObject();
 		obj.setDetail(detail);
 		obj.setLockDate(DateUtil.findSystemDateString());
 //		Redis.use("PKLOCK").set(pk, obj);
@@ -49,7 +49,7 @@ public class LockUtils {
 
 	}
 
-	/*
+	/**
 	 * @Description:释放PK锁 成功返回true 失败false
 	 * 
 	 * @param pk
@@ -68,21 +68,24 @@ public class LockUtils {
 
 	}
 
-	/*
+	/**
 	 * @Description: 批量获取表锁
 	 * 
 	 * @param tableNames
 	 * 
 	 * @return 全部成功返回true 否则返回false
 	 */
-	public synchronized static boolean lockTable(List<String> tableNames) {
+	public synchronized static boolean lockTable(List<String> tableNames, String detail) {
 		for (String table : tableNames) {
 			if (checktableLockExist(table)) {
 				return false;
 			}
 		}
 		for (String table : tableNames) {
-			Redis.use(xx.DS_EOVA).set(table, "");
+			LockObject obj = new LockObject();
+			obj.setDetail(detail);
+			obj.setLockDate(DateUtil.findSystemDateString());
+			Redis.use(xx.DS_EOVA).hset("PKLOCK", table, obj);
 		}
 		return true;
 
@@ -97,17 +100,18 @@ public class LockUtils {
 	 */
 	public synchronized static boolean unLockTable(List<String> tableNames) {
 		for (String table : tableNames) {
-			Redis.use(xx.DS_EOVA).del(table);
+			Redis.use(xx.DS_EOVA).hdel("PKLOCK", table);
 		}
 		return true;
-		
+
 	}
+
 	/**
 	 * 检查pk锁是否存在
 	 */
 	public synchronized static boolean checktableLockExist(String table) {
 
-		return Redis.use(xx.DS_EOVA).exists(table);
+		return Redis.use(xx.DS_EOVA).hexists("PKLOCK", table);
 
 	}
 }

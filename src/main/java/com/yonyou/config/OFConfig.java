@@ -31,6 +31,7 @@ import com.yonyou.controller.MdDEFController;
 import com.yonyou.controller.PKLockController;
 import com.yonyou.controller.SqlFlowController;
 import com.yonyou.model.FileManagerModel;
+import com.yonyou.model.TableManagerModel;
 import com.yonyou.quartz.controller.QuartzController;
 
 /**
@@ -92,6 +93,7 @@ public class OFConfig extends EovaConfig {
 		main.addMapping("bs_filemanager", FileManagerModel.class);
 		main.addMapping("bs_metadata", Metadata.class);
 		main.addMapping("bs_metadata_b", MetadataDetail.class);
+		main.addMapping("bs_tablestatus_def", TableManagerModel.class);
 		// 获取其它数据源的ARP
 		// ActiveRecordPlugin xxx = arps.get("xxx");
 	}
