@@ -9,6 +9,9 @@
 var $form = $('#${formId}');
 
 var submitNow = function($dialog, $widget, $pjq) {
+	if(!checkyj()){
+		return false;
+	}
 	var $btnSave = $pjq("#eovaSave");
 	$btnSave.linkbutton({disabled : true});
 	var i = 3;
@@ -27,6 +30,56 @@ var submitNow = function($dialog, $widget, $pjq) {
 		}
 	}, 'json');
 };
+
+function checkyj(){
+	if('${formId}'=='updateFormbs_ftp_flow'||'${formId}'=='addFormbs_ftp_flow'){
+		var analysis_rule=$("[name='analysis_rule']").val();
+		if(analysis_rule=="1"){
+			if($("[name='search_path']").val().trim()==''){
+				$.slideMsg("请输入固定式FTP路径");
+				return false;
+			}
+			if($("[name='file_name']").val().trim()==''){
+				$.slideMsg("请输入固定式文件名");
+				return false;
+			}
+		}else{
+			if($("[name='search_path1']").val().trim()==''){
+				$.slideMsg("请输入FTP路径1");
+				return false;
+			}
+			if($("[name='search_path2']").val().trim()==''){
+				$.slideMsg("请选择FTP路径2");
+				return false;
+			}
+			if($("[name='day_rule']").val().trim()==''){
+				$.slideMsg("请输入日期解析规则");
+				return false;
+			}
+			if($("[name='file_name1']").val().trim()==''){
+				$.slideMsg("请输入对方系统标识");
+				return false;
+			}
+			if($("[name='file_name2']").val().trim()==''){
+				$.slideMsg("请输入业务标识");
+				return false;
+			}
+			if($("[name='file_name4']").val().trim()==''){
+				$.slideMsg("请选择文件日期格式");
+				return false;
+			}
+			if($("[name='file_name6']").val().trim()==''){
+				$.slideMsg("请选择数据量格式");
+				return false;
+			}
+			if($("[name='description_file']").val().trim()==''){
+				$.slideMsg("请选择描述文件");
+				return false;
+			}
+		}
+	}
+	return true;
+}
 var btnSaveCallback = function($dialog, $widget, $pjq) {
 	// nice validator
 	$form.isValid(function(isValied){

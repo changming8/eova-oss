@@ -35,7 +35,7 @@ public class LoadDataService {
 		
 		List<Record> listProduct = Db.use(xx.DS_EOVA).find("select * from bs_load_flow where id ='" + id + "'");//拼接DESC文件路径和文件名数据
 		//DESC对应数据库表
-		String table_name = listProduct.get(0).get("table_code");
+		String table_name = listProduct.get(0).get("table_id");
 		if ( table_name == null || "".equals(table_name)) 
 			return getResponseBody("DESC文件对应表名为空,任务终止",id,1,1);
 		

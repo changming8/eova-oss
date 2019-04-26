@@ -11,24 +11,43 @@
     var $file_name4= $('#file_name4');//文件日期格式
     var $file_name6= $('#file_name6');//
     var $description_file= $('#description_file');//DESC or DESC.OK or DESC.ERR
-
-//$(document).ready(function(){
-//    
-//    // 初始禁用
-//    $search_path.mask();
-//    $file_name.mask();
-//    $response_file.mask();
-//    $file_type.mask();
-//    $day_rule.mask();
-//    $search_path1.mask();
-//    $search_path2.mask();
-//    $file_name1.mask();
-//    $file_name2.mask();
-//    $file_name4.mask();
-//    $file_name6.mask();
-//    $description_file.mask();
-//    
-//});
+    $("document").ready(function(){
+    	var $form=$("#updateFormbs_ftp_flow").serialize();
+    	console.info($form);
+    	
+    });
+$(document).ready(function(){
+	var f=$("[name='analysis_rule']").val();
+    if (f == '1') {
+        $search_path.unmask();
+        $file_name.unmask();
+        $response_file.mask();
+        $file_type.mask();
+        $day_rule.mask();
+        $search_path1.mask();
+        $search_path2.mask();
+        $file_name1.mask();
+        $file_name2.mask();
+        $file_name4.mask();
+        $file_name6.mask();
+        $description_file.mask();
+    }
+    if (f == '2') {
+    	$search_path.mask();
+        $file_name.mask();
+        $response_file.unmask();
+        $file_type.unmask();
+        $day_rule.unmask();
+        $search_path1.unmask();
+        $search_path2.unmask();
+        $file_name1.unmask();
+        $file_name2.unmask();
+        $file_name4.unmask();
+        $file_name6.unmask();
+        $description_file.unmask();
+    }
+    
+});
 //
 //window.onload=function(){
 //	var type = $('input[name="analysis_rule"]').val();
@@ -105,7 +124,6 @@
 //        $description_file.unmask();
 //    }
 //	};
-
 
 
 // 解析规则改变事件

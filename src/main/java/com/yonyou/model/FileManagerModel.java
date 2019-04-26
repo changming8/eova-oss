@@ -7,6 +7,7 @@ import com.eova.common.base.BaseModel;
 import com.eova.common.utils.xx;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
+import com.yonyou.util.FileStatus;
 import com.yonyou.util.UUID;
 
 public class FileManagerModel extends BaseModel<FileManagerModel> {
@@ -135,7 +136,7 @@ public class FileManagerModel extends BaseModel<FileManagerModel> {
 		record.set("plat_code", plat_code);
 		record.set("plat_code", plat_code);
 		record.set("date_code", date_code);
-		record.set("status", "2");
+		record.set("status", FileStatus.DOWNLOAD_UPDATING);
 		record.set("type", type);
 		record.set("allname", allname);
 		record.set("plat_code", plat_code);
@@ -159,7 +160,7 @@ public class FileManagerModel extends BaseModel<FileManagerModel> {
 		String descName = DESCName.substring(DESCName.lastIndexOf("/") + 1);
 		Record record = new Record();
 		record.set("id", UUID.getUnqionPk());
-		record.set("status", "2");
+		record.set("status", FileStatus.DOWNLOAD_UPDATING);
 		record.set("allname", descName);
 		record.set("workpath", workpath);
 		record.set("transtype", "2");
