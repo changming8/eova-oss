@@ -18,8 +18,9 @@ public class MdDefIntercept extends BaseMetaIntercept {
 	public String addBefore(AopContext ac) throws Exception {
 		// TODO Auto-generated method stub
 		String table = ac.record.getStr("mid_table");
+		String prefix = ac.record.getStr("mid_reserve");
 		try {
-			Db.use(xx.DS_MAIN).find("SELECT * from " + table);
+			Db.use(xx.DS_MAIN).find("SELECT * from " + prefix+table);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			return super.addBefore(ac);
@@ -32,7 +33,8 @@ public class MdDefIntercept extends BaseMetaIntercept {
 	public String addAfter(AopContext ac) throws Exception {
 		// TODO Auto-generated method stub
 		String table = ac.record.get("mid_table");
-		String sql = "create table " + "mid_" + table
+		String prefix = ac.record.getStr("mid_reserve");
+		String sql = "create table " + prefix + table
 				+ "(id VARCHAR(20) primary key,md_column VARCHAR(30),mdid VARCHAR(200),dest_column VARCHAR(30),destid VARCHAR(200),dest_table  VARCHAR(30))";
 
 		try {
@@ -40,7 +42,7 @@ public class MdDefIntercept extends BaseMetaIntercept {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			return "创建中间表出错" + "mid_" + table + "请检查！";
+			return "创建中间表出错" + prefix + table + "请检查！";
 		}
 		return super.addAfter(ac);
 	}
@@ -49,13 +51,14 @@ public class MdDefIntercept extends BaseMetaIntercept {
 	public String deleteAfter(AopContext ac) throws Exception {
 		// TODO Auto-generated method stub
 		String table = ac.record.getStr("mid_table");
+		String prefix = ac.record.getStr("mid_reserve");
 		try {
-			String sql = "drop table " + "mid_"+table + "";
+			String sql = "drop table " + prefix+table + "";
 			Db.use(xx.DS_MAIN).update(sql);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			return "删除中间表出错"+"mid_"+table +"请检查";
+			return "删除中间表出错"+prefix+table +"请检查";
 		}
 
 		return super.deleteAfter(ac);
@@ -65,8 +68,9 @@ public class MdDefIntercept extends BaseMetaIntercept {
 	public String deleteBefore(AopContext ac) throws Exception {
 		// TODO Auto-generated method stub
 		try {
+			String prefix = ac.record.getStr("mid_reserve");
 			String table = ac.record.get("mid_table");
-			List<Record> record = Db.use(xx.DS_MAIN).find("select * from " + "mid_" + table);
+			List<Record> record = Db.use(xx.DS_MAIN).find("select * from " + prefix + table);
 			if (!record.isEmpty()) {
 				return "存储关系表数据非空,不允许删除主数据定义！";
 			}

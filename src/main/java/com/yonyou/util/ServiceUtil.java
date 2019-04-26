@@ -163,8 +163,8 @@ public class ServiceUtil extends BaseModel<ServiceUtil> {
 	 * @param flowTypeId
 	 * @return
 	 */
-	public List<Record> getFlowFlagById(String flowTypeId) {
-		String sql = "select * from bs_flow_flag where  id ='" + flowTypeId + "'";
+	public List<Record> getTableStatusById(String tableStatusId) {
+		String sql = "select * from bs_table_status where  id ='" + tableStatusId + "'";
 		List<Record> list = Db.use(xx.DS_EOVA).find(sql);
 		return list;
 	}
@@ -175,8 +175,8 @@ public class ServiceUtil extends BaseModel<ServiceUtil> {
 	 * @param flowTypeCode
 	 * @return
 	 */
-	public List<Record> gettFlowFlagCode(String flowTypeCode) {
-		String sql = "select * from bs_flow_flag where  flowtask_code ='" + flowTypeCode + "'";
+	public List<Record> getTableStatusCode(String tableStatusCode) {
+		String sql = "select * from bs_table_status where  tablestatus_code ='" + tableStatusCode + "'";
 		List<Record> list = Db.use(xx.DS_EOVA).find(sql);
 		return list;
 	}

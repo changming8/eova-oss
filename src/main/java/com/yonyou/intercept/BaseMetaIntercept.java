@@ -38,13 +38,17 @@ public class BaseMetaIntercept extends MetaObjectIntercept {
 		String menucode = ac.ctrl.getPara();
 //		获取菜单绑定的 主子映射关系
 		List<Record> record = Db.use(xx.DS_EOVA).find("select * from eova_menu where code = ?", menucode);
-		if (record.isEmpty()) {
+		if (record.isEmpty() || record.get(0).getStr("config") == null) {
 			return super.deleteAfter(ac);
 		}
 		MetaObjectIntercept intercept = null;
 		JSONObject json = (JSONObject) JSONObject.parse(record.get(0).getStr("config"));
 //		主子 主表映射 名称
 		String objectField = json.getString("objectField");
+		if (objectField == null) {
+			return super.deleteAfter(ac);
+		}
+
 //		主表元数据编码
 		String objectCode = json.getString("objectCode");
 //		子表欧巴元数据编码聚合

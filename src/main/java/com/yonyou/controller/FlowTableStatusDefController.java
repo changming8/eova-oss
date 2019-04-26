@@ -149,4 +149,22 @@ public class FlowTableStatusDefController extends BaseController {
 		Redis.use(xx.DS_EOVA).hdel("PKLOCK", id);
 		renderJson(Easy.sucess());
 	}
+	
+//	参照多选联动
+	public void multipleFind() {
+		Easy res =new Easy();
+		try {
+			Map<String, String[]> param = getParaMap();
+			String code = param.get("code")[0];
+			List<Record> records = Db.use(xx.DS_EOVA).find("select * from bs_metadata where  dr = 0 and data_code = ?", code);
+			
+			res.setData(records);
+			renderJson(res);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			res.setMsg("操作失败");
+			renderJson(res);
+		}
+	}
 }
