@@ -424,7 +424,7 @@ public class FtpService {
 		}catch (Exception e) {
 			e.printStackTrace();
 			responseBody.setStatus(1);
-			responseBody.setMes("文件上传,"+e.getMessage()+",请检查FTP服务是否正常或者目录是否存在,FTP地址:"+ftpAddress+",文件名:"+ fielName);
+			responseBody.setMes("文件上传失败,请检查FTP服务是否正常或者目录是否存在,FTP地址:"+ftpAddress+",文件名:"+ fielName);
 			return false;
 		}
 		return true;
@@ -472,7 +472,7 @@ public class FtpService {
 		} catch (Exception e) {
 			e.printStackTrace();
 			responseBody.setStatus(1);
-			responseBody.setMes("文件下载,"+e.getMessage()+",请检查FTP服务是否正常或者文件是否存在,FTP地址:"+ftpAddress+",文件名:"+ fielName);
+			responseBody.setMes("文件下载失败,请检查FTP服务是否正常或者文件是否存在,FTP地址:"+ftpAddress+",文件名:"+ fielName);
 			flag=false;
 		}
 //		LockUtils.unpkLock(id+typeid);
