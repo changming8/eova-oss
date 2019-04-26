@@ -26,6 +26,7 @@ import com.yonyou.controller.DIYFormController;
 import com.yonyou.controller.DataRelationMaintenanceController;
 import com.yonyou.controller.FTPController;
 import com.yonyou.controller.FlowTableStatusDefController;
+import com.yonyou.controller.InterfaceDataBrowsingController;
 import com.yonyou.controller.MdDEFController;
 import com.yonyou.controller.PKLockController;
 import com.yonyou.model.FileManagerModel;
@@ -53,10 +54,13 @@ public class OFConfig extends EovaConfig {
 		me.add("/test", TestController.class);
 		me.add("/product", ProductController.class);
 		me.add("/mddef", MdDEFController.class);
-		me.add("/dataRelationMaintenance", DataRelationMaintenanceController.class);
+		
 		me.add("/flow", QuartzController.class);
 		me.add("/ftp", FTPController.class);
-
+		
+		me.add("/dataRelationMaintenance", DataRelationMaintenanceController.class);
+		me.add("/interfaceDataBrowsingController",InterfaceDataBrowsingController.class);
+		
 		me.add("/DIYFormController", DIYFormController.class);
 		me.add("/PKLockController", PKLockController.class);
 		me.add("/FlowTableStatusDefController", FlowTableStatusDefController.class);
