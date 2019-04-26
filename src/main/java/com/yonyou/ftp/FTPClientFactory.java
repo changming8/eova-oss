@@ -251,14 +251,16 @@ public class FTPClientFactory extends BasePooledObjectFactory<FTPClient> {
 		}
 
 	
-		// 判断ftp服务器文件是否存在
+		// 判断ftp服务器文件夹是否存在
 		public boolean existFile(String path){
+			path=trimPath(path);
 			try {
 				boolean flag = false;
-				FTPFile[] ftpFileArr = client.listFiles(path);
-				if (ftpFileArr.length > 0) {
-					flag = true;
-				}
+				FTPFile[] files =client.listFiles(path);
+	            if(files!=null&&files.length>0){
+	                System.out.println("files size:"+files[0].getSize());
+	                flag=true;
+	            }
 				return flag;
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -393,9 +395,9 @@ public class FTPClientFactory extends BasePooledObjectFactory<FTPClient> {
 		}
 		public static void main(String[] args) {
 			try {
-				System.out.println(trimPath("///user///home/afa/"));
-				System.out.println(trimPath("d://12312/2342/12312/21312.txt"));
-//				System.out.println(new FTPClientFactory("192.168.43.233", 2121, "test", "test").changeWorkingDirectory("////bus/201904/"));
+//				System.out.println(trimPath("///user///home/afa/"));
+//				System.out.println(trimPath("d://12312/2342/12312/21312.txt"));
+				System.out.println(new FTPClientFactory("172.20.10.7", 2121, "root", "root").existFile("/bus/201904/"));
 	//			new FTPClientFactory("172.20.10.7", 2121, "root", "root").sendFile("/bus/201904/","/users/liuzemin/desktop/test/M113-DEPART113-FMP-20190422-001-I.DESC", "M113-DEPART113-FMP-20190422-001-I.DESC");
 			} catch (Exception e) {
 				e.printStackTrace();
