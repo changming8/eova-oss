@@ -57,10 +57,14 @@ public class OFConfig extends EovaConfig {
 		me.add("/test", TestController.class);
 		me.add("/product", ProductController.class);
 		me.add("/mddef", MdDEFController.class);
-		me.add("/dataRelationMaintenance", DataRelationMaintenanceController.class);
+		
 		me.add("/flow", QuartzController.class);
 		me.add("/ftp", FTPController.class);
 		me.add("/dataClean", DateCleanController.class);
+
+		me.add("/dataRelationMaintenance", DataRelationMaintenanceController.class);
+		me.add("/interfaceDataBrowsingController",InterfaceDataBrowsingController.class);
+
 		
 		me.add("/DIYFormController", DIYFormController.class);
 		me.add("/PKLockController", PKLockController.class);

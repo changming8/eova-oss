@@ -24,7 +24,60 @@
 	</div>
 	<div data-options="region:'center',title:'接口数据浏览'"
 		style="padding: 5px; background: #eee;">
-			
+		<table class="easyui-datagrid" style="width: 393px; height: 250px"
+			data-options="fit:true,singleSelect:false" id="queryTemplate"
+			>
+		</table>
+		<div id="set" style="background-color:#fafafa">
+			<a id="querySet" href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon294',plain:true">模板设置</a>
+		</div>
+	</div>
+	<div id="setModal" class="easyui-dialog" title='模板设置' data-options="iconCls:'eova-icon294'" style="width:700px;height:500px">
+		<div id="cc" class="easyui-layout" style="width:auto;height:423px;">
+		    <div data-options="region:'west',title:'查询列',split:true" style="width:250px">
+		    	<table id="left" class="easyui-datagrid" style="width:auto;" toolbar="#leftBar">
+					
+				</table>
+				<div id="leftBar" style="background-color:#fafafa;text-align:right">
+					<a id="insertRight" href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon876',plain:true"></a>
+				</div>
+		    </div>
+		    <div data-options="region:'center',title:'查询返回列'">
+		   	 	<div id="rightBar" style="background-color:#fafafa;text-align:left">
+					<a id="insertLeft" href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon925',plain:true"></a>
+					<a id="importExcel" href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon1063',plain:true">导入</a>
+					<a id="exportExcel" href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon779',plain:true">导出</a>
+				</div>
+		    	<table id="right" class="easyui-datagrid" style="width:auto;" data-options='singleSelect : false,onAfterEdit:onAfterEdit'  toolbar="rightBar">
+					<thead>
+						<tr>
+							<th data-options="field:'id',width:100,editor:{
+							type:'combobox'}" >条件列</th>
+							<th data-options="field:'expression',width:80,editor:{
+							type:'combobox',
+							options:{
+								valueField:'expression_id',
+								textField:'expression_name',
+								method:'get',
+								dataType:'json',
+								editable:false,
+								url:'/interfaceDataBrowsingController/expression'
+							}
+						}" >表达式</th>
+							<th data-options="field:'value_',width:181,editor:{
+							type:'textbox'}">输入值</th>
+							<th data-options="field:'andOr',width:80,editor:{
+							type:'combobox'}">andOr</th>
+						</tr>
+					</thead> 
+				</table>
+				
+		    </div>
+		</div>
+	</div>
+	<div id="setTool" style="background-color:#fafafa">
+		<span id="set_class"></span><select class="easyui-combobox" id="queryModalSelect" style="width:35%"></select>
+		<span>切换模板：</span><select class="easyui-combobox" id="switchTemplate" style="width:30%"></select>
 	</div>
 </body>
 <script type="text/javascript"
@@ -33,9 +86,37 @@
 	src="/eova/plugins/easyui1.7/jquery-easyui-1.7.0/jquery.easyui.min.js"></script>
 <script type="text/javascript"
 	src="/eova/plugins/easyui1.7/jquery-easyui-1.7.0/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript">//全局变量
+var $interface_id;
+var $interfaceColumn_fields=[];
+var $interface_code;
+var $template=[{"valueField":"query","textField":"查询"},{"valueField":"input","textField":"导入"},{"valueField":"output","textField":"导出"},{"valueField":"手机端","textField":"手机端"}];
+var $templateTable;
+var $leftCol;
+var andOr=[{"andOr":"and","text":"and"},{"andOr":"or","text":"or"}];
+var date=new Date();
+//获取当前年
+var year=date.getFullYear();
+//获取当前月
+var month=date.getMonth()+1;
+//获取当前日
+var date=date.getDate(); 
+var selectIndex=0;
+</script>
 <script type="text/javascript">//接口数据分类
 	$(function() {
+		$('#dd').draggable({
+		    handle:'#title',
+		    axis:'h'
+		});
 		initSelect();
+		$('#setModal').dialog({
+		    modal: true,
+		    resizable:false,
+		    collapsible:true,
+		    toolbar:"#setTool",
+		    closed:true
+		});
 	})
 	function initSelect() {
 		$.ajax({
@@ -52,7 +133,7 @@
 							onLoadSuccess : function() {
 								$("#sys_class").combo({"editable":false});
 								$("#sys_class").combobox("select",
-										data[0].sy_regeist_name);
+										data[0].id);
 								initTable(data[0].id);
 							},
 							onSelect:function(record){
@@ -95,13 +176,82 @@
 				
 			},
 			onCheck : function(rowIndex, rowData) {
-				
+				$interface_id=rowData.id;
+				$interface_code=rowData.data_code;
+				queryInterfaceColumn("/interfaceDataBrowsingController/queryInterfaceFields/"+$interface_id);
+				queryInterface("queryTemplate","/interfaceDataBrowsingController/queryInterface/"+$interface_code+"-"+$interface_id);
 			}
 		});
 	}
 	
 </script>
-<script type="text/javascript">
+<script type="text/javascript">//数据浏览
+	function queryInterfaceColumn(url){
+		$.ajax({
+			url:url,
+			type:"get",
+			dataType:"json",
+			async:false,
+			success:function(data){
+				$interfaceColumn_fields.splice(0,$interfaceColumn_fields.length);
+				if(data.length<1){
+					$.messager.show({
+						title:'操作提示',
+						msg:data.message,
+						timeout:1000,
+						width:260,
+						height:100,
+						showType:'slide'
+					});
+					return;
+				}
+				var fields=[];
+				for(var i=0;i<data.length;i++){
+					var field={
+						"field":data[i].col_code,
+						"title":data[i].col_name,
+						"align":data[i].col_align,
+						"width":data[i].col_length
+					}
+					fields.push(field);
+				}
+				$interfaceColumn_fields.push(fields);
+			},
+			error:function(xhr,s,e){
+				
+			}
+		})
+	}
+	function queryInterface(code,url){
+		$("#"+code).datagrid({
+			url : url,
+			columns : $interfaceColumn_fields,
+			fitColumns : true,
+			striped : true,
+			idField : "id",
+			height : 658,
+			toolbar:'#set',
+			pagination : true,
+			singleSelect : true,
+			rownumbers : true,
+			pageNumber : 1,
+			pageSize : 15,
+			pagePosition : "bottom",
+			pageList : [ 15, 30, 50, 100, 200, 500, 1000, 2000 ],
+			onLoadSuccess : function(data) {
+				
+			},
+			onCheck : function(rowIndex, rowData) {
+				
+			},
+			onLoadError:function(){
+				clearTable("queryTemplate");
+			}
+		});
+	}
+	
+</script>
+<script type="text/javascript">//接口初始化
 	$("#initTemplate").click(function(){
 		var data=$("#initTable").datagrid("getSelections");
 		if(data==""||data.length<1){
@@ -115,10 +265,11 @@
 			});
 			return;
 		}
-		console.info(data);
+		$('#initTemplate').linkbutton('disable');
 		$.ajax({
 			url:'/interfaceDataBrowsingController/initTemplate/'+data[0].id,
 			type:"post",
+			async:false,
 			dataType:"json",
 			success:function(data){
 				$.messager.show({
@@ -141,6 +292,255 @@
 				});
 			}
 		})
+		$('#initTemplate').linkbutton('enable');
 	})
+</script>
+<script type="text/javascript">//按钮组
+	$("#querySet").click(function(){
+		var text=$("#sys_class").combobox("getText")+"：";
+		var val=$("#sys_class").combo("getValue");
+		$("#setModal").dialog("open",true);
+		clearTable("right");
+		selectIndex=0;
+		$("#set_class").html(text);
+		$.ajax({
+			url:"/interfaceDataBrowsingController/queryClassTable/"+val,
+			type:"get",
+			async:false,
+			dataType:"json",
+			success:function(data){
+				$("#queryModalSelect").combobox({ 
+					data:data,
+					valueField:'id', 
+					textField:'data_name',
+					//value:"数据", // 未测试过当selectId不在数据集合中有何情况
+					onLoadSuccess: function () {
+						$templateTable=data[0].id;
+						$("#queryModalSelect").combo({"editable":false});
+						$("#queryModalSelect").combobox("select",data[0].id);
+						$("#switchTemplate").combobox({ 
+							data:$template,
+							valueField:'valueField', 
+							textField:'textField',
+							//value:"数据", // 未测试过当selectId不在数据集合中有何情况
+							onLoadSuccess: function () {
+								$("#switchTemplate").combo({"editable":false});
+								$("#switchTemplate").combobox("select",$template[0].valueField);
+							}
+						});
+					},
+					onSelect:function(record){
+						$templateTable=record.id;
+						initLeft();
+					}
+				});
+			}
+		})
+		
+	})
+	function initLeft(){
+		var fields=[[{"field":"col_code","title":"CODE","width":100},{"field":"col_name","title":"名称","width":100}]];
+		$("#left").datagrid({
+			url : "/interfaceDataBrowsingController/queryInterfaceFields/"+$templateTable,
+			columns:fields,
+			fitColumns : true,
+			striped : true,
+			idField : "id",
+			height : 390,
+			pagination : true,
+			singleSelect : false,
+			rownumbers : true,
+			onLoadSuccess : function(data) {
+				$leftCol=data;
+			},
+			onCheck : function(rowIndex, rowData) {
+				
+			},
+			onLoadError:function(){
+				clearTable("left");
+			}
+		});
+}
+var varible_rowIndex=0;
+$("#insertRight").click(function(){
+	var currentRows=$("#left").datagrid("getSelections");
+	var template=$("#switchTemplate").combobox("getValue");
+	var tempStr;
+	//query
+	if(template==$template[0].valueField){
+		tempStr="请选择查询条件列";
+	}else if(template==$template[1].valueField){//input
+		tempStr="请选择导入列";
+	}else if(template==$template[2].valueField){//output
+		tempStr="请选择导出列";
+	}else{
+		$.messager.show({
+			title:'操作提示',
+			msg:'目前不支持手机端',
+			timeout:1000,
+			width:260,
+			height:100,
+			showType:'slide'
+		});
+		return;
+	}
+	if(currentRows.length<1){
+		$.messager.show({
+			title:'操作提示',
+			msg:tempStr,
+			timeout:1000,
+			width:260,
+			height:100,
+			showType:'slide'
+		});
+		return;
+	}
+	var whereFields=[];
+	for(var i=0;i<$leftCol.rows.length;i++){
+		whereFields.push({"valueField":(selectIndex)+""+$leftCol.rows[i].col_code,"textField":$leftCol.rows[i].col_name});
+	}
+	var fieldHeaders=[{"valueField":"and","textField":"and"},{"valueField":"or","textField":"or"}];
+	var index=$('#right').datagrid('appendRow', {    
+		index:1,
+		row:{
+        	
+		}
+    }).datagrid('getRows').length-1;
+	$('#right').datagrid('beginEdit',index);
+	var id = $('#right').datagrid('getEditor', {index:index,field:'id'});
+	var andOr= $('#right').datagrid('getEditor', {index:index,field:'andOr'});
+	var time=year+"-"+month+"-"+date;
+	var value_= $('#right').datagrid('getEditor', {index:index,field:'value_'});
+	var value2 = $(value_.target).textbox() ;
+	var rowIndex=0;
+	var id2 = $(id.target).combobox({
+		 editable:false,
+         data:whereFields,
+         valueField:"valueField",
+         textField:"textField",
+         onSelect:function(record){
+        	 var input_type="";
+        	 var index=record.valueField.substring(0,1);
+        	 var variable_type=record.valueField;
+	     	for(var i=0;i<$leftCol.rows.length;i++){
+	     		if($leftCol.rows[i].col_code==variable_type.substring(1,variable_type.length+1)){
+	     			input_type=$leftCol.rows[i].input_type;
+	     			if(input_type=="date"){
+	     				var date= $('#right').datagrid('getEditor', {index:index,field:'value_'});
+	     				var date2 = $(date.target).datebox({editable:false});
+	     				$(date2.target).datebox("setValue",time);
+	     			}else if(input_type=="text"){
+	     				var text= $('#right').datagrid('getEditor', {index:index,field:'value_'});
+	     				$(text.target).numberbox({
+	     					formatter:function(value){
+	     						return value;
+	     					},
+	     					parser:function(s){
+	     						return s;
+	     					}
+	     				});
+	     			}else if(input_type=="number"){
+	     				var number= $('#right').datagrid('getEditor', {index:index,field:'value_'});
+	     				var number2 = $(number.target).numberspinner();
+	     				$(number.target).numberspinner({precision:3});
+	     				$(number.target).numberspinner("fix");
+	     			}else{
+	     				var search= $('#right').datagrid('getEditor', {index:index,field:'value_'});
+	     				var search2 = $(search.target).searchbox({
+	     					searcher:function(value,name){
+	     						
+	     					}
+	     				});
+	     			}
+	     		}
+	     	}
+         }
+	})
+	var andOr2 = $(andOr.target).combobox({
+		 editable:false,
+         data:fieldHeaders,
+         valueField:"valueField",
+         textField:"textField"
+	})
+	selectIndex++;
+})
+function onAfterEdit(rowIndex, rowData, changes){
+	varible_rowIndex=rowIndex;
+	console.info(varible_rowIndex);
+}
+
+</script>
+<script type="text/javascript">//清除table数据
+function clearTable(tableCode){
+	var item = $('#'+tableCode).datagrid('getRows');
+    if (item) {
+        for (var i = item.length - 1; i >= 0; i--) {
+            var index = $('#'+tableCode).datagrid('getRowIndex', item[i]);
+            $('#'+tableCode).datagrid('deleteRow', index);
+        }
+    }
+}
+</script>
+<script type="text/javascript">
+function addEditors(){
+	$("#right").datagrid('addEditor', {    
+        field : 'id',    
+        editor : {    
+            type : 'combobox',
+            options : {
+            	data:whereFields,
+                valueField:"valueField",
+                textField:"textField"
+            }
+        }
+    });
+	$("#right").datagrid('addEditor', {    
+        field : 'expression',    
+        editor : {    
+            type : 'combobox',    
+            options : {
+            	url:'/interfaceDataBrowsingController/expression',
+                valueField:"expression_id",
+                textField:"expression_name",
+            }
+        }    
+    });
+	$("#right").datagrid('addEditor', {    
+        field : 'andOr',    
+        editor : {    
+            type : 'combobox',    
+            options : {
+            	data:andOr,
+                valueField:"andOr",
+                textField:"text",
+            }
+        }    
+    });
+}
+$.extend($.fn.datagrid.methods, {    
+    addEditor : function(jq, param) {    
+        if (param instanceof Array) {    
+            $.each(param, function(index, item) {    
+                var e = $(jq).datagrid('getColumnOption', item.field);    
+                e.editor = item.editor;    
+            });    
+        } else {    
+            var e = $(jq).datagrid('getColumnOption', param.field);    
+            e.editor = param.editor;    
+        }    
+    },    
+    removeEditor : function(jq, param) {    
+        if (param instanceof Array) {    
+            $.each(param, function(index, item) {    
+                var e = $(jq).datagrid('getColumnOption', item);    
+                e.editor = {};    
+            });    
+        } else {    
+            var e = $(jq).datagrid('getColumnOption', param);    
+            e.editor = {};    
+        }    
+    }    
+});
+
 </script>
 </html>
