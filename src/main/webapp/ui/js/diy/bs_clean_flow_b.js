@@ -1,33 +1,34 @@
+var business_tabl_id; // 业务表主键
+var link_table;// 连接表
 $(document).ready(function() {
-	var dest_code = $('#dest_code');
-	var $mdd_id = $('#mdd_id');
-	// 初始禁用
-	// $mdd_id.mask();
-	// $("#link_column ")
-	var fid = $('input[name=field_id]').val();
-	console.log('列主键:' + fid);
-	dest_code.eovafind({
-		exp : 'bs_md_def_b_ref,' + fid
+	var destfield_code = $('#destfield_code');
+	var mdfield_code = $('#mdfield_code');
+	
+	
+	var id = $('input[name=pid]').val();// 主表id 来获取业务表和目标映射表 重置下啦字段
+	
+	$.ajax({
+		url : "/dataClean/queryDataCleanById/" + id,
+		type : "get",
+		dataType : "json",
+		success : function(data) {
+			// 初始化 业务表参照查询 
+			destfield_code.eovafind({ exp : 'bs_clean_bus_table_column_ref,' + data[0].table_id +","+id});
+			//初始化 目标表字段参照查询
+			mdfield_code.eovafind({ exp : 'bs_clean_link_table_column_ref,' + data[0].linkfield_id+","+id });
+		}
 	});
-
-	dest_code.eovafind({
+	
+	destfield_code.eovafind({
 		onChange : function(oldValue, newValue) {
-			// $link_column.eovafind().setValue("");
-			var btable_name = $('#dest_code input[type=text]').val();
-			// 调用后台重新查询 赋予值
-			var zcode = $('#dest_code input[name=dest_code]').val();
-			console.log('子表引用表:' + zcode);
-			$.ajax({
-				url : "/mddef/queryDataFlowById/" + btable_name + "-" + zcode,
-				type : "get",
-				dataType : "json",
-				success : function(data) {
-					$("#dest_id input[name=dest_id]").val(data[0].bid);
-					$("#mdd_id input[name=mdd_id]").val(data[0].mdd_code);
-					$("#mdd_id").attr("value",data[0].id);
-					$("input[name=dest_code]").val(btable_name);
-				}
-			})
+			var column = $('#destfield_code input[type=text]').val();
+			$("input[name=destfield_code]").val(column);
+		}
+	});
+	mdfield_code.eovafind({
+		onChange : function(oldValue, newValue) {
+			var column = $('#mdfield_code input[type=text]').val();
+			$("input[name=mdfield_code]").val(column);
 		}
 	});
 });

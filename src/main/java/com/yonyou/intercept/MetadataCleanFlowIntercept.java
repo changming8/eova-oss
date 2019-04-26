@@ -21,15 +21,15 @@ public class MetadataCleanFlowIntercept extends MetaObjectIntercept {
 	protected CleanBody cleanBody = new CleanBody();
 	@Override
 	public String addSucceed(AopContext ac) throws Exception {
-		// 获取子表中  有引用关系的字段 保存到数据清洗子表中 
-		List<Record>  cleanBodyList =  metadataDetail.findMetadataBodLinkyById(ac.records.get(0).getStr("table_id"));
-		//保存数据清洗子表信息
-		for(int i=0;i<cleanBodyList.size();i++) {
-			cleanBodyList.get(i).set("id", UUID.getUnqionPk());
-			cleanBodyList.get(i).set("pid", ac.records.get(0).getStr("id"));
-		}
-		//批量保存
-		cleanBody.batchSave(cleanBodyList, 50);
+//		// 获取子表中  有引用关系的字段 保存到数据清洗子表中 
+//		List<Record>  cleanBodyList =  metadataDetail.findMetadataBodLinkyById(ac.records.get(0).getStr("table_id"));
+//		//保存数据清洗子表信息
+//		for(int i=0;i<cleanBodyList.size();i++) {
+//			cleanBodyList.get(i).set("id", UUID.getUnqionPk());
+//			cleanBodyList.get(i).set("pid", ac.records.get(0).getStr("id"));
+//		}
+//		//批量保存
+//		cleanBody.batchSave(cleanBodyList, 50);
 		return super.addSucceed(ac);
 	}
 	
