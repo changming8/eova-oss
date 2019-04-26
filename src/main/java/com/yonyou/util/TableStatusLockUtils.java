@@ -24,7 +24,7 @@ public class TableStatusLockUtils {
 	 * 
 	 * @return
 	 */
-	public static boolean lockFlowTable(String flow_id) {
+	public synchronized static boolean lockFlowTable(String flow_id) {
 		List<Record> list = TableManagerModel.dao.findByFlowID(flow_id);
 		List<String> where = new ArrayList<>();
 
@@ -62,7 +62,7 @@ public class TableStatusLockUtils {
 	 * 
 	 * @return
 	 */
-	public static boolean unLockTableStatus_OK(String flow_id) {
+	public synchronized static boolean unLockTableStatus_OK(String flow_id) {
 
 		List<Record> list = TableManagerModel.dao.findByFlowID(flow_id);
 		List<String> where = new ArrayList<>();
@@ -141,7 +141,7 @@ public class TableStatusLockUtils {
 	 * 
 	 * @return
 	 */
-	public int updataTableStatus(String table_code, String status) {
+	public synchronized int updataTableStatus(String table_code, String status) {
 		int count = Db.use(xx.DS_EOVA).update("update bs_table_status set status = ? where dr = 0 and table_code = ? ",
 				status, table_code);
 		return count;
@@ -154,7 +154,7 @@ public class TableStatusLockUtils {
 	 * 
 	 * @return
 	 */
-	public static String queryTableStatusByCode(String table_code) {
+	public synchronized static String queryTableStatusByCode(String table_code) {
 		List<Record> list = Db.use(xx.DS_EOVA)
 				.find("select status from bs_table_status where dr = 0 and  table_code = ? ", table_code);
 		if (list.isEmpty()) {
@@ -165,7 +165,7 @@ public class TableStatusLockUtils {
 
 	}
 
-	public static List<Record> queryTableStatus() {
+	public synchronized static List<Record> queryTableStatus() {
 		List<Record> list = Db.use(xx.DS_EOVA).find("select table_code , status from bs_table_status where dr = 0  ");
 		return list;
 	}
@@ -177,7 +177,7 @@ public class TableStatusLockUtils {
 	 * 
 	 * @return
 	 */
-	public static Map<String, String> queryTableStatus(List<String> where) {
+	public synchronized static Map<String, String> queryTableStatus(List<String> where) {
 		List<Record> list = Db.find("select * from bs_table_status where table_code ?", List2WhereIn(where));
 		Map<String, String> tablestatus = new HashMap<>();
 		for (Record r : list) {
