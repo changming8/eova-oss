@@ -15,7 +15,8 @@ $(document).ready(function() {
 			// 初始化 业务表参照查询 
 			destfield_code.eovafind({ exp : 'bs_clean_bus_table_column_ref,' + data[0].table_id +","+id});
 			//初始化 目标表字段参照查询
-			mdfield_code.eovafind({ exp : 'bs_clean_link_table_column_ref,' + data[0].linkfield_id+","+id });
+			console.log("目标表:"+data[0].dest_table);
+			mdfield_code.eovafind({ exp : 'bs_clean_link_table_column_ref,' + data[0].dest_table+","+id });
 		}
 	});
 	
