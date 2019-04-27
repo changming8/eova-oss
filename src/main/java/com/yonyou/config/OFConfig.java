@@ -30,6 +30,7 @@ import com.yonyou.controller.MdDEFController;
 import com.yonyou.controller.MdStyleController;
 import com.yonyou.controller.PKLockController;
 import com.yonyou.controller.SqlFlowController;
+import com.yonyou.controller.StatusFlowController;
 import com.yonyou.model.FileManagerModel;
 import com.yonyou.model.Metadata;
 import com.yonyou.model.MetadataDetail;
@@ -72,7 +73,8 @@ public class OFConfig extends EovaConfig {
 		me.add("/FlowTableStatusDefController", FlowTableStatusDefController.class);
 		me.add("/sqlFlow", SqlFlowController.class);
 		me.add("/loadFlow", LoadFlowController.class);
-
+		me.add("/statusFlow", StatusFlowController.class);
+		
 		// 排除不需要登录拦截的URI 语法同SpringMVC拦截器配置 @see
 		// com.eova.common.utils.util.AntPathMatcher
 		LoginInterceptor.excludes.add("/test/**");
