@@ -104,7 +104,7 @@
 											loadDialog(
 													$grid,
 													'新增 ',
-													'/form/add/tablestatus_def'+para,
+													'/form/add/bs_tablestatus_def'+para,
 													945, 600);
 										};
 									</script></td>
@@ -117,7 +117,7 @@
 												var row = $
 														.getWidgetSelected($grid);
 												loadDialog($grid, '修改 ',
-														'/form/update/tablestatus_def-'
+														'/form/update/bs_tablestatus_def-'
 																+ row.pk_val,
 														945, 600);
 											}
@@ -136,7 +136,7 @@
 												return;
 											}
 											confirmDel($grid,
-													'tablestatus_def', rows);
+													'bs_tablestatus_def', rows);
 										};
 									</script></td>
 								<td><a href="javascript:void(0);" class="easyui-linkbutton"
@@ -148,7 +148,7 @@
 												var row = $
 														.getWidgetSelected($grid);
 												loadDialog($grid, '查看',
-														'/form/detail/tablestatus_def-'
+														'/form/detail/bs_tablestatus_def-'
 																+ row.pk_val,
 														945, 600);
 											}
@@ -175,8 +175,8 @@
 					$masterGrid = $("#" + masterId);
 				}
 
-				var menuCode = 'tablestatus_def';
-				var objectCode = 'tablestatus_def';
+				var menuCode = 'bs_tablestatus_def';
+				var objectCode = 'bs_tablestatus_def';
 				var toolbar = 'gridToolbar';// grid ref toolbar
 				var isPaging = eval('true');// is show pagination
 				var url = '';// diy grid load data url

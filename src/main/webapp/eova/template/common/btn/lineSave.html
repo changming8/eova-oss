@@ -1,0 +1,35 @@
+<a href="javascript:void(0);" class="easyui-linkbutton"
+	data-options="iconCls:'${button.icon!}',plain:true"
+	onclick="eova_btn_${button.id}()">${button.name!}</a>
+<script type="text/javascript">
+	var eova_btn_${button.id} = function(){
+		debugger;
+		/*获取主表数据  */
+        var main = $('#master_grid').datagrid('getSelected');
+		
+		/*获取 子表数据  */
+		var $widget = $('#bs_style_b_grid');
+        var rows = $('#bs_style_b_grid').datagrid("getSelected");
+        if (rows==null||rows.length == "0") {
+        	$.slideMsg($.I18N('请选择一行数据'));
+            return;
+        }
+
+ 	    $.messager.confirm($.I18N('操作提示'), $.I18N('确认保存!'), function(ok) {
+			if (ok) {
+				var json = JSON.stringify(rows);
+				$.syncPost('${button.uri!}', {
+					"param":json
+				}, function(result, status) {
+					if (result.success) {
+						$.slideMsg($.I18N('操作成功'));
+						$.widgetReLoad($widget);
+					} else {
+						$.alert($, result.msg);
+					}
+				});
+				$.widgetClearSelections($widget);
+			}
+		}); 
+	};
+</script>

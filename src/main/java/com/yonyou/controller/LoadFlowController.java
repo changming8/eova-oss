@@ -33,6 +33,7 @@ public class LoadFlowController extends BaseController {
     	Db.use(xx.DS_EOVA).save("bs_load_flow", record);
     	renderJson(Easy.sucess());
 	}
+	
 	public void test() {
 		LoadDataService lds=new LoadDataService();
 		String	id=getSelectValue("id");

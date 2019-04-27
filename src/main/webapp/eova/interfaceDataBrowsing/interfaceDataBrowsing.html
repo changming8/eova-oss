@@ -24,7 +24,76 @@
 	</div>
 	<div data-options="region:'center',title:'接口数据浏览'"
 		style="padding: 5px; background: #eee;">
-			
+		<table class="easyui-datagrid" style="width: 393px; height: 250px"
+			data-options="fit:true,singleSelect:false" id="queryTemplate"
+			>
+		</table>
+		<div id="set" style="background-color:#fafafa">
+			<a id="querySet" href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon294',plain:true">模板设置</a>
+		</div>
+	</div>
+	<div id="setModal" class="easyui-dialog" title='模板设置' data-options="iconCls:'eova-icon294'" style="width:780px;height:500px">
+		<div id="cc" class="easyui-layout" style="width:auto;height:423px;">
+		    <div data-options="region:'west',title:'查询列',split:true" style="width:250px">
+		    	<table id="left" class="easyui-datagrid" style="width:auto;" toolbar="#leftBar">
+					
+				</table>
+				<!-- <div id="leftBar" style="background-color:#fafafa;text-align:right">
+					
+				</div> -->
+		    </div>
+		    <div data-options="region:'center',title:'查询返回列'">
+		   	 	<div id="rightBar" style="background-color:#fafafa;text-align:left">
+		   	 		<a id="insertRight" href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon2',plain:true"></a>
+					<a id="deleteRow" onclick="clearRowOne('right')" href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon402',plain:true"></a>
+					<a id="importExcel" href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon1063',plain:true">导入</a>
+					<a id="exportExcel" href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon779',plain:true">导出</a>
+					<a id="saveHistory" href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon202',plain:true">保存历史搜索模板</a>
+					<a id="queryWhere" href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon1166',plain:true">查询</a>
+				</div>
+		    	<table id="right" class="easyui-datagrid" style="width:100%;" data-options='singleSelect : true'  toolbar="rightBar">
+					<thead>
+						<tr>
+							<th data-options="field:'brackets',width:67,editor:{
+							type:'combobox',options:{
+								valueField:'bracketsVal',
+								textField:'bracketsText',
+								method:'get',
+								dataType:'json',
+								url:'/interfaceDataBrowsingController/brackets'
+							}}">括号</th>
+							<th data-options="field:'id',width:100,editor:{
+							type:'combobox'}" >条件列</th>
+							<th data-options="field:'expression',width:80,editor:{
+							type:'combobox',
+							options:{
+								valueField:'expression_id',
+								textField:'expression_name',
+								method:'get',
+								dataType:'json',
+								url:'/interfaceDataBrowsingController/expression'
+							}
+						}" >表达式</th>
+							<th data-options="field:'value',width:181,editor:{
+							type:'textbox'}">输入值</th>
+							<th data-options="field:'andOr',width:80,editor:{
+							type:'combobox',options:{
+								valueField:'andOrVal',
+								textField:'andOrText',
+								method:'get',
+								dataType:'json',
+								url:'/interfaceDataBrowsingController/andOr'
+							}}">连接</th>
+						</tr>
+					</thead> 
+				</table>
+				
+		    </div>
+		</div>
+	</div>
+	<div id="setTool" style="background-color:#fafafa">
+		<span id="set_class"></span><select class="easyui-combobox" id="queryModalSelect" style="width:35%"></select>
+		<span>切换模板：</span><select class="easyui-combobox" id="switchTemplate" style="width:35%"></select>
 	</div>
 </body>
 <script type="text/javascript"
@@ -33,9 +102,37 @@
 	src="/eova/plugins/easyui1.7/jquery-easyui-1.7.0/jquery.easyui.min.js"></script>
 <script type="text/javascript"
 	src="/eova/plugins/easyui1.7/jquery-easyui-1.7.0/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript">//全局变量
+var $interface_id;
+var $interfaceColumn_fields=[];
+var $interface_code;
+var $template=[{"valueField":"query","textField":"查询"},{"valueField":"input","textField":"导入"},{"valueField":"output","textField":"导出"},{"valueField":"手机端","textField":"手机端"}];
+var $templateTable;
+var $leftCol;
+var date=new Date();
+//获取当前年
+var year=date.getFullYear();
+//获取当前月
+var month=date.getMonth()+1;
+//获取当前日
+var date=date.getDate(); 
+var selectIndex=0;
+var countRow=0;
+</script>
 <script type="text/javascript">//接口数据分类
 	$(function() {
+		$('#dd').draggable({
+		    handle:'#title',
+		    axis:'h'
+		});
 		initSelect();
+		$('#setModal').dialog({
+		    modal: true,
+		    resizable:false,
+		    collapsible:true,
+		    toolbar:"#setTool",
+		    closed:true
+		});
 	})
 	function initSelect() {
 		$.ajax({
@@ -52,7 +149,7 @@
 							onLoadSuccess : function() {
 								$("#sys_class").combo({"editable":false});
 								$("#sys_class").combobox("select",
-										data[0].sy_regeist_name);
+										data[0].id);
 								initTable(data[0].id);
 							},
 							onSelect:function(record){
@@ -69,11 +166,11 @@
 			"title":"id",
 			"width":100
 		},{
-			"field":"data_code",
+			"field":"table_code",
 			"title":"表名称",
 			"width":100
 		},{
-			"field":"data_name",
+			"field":"table_name",
 			"title":"元数据名称",
 			"width":100
 		}]);
@@ -95,13 +192,82 @@
 				
 			},
 			onCheck : function(rowIndex, rowData) {
-				
+				$interface_id=rowData.id;
+				$interface_code=rowData.table_code;
+				queryInterfaceColumn("/interfaceDataBrowsingController/queryInterfaceFields/"+$interface_id);
+				queryInterface("queryTemplate","/interfaceDataBrowsingController/queryInterface/"+$interface_code+"-"+$interface_id);
 			}
 		});
 	}
 	
 </script>
-<script type="text/javascript">
+<script type="text/javascript">//数据浏览
+	function queryInterfaceColumn(url){
+		$.ajax({
+			url:url,
+			type:"get",
+			dataType:"json",
+			async:false,
+			success:function(data){
+				$interfaceColumn_fields.splice(0,$interfaceColumn_fields.length);
+				if(data.length<1){
+					$.messager.show({
+						title:'操作提示',
+						msg:data.message,
+						timeout:1000,
+						width:260,
+						height:100,
+						showType:'slide'
+					});
+					return;
+				}
+				var fields=[];
+				for(var i=0;i<data.length;i++){
+					var field={
+						"field":data[i].col_code,
+						"title":data[i].col_name,
+						"align":data[i].col_align,
+						"width":data[i].col_length
+					}
+					fields.push(field);
+				}
+				$interfaceColumn_fields.push(fields);
+			},
+			error:function(xhr,s,e){
+				
+			}
+		})
+	}
+	function queryInterface(code,url){
+		$("#"+code).datagrid({
+			url : url,
+			columns : $interfaceColumn_fields,
+			fitColumns : true,
+			striped : true,
+			idField : "id",
+			height : 658,
+			toolbar:'#set',
+			pagination : true,
+			singleSelect : true,
+			rownumbers : true,
+			pageNumber : 1,
+			pageSize : 15,
+			pagePosition : "bottom",
+			pageList : [ 15, 30, 50, 100, 200, 500, 1000, 2000 ],
+			onLoadSuccess : function(data) {
+				
+			},
+			onCheck : function(rowIndex, rowData) {
+				
+			},
+			onLoadError:function(){
+				clearTable("queryTemplate");
+			}
+		});
+	}
+	
+</script>
+<script type="text/javascript">//接口初始化
 	$("#initTemplate").click(function(){
 		var data=$("#initTable").datagrid("getSelections");
 		if(data==""||data.length<1){
@@ -115,10 +281,11 @@
 			});
 			return;
 		}
-		console.info(data);
+		$('#initTemplate').linkbutton('disable');
 		$.ajax({
 			url:'/interfaceDataBrowsingController/initTemplate/'+data[0].id,
 			type:"post",
+			async:false,
 			dataType:"json",
 			success:function(data){
 				$.messager.show({
@@ -141,6 +308,298 @@
 				});
 			}
 		})
+		$('#initTemplate').linkbutton('enable');
 	})
+</script>
+<script type="text/javascript">//按钮组
+	$("#querySet").click(function(){
+		var text=$("#sys_class").combobox("getText")+"：";
+		var val=$("#sys_class").combo("getValue");
+		$("#setModal").dialog("open",true);
+		clearTable("right");
+		selectIndex=0;
+		countRow=0;
+		$("#set_class").html(text);
+		$.ajax({
+			url:"/interfaceDataBrowsingController/queryClassTable/"+val,
+			type:"get",
+			async:false,
+			dataType:"json",
+			success:function(data){
+				$("#queryModalSelect").combobox({ 
+					data:data,
+					valueField:'id', 
+					textField:'table_name',
+					//value:"数据", // 未测试过当selectId不在数据集合中有何情况
+					onLoadSuccess: function () {
+						$templateTable=data[0].id;
+						$("#queryModalSelect").combo({"editable":false});
+						$("#queryModalSelect").combobox("select",data[0].id);
+						$("#switchTemplate").combobox({ 
+							data:$template,
+							valueField:'valueField', 
+							textField:'textField',
+							//value:"数据", // 未测试过当selectId不在数据集合中有何情况
+							onLoadSuccess: function () {
+								$("#switchTemplate").combo({"editable":false});
+								$("#switchTemplate").combobox("select",$template[0].valueField);
+							},
+							onSelect:function(record){
+								clearTable("right");
+								countRow=0;
+							}
+						});
+					},
+					onSelect:function(record){
+						$templateTable=record.id;
+						initLeft();
+						clearTable("right");
+					}
+				});
+			}
+		})
+		
+	})
+	function initLeft(){
+		var fields=[[{"field":"col_code","title":"CODE","width":100},{"field":"col_name","title":"名称","width":100}]];
+		$("#left").datagrid({
+			url : "/interfaceDataBrowsingController/queryInterfaceFields/"+$templateTable,
+			columns:fields,
+			fitColumns : true,
+			striped : true,
+			idField : "id",
+			height : 390,
+			pagination : true,
+			singleSelect : true,
+			rownumbers : true,
+			onLoadSuccess : function(data) {
+				$leftCol=data;
+			},
+			onCheck : function(rowIndex, rowData) {
+				
+			},
+			onLoadError:function(){
+				clearTable("left");
+			}
+		});
+}
+$("#insertRight").click(function(){
+	if(countRow==10){
+		$.messager.show({
+			title:'操作提示',
+			msg:'最多支持10条查询列',
+			timeout:1000,
+			width:260,
+			height:100,
+			showType:'slide'
+		});
+		return;
+	}
+	var currentRows=$("#left").datagrid("getSelections");
+	var template=$("#switchTemplate").combobox("getValue");
+	var tempStr;
+	//query
+	if(template==$template[0].valueField){
+		tempStr="请选择查询条件列";
+	}else if(template==$template[1].valueField){//input
+		tempStr="请选择导入列";
+	}else if(template==$template[2].valueField){//output
+		tempStr="请选择导出列";
+	}else{
+		$.messager.show({
+			title:'操作提示',
+			msg:'目前不支持手机端',
+			timeout:1000,
+			width:260,
+			height:100,
+			showType:'slide'
+		});
+		return;
+	}
+	if(currentRows.length<1){
+		$.messager.show({
+			title:'操作提示',
+			msg:tempStr,
+			timeout:1000, 
+			width:260,
+			height:100,
+			showType:'slide'
+		});
+		return;
+	}
+	if(template=="input"||template=="output"){
+		if(countRow==4){
+			$.messager.show({
+				title:'操作提示',
+				msg:"导入导出列不能大于查询列数",
+				timeout:1000, 
+				width:260,
+				height:100,
+				showType:'slide'
+			});
+			return;
+		}
+	}
+	var whereFields=[];
+	for(var i=0;i<$leftCol.rows.length;i++){
+		whereFields.push({"where_col_value":(selectIndex)+""+$leftCol.rows[i].col_code,"where_col_name":$leftCol.rows[i].col_name});
+	}
+	var fieldHeaders=[{"valueField":"and","textField":"and"},{"valueField":"or","textField":"or"}];
+	var index=$('#right').datagrid('appendRow', {    
+		index:1,
+		row:{
+        	
+		}
+    }).datagrid('getRows').length-1;
+	$('#right').datagrid('beginEdit',index);
+	var id = $('#right').datagrid('getEditor', {index:index,field:'id'});
+	var time=year+"-"+month+"-"+date;
+	
+	var rowIndex=0;
+	var id2 = $(id.target).combobox({
+         data:whereFields,
+         valueField:"where_col_value",
+         textField:"where_col_name",
+         onSelect:function(record){
+        	 var input_type="";
+        	 var index=record.where_col_value.substring(0,1);
+        	 var variable_type=record.where_col_value;
+	     	for(var i=0;i<$leftCol.rows.length;i++){
+	     		if($leftCol.rows[i].col_code==variable_type.substring(1,variable_type.length+1)){
+	     			input_type=$leftCol.rows[i].input_type;
+	     			if(input_type=="date"){
+	     				var date= $('#right').datagrid('getEditor', {index:index,field:'value'});
+	     				var date2 = $(date.target).datebox();
+	     				$(date2.target).datebox("setValue",time);
+	     			}else if(input_type=="text"){
+	     				var text= $('#right').datagrid('getEditor', {index:index,field:'value'});
+	     				$(text.target).passwordbox({
+	     					revealed:true,
+	     					showEye:false
+	     				});
+	     			}else if(input_type=="number"){
+	     				var number= $('#right').datagrid('getEditor', {index:index,field:'value'});
+	     				var number2 = $(number.target).numberspinner();
+	     				$(number.target).numberspinner({precision:3});
+	     				$(number.target).numberspinner("fix");
+	     			}else{
+	     				var search= $('#right').datagrid('getEditor', {index:index,field:'value'});
+	     				var search2 = $(search.target).searchbox({
+	     					searcher:function(value,name){
+	     						
+	     					}
+	     				});
+	     			}
+	     		}
+	     	}
+         }
+	})
+	countRow++;
+	selectIndex++;
+})
+$("#queryWhere").click(function(){
+	var query_fields=[];
+	var finalFields=[];
+	var countRowIndex=$("#right").datagrid("getRows").length;
+	var brackets_field="";
+	var id_field="";
+	var expression_field="";
+	var value_field="";
+	var andOr_field="";
+	for(var i=0;i<countRowIndex;i++){
+		var brackets=$('#right').datagrid('getEditor', {index:i,field:'brackets'});
+		var brackets2=$(brackets.target).combobox("getValue");
+		var id=$('#right').datagrid('getEditor', {index:i,field:'id'});
+		var id2=$(id.target).combobox("getValue");
+		var expression=$('#right').datagrid('getEditor', {index:i,field:'expression'});
+		var expression2=$(expression.target).combobox("getValue");
+		var value=$('#right').datagrid('getEditor', {index:i,field:'value'});
+		var value2=$(value.target).textbox("getValue");
+		var andOr=$('#right').datagrid('getEditor', {index:i,field:'andOr'});
+		var andOr2=$(andOr.target).combobox("getValue");
+		if(brackets2.length<1||brackets2==""){
+			brackets_field=" ";
+		}else{
+			brackets_field=brackets2;
+		}
+		if(id2.length<1||id2==""){
+			id_field=" ";
+		}else{
+			id_field=id2;
+		}
+		if(expression2.length<1||expression2==""){
+			expression_field=" ";
+		}else{
+			expression_field=expression2;
+		}
+		if(value2.length<1||value2==""){
+			value_field=" ";
+		}else{
+			value_field=value2;
+		}
+		if(andOr2.length<1||andOr2==""){
+			andOr_field=" ";
+		}else{
+			andOr_field=andOr2;
+		}
+		finalFields.push({"field":id2.substring(1,id2.length),"title":$(id.target).combobox("getText"),"width":100});
+		query_fields.push({"brackets":brackets_field,"field":id_field,"expression":expression_field,"value":value_field,"andOr":andOr_field});
+	}
+	
+	$("#queryTemplate").datagrid({
+		url : "/interfaceDataBrowsingController/queryWhere",
+		columns:[finalFields],
+		fitColumns : true,
+		striped : true,
+		height : 390,
+		queryParams:{
+			"arr":JSON.stringify(query_fields),
+			"tableCode":$("#queryModalSelect").combobox("getValue")
+		},
+		pagination : true,
+		singleSelect : true,
+		rownumbers : true,
+		onLoadSuccess : function(data) {
+			$('#setModal').dialog("close");
+		},
+		onCheck : function(rowIndex, rowData) {
+			
+		},
+		onLoadError:function(){
+			//clearTable("left");
+			$.messager.show({
+				title:'操作提示',
+				msg:"sql拼接有误，请确认sql",
+				timeout:1000, 
+				width:260,
+				height:100,
+				showType:'slide'
+			});
+		}
+	});
+})
+$("#saveHistory").click(function(){
+	
+})
+
+</script>
+<script type="text/javascript">//清除table数据
+function clearTable(tableCode){
+	var item = $('#'+tableCode).datagrid('getRows');
+    if (item) {
+        for (var i = item.length - 1; i >= 0; i--) {
+            var index = $('#'+tableCode).datagrid('getRowIndex', item[i]);
+            $('#'+tableCode).datagrid('deleteRow', index);
+        }
+    }
+}
+function clearRowOne(tableCode){
+	var item = $('#'+tableCode).datagrid('getRows');
+    if (item.length>0) {
+        $('#'+tableCode).datagrid('deleteRow', item.length-1);
+        selectIndex--;
+        countRow--;
+    }
+}
 </script>
 </html>
