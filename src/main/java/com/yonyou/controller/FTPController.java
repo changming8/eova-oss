@@ -2,6 +2,7 @@ package com.yonyou.controller;
 
 import java.util.List;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.eova.common.Easy;
@@ -9,6 +10,7 @@ import com.eova.common.base.BaseController;
 import com.eova.common.utils.xx;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
+import com.yonyou.base.ResponseBody;
 import com.yonyou.ftp.FtpService;
 import com.yonyou.util.UUID;
 
@@ -38,7 +40,8 @@ public class FTPController extends BaseController {
 		String	id=getSelectValue("id");
 		System.out.println(id);
 		FtpService service=new FtpService();
-		service.File_Name(id);
-		renderJson(Easy.sucess());
+		ResponseBody body=	service.File_Name(id);
+		System.err.println(JSON.toJSON(body));
+		renderJson(Easy.sucess(body.getMes()));
 	}
 }

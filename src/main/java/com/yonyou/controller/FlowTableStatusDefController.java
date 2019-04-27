@@ -52,12 +52,12 @@ public class FlowTableStatusDefController extends BaseController {
 
 	public void list() {
 
-		String menuCode = "tablestatus_def";
+		String menuCode = "bs_tablestatus_def";
 
 		// 获取元数据
 		Menu menu = Menu.dao.findByCode(menuCode);
 		MenuConfig config = menu.getConfig();
-		String objectCode = "tablestatus_def";
+		String objectCode = "bs_tablestatus_def";
 		MetaObject object = MetaObject.dao.getByCode(objectCode);
 		if (object == null) {
 			throw new RuntimeException("元对象不存在,请检查是否存在?元对象编码=" + objectCode);
@@ -74,7 +74,7 @@ public class FlowTableStatusDefController extends BaseController {
 		setAttr("btnList", btnList);
 		setAttr("object", object);
 
-		render("/eova/DIY/tablestatusdef.html");
+		render("/eova/bs_tablestatus_def/tablestatusdef.html");
 	}
 
 	/**
@@ -156,7 +156,7 @@ public class FlowTableStatusDefController extends BaseController {
 		try {
 			Map<String, String[]> param = getParaMap();
 			String code = param.get("code")[0];
-			List<Record> records = Db.use(xx.DS_EOVA).find("select * from bs_metadata where  dr = 0 and data_code = ?", code);
+			List<Record> records = Db.use(xx.DS_EOVA).find("select * from bs_metadata where  dr = 0 and table_code = ?", code);
 			
 			res.setData(records);
 			renderJson(res);

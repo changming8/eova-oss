@@ -1,4 +1,3 @@
-
 package com.yonyou.config;
 
 import java.util.HashMap;
@@ -15,8 +14,6 @@ import com.oss.OSSController;
 import com.oss.global.BaseMetaObjectIntercept;
 import com.oss.global.GlobalEovaIntercept;
 import com.oss.model.Address;
-import com.oss.model.Metadata;
-import com.oss.model.MetadataDetail;
 import com.oss.model.Orders;
 import com.oss.model.UserInfo;
 import com.oss.model.Users;
@@ -24,13 +21,19 @@ import com.oss.product.ProductController;
 import com.oss.test.TestController;
 import com.yonyou.controller.DIYFormController;
 import com.yonyou.controller.DataRelationMaintenanceController;
+import com.yonyou.controller.DateCleanController;
 import com.yonyou.controller.FTPController;
 import com.yonyou.controller.FlowTableStatusDefController;
+import com.yonyou.controller.InterfaceDataBrowsingController;
 import com.yonyou.controller.LoadFlowController;
 import com.yonyou.controller.MdDEFController;
+import com.yonyou.controller.MdStyleController;
 import com.yonyou.controller.PKLockController;
 import com.yonyou.controller.SqlFlowController;
 import com.yonyou.model.FileManagerModel;
+import com.yonyou.model.Metadata;
+import com.yonyou.model.MetadataDetail;
+import com.yonyou.model.TableManagerModel;
 import com.yonyou.quartz.controller.QuartzController;
 
 /**
@@ -55,15 +58,21 @@ public class OFConfig extends EovaConfig {
 		me.add("/test", TestController.class);
 		me.add("/product", ProductController.class);
 		me.add("/mddef", MdDEFController.class);
-		me.add("/dataRelationMaintenance", DataRelationMaintenanceController.class);
+
 		me.add("/flow", QuartzController.class);
 		me.add("/ftp", FTPController.class);
+		me.add("/dataClean", DateCleanController.class);
+
+		me.add("/MdStyleController", MdStyleController.class);
+		me.add("/dataRelationMaintenance", DataRelationMaintenanceController.class);
+		me.add("/interfaceDataBrowsingController", InterfaceDataBrowsingController.class);
 
 		me.add("/DIYFormController", DIYFormController.class);
 		me.add("/PKLockController", PKLockController.class);
 		me.add("/FlowTableStatusDefController", FlowTableStatusDefController.class);
 		me.add("/sqlFlow", SqlFlowController.class);
 		me.add("/loadFlow", LoadFlowController.class);
+
 		// 排除不需要登录拦截的URI 语法同SpringMVC拦截器配置 @see
 		// com.eova.common.utils.util.AntPathMatcher
 		LoginInterceptor.excludes.add("/test/**");
@@ -92,6 +101,7 @@ public class OFConfig extends EovaConfig {
 		main.addMapping("bs_filemanager", FileManagerModel.class);
 		main.addMapping("bs_metadata", Metadata.class);
 		main.addMapping("bs_metadata_b", MetadataDetail.class);
+		main.addMapping("bs_tablestatus_def", TableManagerModel.class);
 		// 获取其它数据源的ARP
 		// ActiveRecordPlugin xxx = arps.get("xxx");
 	}
@@ -120,14 +130,24 @@ public class OFConfig extends EovaConfig {
 		exps.put("selectEovaMenu", "select id,parent_id pid, name, iconskip from eova_menu;ds=eova");
 		exps.put("selectEovaMenu", "select id,parent_id pid, name, iconskip from eova_menu;ds=eova");
 //		主数据列 参照联动 参照联动
-		String sql = "select field_code 编码 ,field_name 名称 from bs_metadata_b where pid =( select id from bs_metadata where data_code  =( select md_table from bs_md_def where id = ? )) and  (unique_constraint = 1 or  key_flag = 1)";
+		String sql = "select field_code 编码 ,field_name 名称 from bs_metadata_b where pid =( select id from bs_metadata where table_code  =( select md_table from bs_md_def where id = ? )) and  (unique_constraint = 1 or  key_flag = 1)";
 		exps.put("md_ref", sql);
 		exps.put("md_dest_column_ref",
-				"select  field_code 编码 ,field_name 名称  from bs_metadata_b where pid = (select id from bs_metadata where data_code = ? ) and (unique_constraint = 1 or  key_flag = 1) ");
+				"select  field_code 编码 ,field_name 名称  from bs_metadata_b where pid = (select id from bs_metadata where table_code = ? ) and (unique_constraint = 1 or  key_flag = 1) ");
 		exps.put("bs_metadata_column_ref",
-				"select  field_code 编码 ,field_name 名称  from bs_metadata_b where pid = (select id from bs_metadata where data_code = ? ) and (key_flag =1 or unique_constraint =1)");
+				"select  field_code 编码 ,field_name 名称  from bs_metadata_b where pid = (select id from bs_metadata where table_code = ? ) and (key_flag =1 or unique_constraint =1)");
+
+		exps.put("bs_md_def_b_ref", "select mdd_code 主数据映射编码,dest_table 映射表 from v_bs_data_flow where field_id = ?");
+
+		exps.put("bs_clean_column_ref",
+				"select id ID ,field_code 名称 from bs_metadata_b where pid = (select table_id from bs_clean_flow where id = ? )");
+		exps.put("bs_md_def_b_ref_a", "select desttable_id 主键,desttable_code 映射表,destfield_code 映射字段 from bs_md_def_b where pid = ? ");
+		exps.put("bs_clean_bus_table_column_ref",
+				"SELECT id, field_code 字段 FROM bs_metadata_b WHERE pid = ? AND field_code NOT IN ( SELECT destfield_code FROM bs_clean_flow_b WHERE pid = ? )");
+		exps.put("bs_clean_link_table_column_ref",
+				"SELECT id, field_code 字段,field_length 长度,field_type 类型 FROM bs_metadata_b WHERE pid = (SELECT id from bs_metadata where table_code = ?) AND field_code NOT IN ( SELECT destfield_code FROM bs_clean_flow_b WHERE pid = ? )");
 		
-		exps.put("bs_md_def_b_ref","select mdd_code 主数据映射编码,dest_table 映射表 from v_bs_data_flow where field_id = ?");
+		exps.put("bs_metadata_column_link_ref"," select id,field_code 字段 from bs_metadata_b where pid= ? and link_status = 1");
 		// 用法，级联动态在页面改变SQL和参数
 		// $xxx.eovacombo({exp : 'selectAreaByLv2AndPid,aaa,10'}).reload();
 		// $xxx.eovafind({exp : 'selectAreaByLv2AndPid,aaa,10'});
@@ -167,5 +187,4 @@ public class OFConfig extends EovaConfig {
 		 */
 		setDefaultMetaObjectIntercept(new BaseMetaObjectIntercept());
 	}
-
 }

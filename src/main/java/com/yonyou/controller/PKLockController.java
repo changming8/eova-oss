@@ -52,12 +52,12 @@ public class PKLockController extends BaseController {
 
 	public void list() {
 
-		String menuCode = "pk_lock";
+		String menuCode = "bs_lock_log";
 
 		// 获取元数据
 		Menu menu = Menu.dao.findByCode(menuCode);
 		MenuConfig config = menu.getConfig();
-		String objectCode = "lock_log";
+		String objectCode = "bs_lock_log";
 		MetaObject object = MetaObject.dao.getByCode(objectCode);
 		if (object == null) {
 			throw new RuntimeException("元对象不存在,请检查是否存在?元对象编码=" + objectCode);

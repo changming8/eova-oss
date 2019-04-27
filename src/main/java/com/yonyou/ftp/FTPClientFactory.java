@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -128,8 +129,9 @@ public class FTPClientFactory extends BasePooledObjectFactory<FTPClient> {
      * @param path ftp服务端路径 必须以"/"结尾
      * @param sendfile 本地文件路径
      * @param fileName 上传后文件名
+     * @throws ex 
      */
-    public boolean sendFile( String path, String sendfile, String fileName ){
+    public boolean sendFile( String path, String sendfile, String fileName ) throws Exception{
     	System.out.println("文件上传，处理前ftp路径完整名:"+path);
 		System.out.println("文件上传，处理前本地路径完整名:"+sendfile);
 		//处理路径中多余的/ Windows下无法解析
@@ -155,10 +157,15 @@ public class FTPClientFactory extends BasePooledObjectFactory<FTPClient> {
             flag = client.storeFile(path +fileName , inputStream);
             flag = true;
             logger.debug("***************************上传"+flag+" 耗时："+(System.currentTimeMillis()-start));
-        } catch (IOException e) {
-            e.printStackTrace();
-            logger.error("***************************io异常***************************");
-        }finally{
+        } catch (ConnectException e2) {
+        	throw e2 ;
+        }catch (IOException e) {
+            throw e;
+        }
+        catch (Exception e) {
+            throw e;
+        }
+        finally{
             if(client != null)  try {client.disconnect();} catch (IOException ioe) {}
         }
         return flag;
@@ -174,9 +181,10 @@ public class FTPClientFactory extends BasePooledObjectFactory<FTPClient> {
 	 * @param localpath
 	 *            下载后的文件路径 *
 	 * @return
+     * @throws Exception 
 	 */
 
-	public boolean downLoadFile(String pathname, String filename, String localpath) {
+	public boolean downLoadFile(String pathname, String filename, String localpath) throws Exception {
 		System.out.println("文件下载，处理前ftp路径完整名:"+pathname);
 		System.out.println("文件下载，处理前本地路径完整名:"+localpath);
 		//处理路径中多余的/ Windows下无法解析
@@ -211,6 +219,7 @@ public class FTPClientFactory extends BasePooledObjectFactory<FTPClient> {
 		} catch (Exception e) {
 			System.out.println("下载文件失败");
 			e.printStackTrace();
+			throw new Exception("文件下载失败");
 		} finally {
 			if (client.isConnected()) {
 				try {
@@ -252,7 +261,7 @@ public class FTPClientFactory extends BasePooledObjectFactory<FTPClient> {
 
 	
 		// 判断ftp服务器文件夹是否存在
-		public boolean existFile(String path){
+		public boolean existFile(String path) throws Exception  {
 			path=trimPath(path);
 			try {
 				boolean flag = false;
@@ -262,16 +271,17 @@ public class FTPClientFactory extends BasePooledObjectFactory<FTPClient> {
 	                flag=true;
 	            }
 				return flag;
-			} catch (IOException e) {
+			} catch (ConnectException e2) {
+	        	throw new Exception("FTP连接失败");
+	        }catch (IOException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
-				return false;
+				throw new Exception(path+"获取该文件目录时发生错误");
 			}
 		}
 
 	
 		// 创建多层目录文件，如果有ftp服务器已存在该文件，则不创建，如果无，则创建
-		public boolean CreateDirecroty(String remote) throws IOException {
+		public boolean CreateDirecroty(String remote) throws Exception {
 			boolean success = true;
 			String directory = remote + "/";
 			// 如果远程目录不存在，则递归创建远程服务器目录
@@ -340,8 +350,9 @@ public class FTPClientFactory extends BasePooledObjectFactory<FTPClient> {
 		 * 逐行读取文件
 		 * @param path
 		 * @return
+		 * @throws Exception 
 			 */
-		public List<String> readFile(String path){
+		public List<String> readFile(String path) throws Exception{
 			 List<String> list = new ArrayList<String>();
 			  InputStream is = null; 
 			  InputStreamReader input=null;
@@ -362,7 +373,7 @@ public class FTPClientFactory extends BasePooledObjectFactory<FTPClient> {
 		         client.getReply();
 			} catch (Exception e) {
 				// TODO: handle exception
-				e.printStackTrace();
+				throw new Exception();
 			}
 			 	return list;
 			

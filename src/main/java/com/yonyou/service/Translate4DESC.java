@@ -152,7 +152,7 @@ public class Translate4DESC {
 //		日期编码
 		String date_code = values[3];
 //		传输类型（全量更新增量）
-		String type = values[values.length - 1].split(".")[0];
+		String type = values[values.length - 1].split("\\.")[0];
 		String allname = descName;
 
 		Record record = new Record();
@@ -172,4 +172,5 @@ public class Translate4DESC {
 		return flag;
 
 	}
+	
 }

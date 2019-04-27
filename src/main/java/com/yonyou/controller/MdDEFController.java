@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.eova.common.Easy;
 import com.eova.common.base.BaseController;
 import com.eova.common.utils.xx;
 import com.eova.model.MetaField;
@@ -17,7 +18,7 @@ import com.yonyou.util.UUID;
 public class MdDEFController extends BaseController {
 	public void init() {
 		System.out.println("Test.............");
-		String[] type = new String[] { "template", "output", "input", "mobile" };
+		String[] type = new String[] { "query", "output", "input", "mobile" };
 //		存放 映射关系定义里面维护的 对照表名 和 被对照表名
 		List<String> tableList = new ArrayList<>();
 		List<String> bodytable = new ArrayList<>();
@@ -67,6 +68,7 @@ public class MdDEFController extends BaseController {
 //		}
 //		进行保存 样式主表 end
 		System.out.println(obj.get("id"));
+		renderJson(Easy.sucess());
 	}
 
 	/**
@@ -85,7 +87,7 @@ public class MdDEFController extends BaseController {
 	private void initStyleBody(String meta, String sid, String[] type) {
 		List<Record> slist = new ArrayList<>();
 //		List<MetaField> fields = MetaField.dao.queryFields(meta);
-		String sql = "select * from bs_metadata_b b where b.pid = (select a.id from bs_metadata a where a.data_code = ? and dr = 0) and dr = 0"; 
+		String sql = "select * from bs_metadata_b b where b.pid = (select a.id from bs_metadata a where a.table_code = ? and dr = 0) and dr = 0"; 
 		List<Record> fields = Db.use(xx.DS_EOVA).find(sql, meta);
 		for (String t : type) {
 //			获取 pid

@@ -49,6 +49,9 @@ public class LoadDataService {
 		String tableName = listMdata.get(0).get("table_code");
 		if (StringUtils.isEmpty(tableName)) 
 			return getResponseBody("获取BsMetadata元数据为空,任务终止",1);
+		String table_name = listProduct.get(0).get("table_id");
+		if ( table_name == null || "".equals(table_name)) 
+			return getResponseBody("DESC文件对应表名为空,任务终止",1);
 		
 		ResponseBody responseBody = new ResponseBody();
 		

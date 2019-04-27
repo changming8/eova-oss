@@ -4,7 +4,7 @@
  * Licensed under the GPL license: http://www.gnu.org/licenses/gpl.txt
  * To use it on other terms please contact us at 1623736450@qq.com
  */
-package com.oss.model;
+package com.yonyou.model;
 
 import java.util.List;
 
@@ -38,7 +38,7 @@ public class Metadata extends BaseModel<Metadata> {
 	
 	//根据code 获取元数据 
 	public List<Record> findMetadataBodyByDataCode(String code){
-		return  Db.use(xx.DS_EOVA).find("select * from bs_metadata where dr = 0 and data_code = ?", code);
+		return  Db.use(xx.DS_EOVA).find("select * from bs_metadata where dr = 0 and table_code = ?", code);
 	}
 	
 	//根据表是否存在某个schema
@@ -91,8 +91,8 @@ public class Metadata extends BaseModel<Metadata> {
 		}
 		//默认设置数据库字段值  列名称对应
 		this.set("id", UUID.getUnqionPk());
-		this.set("data_code", objectCode);
-		this.set("data_name", col.name);
+		this.set("table_code", objectCode);
+		this.set("table_name", col.name);
 		this.set("data_disname", col.name);
 		this.set("data_resource", col.ds);
 		this.set("data_type", col.dataType);

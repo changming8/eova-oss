@@ -4,7 +4,7 @@
  * Licensed under the GPL license: http://www.gnu.org/licenses/gpl.txt
  * To use it on other terms please contact us at 1623736450@qq.com
  */
-package com.oss.model;
+package com.yonyou.model;
 
 import java.util.List;
 
