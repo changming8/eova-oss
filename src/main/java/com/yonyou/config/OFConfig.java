@@ -141,11 +141,13 @@ public class OFConfig extends EovaConfig {
 
 		exps.put("bs_clean_column_ref",
 				"select id ID ,field_code 名称 from bs_metadata_b where pid = (select table_id from bs_clean_flow where id = ? )");
-		exps.put("bs_md_def_b_ref_a", "select dest_table 映射表,dest_column 映射字段 from bs_md_def_b where pid = ? ");
+		exps.put("bs_md_def_b_ref_a", "select desttable_id 主键,desttable_code 映射表,destfield_code 映射字段 from bs_md_def_b where pid = ? ");
 		exps.put("bs_clean_bus_table_column_ref",
 				"SELECT id, field_code 字段 FROM bs_metadata_b WHERE pid = ? AND field_code NOT IN ( SELECT destfield_code FROM bs_clean_flow_b WHERE pid = ? )");
 		exps.put("bs_clean_link_table_column_ref",
-				"SELECT id, field_code 字段 FROM bs_metadata_b WHERE pid = (SELECT id from bs_metadata where table_code = ?) AND field_code NOT IN ( SELECT destfield_code FROM bs_clean_flow_b WHERE pid = ? )");
+				"SELECT id, field_code 字段,field_length 长度,field_type 类型 FROM bs_metadata_b WHERE pid = (SELECT id from bs_metadata where table_code = ?) AND field_code NOT IN ( SELECT destfield_code FROM bs_clean_flow_b WHERE pid = ? )");
+		
+		exps.put("bs_metadata_column_link_ref"," select id,field_code 字段 from bs_metadata_b where pid= ? and link_status = 1");
 		// 用法，级联动态在页面改变SQL和参数
 		// $xxx.eovacombo({exp : 'selectAreaByLv2AndPid,aaa,10'}).reload();
 		// $xxx.eovafind({exp : 'selectAreaByLv2AndPid,aaa,10'});
