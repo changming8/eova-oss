@@ -53,6 +53,7 @@ public class OFConfig extends EovaConfig {
 	@Override
 	protected void route(Routes me) {
 		// 自定义的路由配置往这里加。。。
+		
 		me.add("/user", UserController.class);
 //		me.add("/eovamain", UserController.class);
 		me.add("/", OSSController.class);
