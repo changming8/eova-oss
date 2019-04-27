@@ -2,6 +2,7 @@ package com.yonyou.controller;
 
 import java.util.List;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.eova.common.Easy;
@@ -9,6 +10,7 @@ import com.eova.common.base.BaseController;
 import com.eova.common.utils.xx;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
+import com.yonyou.base.ResponseBody;
 import com.yonyou.loadfiledata.LoadDataService;
 import com.yonyou.sqlflow.SqlFlowService;
 import com.yonyou.util.UUID;
@@ -39,8 +41,12 @@ public class SqlFlowController extends BaseController {
 		SqlFlowService lds=new SqlFlowService();
 		String	id=getSelectValue("id");
 		System.out.println(id);
-		lds.sqlExcute(id);
-		renderJson(Easy.sucess());
-		
+		ResponseBody rb=lds.sqlExcute(id);
+		System.err.println(JSON.toJSONString(rb));
+		if(rb.getStatus()==1) {
+			renderJson(Easy.error(rb.getMes()));
+		}else {
+			renderJson(Easy.sucess());
+		}
 	}
 }

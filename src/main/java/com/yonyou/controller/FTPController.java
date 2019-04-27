@@ -12,6 +12,7 @@ import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.yonyou.base.ResponseBody;
 import com.yonyou.ftp.FtpService;
+import com.yonyou.util.ExcuteClass;
 import com.yonyou.util.UUID;
 
 public class FTPController extends BaseController {
@@ -38,10 +39,13 @@ public class FTPController extends BaseController {
 
 	public void  test() {
 		String	id=getSelectValue("id");
-		System.out.println(id);
-		FtpService service=new FtpService();
-		ResponseBody body=	service.File_Name(id);
-		System.err.println(JSON.toJSON(body));
-		renderJson(Easy.sucess(body.getMes()));
+		ResponseBody rb = (ResponseBody) ExcuteClass.excuet("com.yonyou.ftp.FtpExecuteClass", null, "process",
+				id);
+		System.err.println(JSON.toJSONString(rb));
+		if(rb.getStatus()==1) {
+			renderJson(Easy.error(rb.getMes()));
+		}else {
+			renderJson(Easy.sucess());
+		}
 	}
 }
