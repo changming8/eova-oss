@@ -453,7 +453,7 @@ public class EovaConfig extends JFinalConfig {
 
 		DruidPlugin dp = new DruidPlugin(url, username, password);
 		dp.addFilter(new StatFilter());
-		dp.addFilter(wall);
+//		dp.addFilter(wall);
 		return dp;
 
 	}
