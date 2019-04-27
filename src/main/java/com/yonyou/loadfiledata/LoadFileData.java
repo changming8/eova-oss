@@ -69,12 +69,11 @@ public class LoadFileData {
 	 * @return 载入数据量
 	 */
 	public static int loadLocalFile(String filePath, String tableName, String colums, Connection conn ) throws FileNotFoundException,SQLException {
-		
 		int result = 0;
 		com.mysql.jdbc.PreparedStatement mysqlStatement = null;
 		PreparedStatement statement = null;
 		InputStream dataStream = null;
-		String sql = "LOAD DATA LOCAL INFILE '"+filePath+"' INTO TABLE "+tableName+"("+colums+")";
+		String sql = "LOAD DATA LOCAL INFILE '"+filePath+"' INTO TABLE "+tableName+" fields terminated by '`' enclosed by '\"' lines terminated by '\\r\\n' ("+colums+")";
 		File file = new File(filePath);
 		dataStream = new FileInputStream(file);
 		statement = conn.prepareStatement(sql);
