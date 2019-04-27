@@ -38,8 +38,8 @@ import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import com.jfinal.plugin.activerecord.tx.TxConfig;
 import com.jfinal.upload.UploadFile;
-import com.oss.model.Metadata;
-import com.oss.model.MetadataDetail;
+import com.yonyou.model.Metadata;
+import com.yonyou.model.MetadataDetail;
 import com.yonyou.util.UUID;
 
 /**

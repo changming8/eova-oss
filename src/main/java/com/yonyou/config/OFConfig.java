@@ -14,8 +14,6 @@ import com.oss.OSSController;
 import com.oss.global.BaseMetaObjectIntercept;
 import com.oss.global.GlobalEovaIntercept;
 import com.oss.model.Address;
-import com.oss.model.Metadata;
-import com.oss.model.MetadataDetail;
 import com.oss.model.Orders;
 import com.oss.model.UserInfo;
 import com.oss.model.Users;
@@ -33,6 +31,8 @@ import com.yonyou.controller.MdStyleController;
 import com.yonyou.controller.PKLockController;
 import com.yonyou.controller.SqlFlowController;
 import com.yonyou.model.FileManagerModel;
+import com.yonyou.model.Metadata;
+import com.yonyou.model.MetadataDetail;
 import com.yonyou.model.TableManagerModel;
 import com.yonyou.quartz.controller.QuartzController;
 

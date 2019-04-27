@@ -1,12 +1,9 @@
 package com.yonyou.intercept;
 
-import java.util.List;
-
 import com.eova.aop.AopContext;
 import com.eova.aop.MetaObjectIntercept;
-import com.jfinal.plugin.activerecord.Record;
-import com.oss.model.MetadataDetail;
 import com.yonyou.model.CleanBody;
+import com.yonyou.model.MetadataDetail;
 import com.yonyou.util.UUID;
 
 /**
