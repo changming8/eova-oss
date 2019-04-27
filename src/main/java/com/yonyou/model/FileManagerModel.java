@@ -177,10 +177,28 @@ public class FileManagerModel extends BaseModel<FileManagerModel> {
 		}
 		String sql = "in ('";
 		for (String s : descNames) {
-			sql = sql + s + "',";
+			sql = sql + s + "','";
 		}
-		sql = xx.delEnd(sql.toString(), ",") + ")";
+		sql = xx.delEnd(sql.toString(), ",'") + ")";
 		return sql;
 
+	}
+	
+	/**
+	 * 查询desc文件
+	 */
+	public List<Record> queryDescFileByDesc(List<String> descNames) throws Exception {
+		String sql = "select * from bs_filemanager where allname " + List2WhereIn(descNames) +" and dataname is null order by date_code";
+		List<Record> res = Db.use(xx.DS_EOVA).find(sql);
+		return res;
+	}
+	
+	/**
+	 * 查询desc文件所有状态的数据文件
+	 */
+	public List<Record> queryDataFileByDesc(String descName) throws Exception {
+		String sql = "select * from bs_filemanager where allname = ? and dataname is not null";
+		List<Record> res = Db.use(xx.DS_EOVA).find(sql, descName);
+		return res;
 	}
 }

@@ -69,13 +69,13 @@ public class MetadataController extends BaseController {
 		Record record = new Record();
 		record = metadataList.get(0).remove("ID");
 		record.set("ID", id);
-		String data_code = record.get("data_code").toString();
+		String table_code = record.get("table_code").toString();
 		String code = record.get("code").toString();
-		record.remove("DATA_CODE");
+		record.remove("table_code");
 		long t = System.currentTimeMillis();
-		String serialCode = data_code + "_" + t;
+		String serialCode = table_code + "_" + t;
 		String coden = code+"_"+t;
-		record.set("data_code", serialCode);
+		record.set("table_code", serialCode);
 		record.set("code", coden);
 		record.set("create_status", 0);
 		// 保存元数据主表
@@ -106,7 +106,7 @@ public class MetadataController extends BaseController {
 		// 获取key获取数据库类型字段 从MYSQL_DATEBASE_TYPE获取
 		List<Record> columnDetailList = metadata.findMetadataBodyById(json.getString("id"));
 		StringBuilder tempColumnSql = new StringBuilder(" CREATE TABLE ");
-		String tableName = json.getString("data_code");
+		String tableName = json.getString("table_code");
 		objs[0]=tableName;
 		tempColumnSql.append(tableName + " ( ");
 		for (int i = 0; i < columnDetailList.size(); i++) {
@@ -432,9 +432,9 @@ public class MetadataController extends BaseController {
 		Metadata metadata = new Metadata();
 		String id = UUID.getUnqionPk();
 		metadata.set("id", id);
-		metadata.set("data_code", code);
+		metadata.set("table_code", code);
 		metadata.set("code", code);
-		metadata.set("data_name", name);
+		metadata.set("table_name", name);
 		metadata.set("data_disname", name);
 		metadata.set("data_resource", ds);
 		metadata.set("dr", 0);
