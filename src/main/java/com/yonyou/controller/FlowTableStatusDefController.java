@@ -156,7 +156,7 @@ public class FlowTableStatusDefController extends BaseController {
 		try {
 			Map<String, String[]> param = getParaMap();
 			String code = param.get("code")[0];
-			List<Record> records = Db.use(xx.DS_EOVA).find("select * from bs_metadata where  dr = 0 and data_code = ?", code);
+			List<Record> records = Db.use(xx.DS_EOVA).find("select * from bs_metadata where  dr = 0 and table_code = ?", code);
 			
 			res.setData(records);
 			renderJson(res);

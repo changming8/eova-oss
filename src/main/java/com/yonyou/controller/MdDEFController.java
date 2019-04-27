@@ -87,7 +87,7 @@ public class MdDEFController extends BaseController {
 	private void initStyleBody(String meta, String sid, String[] type) {
 		List<Record> slist = new ArrayList<>();
 //		List<MetaField> fields = MetaField.dao.queryFields(meta);
-		String sql = "select * from bs_metadata_b b where b.pid = (select a.id from bs_metadata a where a.data_code = ? and dr = 0) and dr = 0"; 
+		String sql = "select * from bs_metadata_b b where b.pid = (select a.id from bs_metadata a where a.table_code = ? and dr = 0) and dr = 0"; 
 		List<Record> fields = Db.use(xx.DS_EOVA).find(sql, meta);
 		for (String t : type) {
 //			获取 pid
