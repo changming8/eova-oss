@@ -53,7 +53,7 @@ public class SqlFlowService {
 				e.printStackTrace();
 			} 
 		}
-		return getResponseBody("自由sql执行成功！",id,1,1);
+		return getResponseBody("自由sql执行成功！",id,0,1);
 	}
 	
 	/**

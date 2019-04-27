@@ -31,13 +31,19 @@ public class FtpService {
 		for (int i = 0; i < listProduct.size(); i++) {
 			String ftpId = listProduct.get(i).get("ftp_id");// ftpID
 			String flowtypeid=listProduct.get(i).get("flowtype_id");
+			String fileName = listProduct.get(i).get("file_name");
 			String workDirectoryId = listProduct.get(i).get("workdirectory_id");// 工作目录ID
-			String directoryName = ServiceUtil.dao.getWorkDirectoryById(workDirectoryId).get(0).getStr("working_path");// 目标目录
+			List<Record> dlist=ServiceUtil.dao.getWorkDirectoryById(workDirectoryId);
+			if(dlist==null||dlist.size()==0) {
+				responseBody.setStatus(1);
+				responseBody.setMes("工作目录workdirectory_id字段值错误"+fileName);
+				return responseBody;
+			}
+			String directoryName = dlist.get(0).getStr("working_path");// 目标目录
 			String distinguish = listProduct.get(i).get("distinguish");// 大小写
 			String analysis_rule = listProduct.get(i).get("analysis_rule");// 解析规则 // 固定式，解析式
 			String day_rule = listProduct.get(i).get("day_rule");// 日期解析规则
 			String searchPath = listProduct.get(i).get("search_path");// 搜索路径
-			String fileName = listProduct.get(i).get("file_name");
 			String ftpflowAttribute = listProduct.get(i).get("ftpflow_attribute");// 上传-下载
 			String searchPath1 = listProduct.get(i).get("search_path1");// 搜索路径1
 			String searchPath2 = listProduct.get(i).get("search_path2");// 搜索路径2
@@ -48,7 +54,13 @@ public class FtpService {
 			String fileName5 = listProduct.get(i).get("file_name5");
 			String fileName6 = listProduct.get(i).get("file_name6");
 			String descriptionFileId = listProduct.get(i).get("description_file");
-			String descriptionFile = ServiceUtil.dao.getBsDicts(descriptionFileId).get(0).getStr("name");
+			List<Record> rlist=ServiceUtil.dao.getBsDicts(descriptionFileId);
+			if(rlist==null||rlist.size()==0) {
+				responseBody.setStatus(1);
+				responseBody.setMes("描述文件description_file字段值错误"+fileName);
+				return responseBody;
+			}
+			String descriptionFile = rlist.get(0).getStr("name");
 			// 获取ftp信息
 			System.out.println("ftp_id:" + ftpId);
 			List<Record> ftpList = ServiceUtil.dao.getFtpById(ftpId);
@@ -451,11 +463,11 @@ public class FtpService {
 		List<String> listTxt = new ArrayList<String>();
 		boolean flag=true;
 		boolean rt = false;
-//		if(!LockUtils.pkLock(id+typeid,id+"-"+typeid)) {
-//			responseBody.setStatus(1);
-//			responseBody.setMes("资源PK锁被占用,文件名："+fielName+",key:"+id+typeid);
-//			return false;
-//		}
+		if(!LockUtils.pkLock(id+typeid,id+"-"+typeid)) {
+			responseBody.setStatus(1);
+			responseBody.setMes("资源PK锁被占用,文件名："+fielName+",key:"+id+typeid);
+			return false;
+		}
 		//保存desc文件信息
 		try {
 			translate4DESC.saveDesc_ERR_OK(directoryName+fielName);
@@ -475,7 +487,7 @@ public class FtpService {
 			responseBody.setMes("文件下载失败,请检查FTP服务是否正常或者文件是否存在,FTP地址:"+ftpAddress+",文件名:"+ fielName);
 			flag=false;
 		}
-//		LockUtils.unpkLock(id+typeid);
+		LockUtils.unpkLock(id+typeid);
 		// 判断连接是否成功
 		if (rt) {
 			try {
