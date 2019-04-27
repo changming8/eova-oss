@@ -130,12 +130,12 @@ public class OFConfig extends EovaConfig {
 		exps.put("selectEovaMenu", "select id,parent_id pid, name, iconskip from eova_menu;ds=eova");
 		exps.put("selectEovaMenu", "select id,parent_id pid, name, iconskip from eova_menu;ds=eova");
 //		主数据列 参照联动 参照联动
-		String sql = "select field_code 编码 ,field_name 名称 from bs_metadata_b where pid =( select id from bs_metadata where data_code  =( select md_table from bs_md_def where id = ? )) and  (unique_constraint = 1 or  key_flag = 1)";
+		String sql = "select field_code 编码 ,field_name 名称 from bs_metadata_b where pid =( select id from bs_metadata where table_code  =( select md_table from bs_md_def where id = ? )) and  (unique_constraint = 1 or  key_flag = 1)";
 		exps.put("md_ref", sql);
 		exps.put("md_dest_column_ref",
-				"select  field_code 编码 ,field_name 名称  from bs_metadata_b where pid = (select id from bs_metadata where data_code = ? ) and (unique_constraint = 1 or  key_flag = 1) ");
+				"select  field_code 编码 ,field_name 名称  from bs_metadata_b where pid = (select id from bs_metadata where table_code = ? ) and (unique_constraint = 1 or  key_flag = 1) ");
 		exps.put("bs_metadata_column_ref",
-				"select  field_code 编码 ,field_name 名称  from bs_metadata_b where pid = (select id from bs_metadata where data_code = ? ) and (key_flag =1 or unique_constraint =1)");
+				"select  field_code 编码 ,field_name 名称  from bs_metadata_b where pid = (select id from bs_metadata where table_code = ? ) and (key_flag =1 or unique_constraint =1)");
 
 		exps.put("bs_md_def_b_ref", "select mdd_code 主数据映射编码,dest_table 映射表 from v_bs_data_flow where field_id = ?");
 
@@ -145,7 +145,7 @@ public class OFConfig extends EovaConfig {
 		exps.put("bs_clean_bus_table_column_ref",
 				"SELECT id, field_code 字段 FROM bs_metadata_b WHERE pid = ? AND field_code NOT IN ( SELECT destfield_code FROM bs_clean_flow_b WHERE pid = ? )");
 		exps.put("bs_clean_link_table_column_ref",
-				"SELECT id, field_code 字段 FROM bs_metadata_b WHERE pid = (SELECT id from bs_metadata where data_code = ?) AND field_code NOT IN ( SELECT destfield_code FROM bs_clean_flow_b WHERE pid = ? )");
+				"SELECT id, field_code 字段 FROM bs_metadata_b WHERE pid = (SELECT id from bs_metadata where table_code = ?) AND field_code NOT IN ( SELECT destfield_code FROM bs_clean_flow_b WHERE pid = ? )");
 		// 用法，级联动态在页面改变SQL和参数
 		// $xxx.eovacombo({exp : 'selectAreaByLv2AndPid,aaa,10'}).reload();
 		// $xxx.eovafind({exp : 'selectAreaByLv2AndPid,aaa,10'});

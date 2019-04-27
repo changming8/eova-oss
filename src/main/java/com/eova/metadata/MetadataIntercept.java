@@ -31,7 +31,7 @@ public class MetadataIntercept extends SingleIntercept {
 	public String insertMetadata(String id) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("system_").append(System.currentTimeMillis());
-		String sql = " INSERT INTO  bs_metadata set  id= '"+id+"' ,data_code='"+sb.toString()+"', data_name='"+sb.toString()+"',code= '"+sb.toString()+"' ,dr=0;";
+		String sql = " INSERT INTO  bs_metadata set  id= '"+id+"' ,table_code='"+sb.toString()+"', table_name='"+sb.toString()+"',code= '"+sb.toString()+"' ,dr=0;";
 		Db.use(xx.DS_EOVA).update(sql);
 		return id;
 	}
