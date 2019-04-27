@@ -38,7 +38,6 @@ import com.eova.ext.jfinal.EovaOracleDialect;
 import com.eova.handler.UrlBanHandler;
 import com.eova.interceptor.AuthInterceptor;
 import com.eova.interceptor.LoginInterceptor;
-import com.eova.metadata.MetadataController;
 import com.eova.model.Button;
 import com.eova.model.EovaLog;
 import com.eova.model.Menu;
@@ -91,6 +90,7 @@ import com.oss.model.Address;
 import com.oss.model.Orders;
 import com.oss.model.UserInfo;
 import com.oss.model.Users;
+import com.yonyou.controller.MetadataController;
 
 public class EovaConfig extends JFinalConfig {
 
