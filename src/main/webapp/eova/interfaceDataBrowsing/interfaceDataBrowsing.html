@@ -32,25 +32,36 @@
 			<a id="querySet" href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon294',plain:true">模板设置</a>
 		</div>
 	</div>
-	<div id="setModal" class="easyui-dialog" title='模板设置' data-options="iconCls:'eova-icon294'" style="width:700px;height:500px">
+	<div id="setModal" class="easyui-dialog" title='模板设置' data-options="iconCls:'eova-icon294'" style="width:780px;height:500px">
 		<div id="cc" class="easyui-layout" style="width:auto;height:423px;">
 		    <div data-options="region:'west',title:'查询列',split:true" style="width:250px">
 		    	<table id="left" class="easyui-datagrid" style="width:auto;" toolbar="#leftBar">
 					
 				</table>
-				<div id="leftBar" style="background-color:#fafafa;text-align:right">
-					<a id="insertRight" href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon876',plain:true"></a>
-				</div>
+				<!-- <div id="leftBar" style="background-color:#fafafa;text-align:right">
+					
+				</div> -->
 		    </div>
 		    <div data-options="region:'center',title:'查询返回列'">
 		   	 	<div id="rightBar" style="background-color:#fafafa;text-align:left">
-					<a id="insertLeft" href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon925',plain:true"></a>
+		   	 		<a id="insertRight" href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon2',plain:true"></a>
+					<a id="deleteRow" onclick="clearRowOne('right')" href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon402',plain:true"></a>
 					<a id="importExcel" href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon1063',plain:true">导入</a>
 					<a id="exportExcel" href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon779',plain:true">导出</a>
+					<a id="saveHistory" href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon202',plain:true">保存历史搜索模板</a>
+					<a id="queryWhere" href="#" class="easyui-linkbutton" data-options="iconCls:'eova-icon1166',plain:true">查询</a>
 				</div>
-		    	<table id="right" class="easyui-datagrid" style="width:auto;" data-options='singleSelect : false,onAfterEdit:onAfterEdit'  toolbar="rightBar">
+		    	<table id="right" class="easyui-datagrid" style="width:100%;" data-options='singleSelect : true'  toolbar="rightBar">
 					<thead>
 						<tr>
+							<th data-options="field:'brackets',width:67,editor:{
+							type:'combobox',options:{
+								valueField:'bracketsVal',
+								textField:'bracketsText',
+								method:'get',
+								dataType:'json',
+								url:'/interfaceDataBrowsingController/brackets'
+							}}">括号</th>
 							<th data-options="field:'id',width:100,editor:{
 							type:'combobox'}" >条件列</th>
 							<th data-options="field:'expression',width:80,editor:{
@@ -60,14 +71,19 @@
 								textField:'expression_name',
 								method:'get',
 								dataType:'json',
-								editable:false,
 								url:'/interfaceDataBrowsingController/expression'
 							}
 						}" >表达式</th>
-							<th data-options="field:'value_',width:181,editor:{
+							<th data-options="field:'value',width:181,editor:{
 							type:'textbox'}">输入值</th>
 							<th data-options="field:'andOr',width:80,editor:{
-							type:'combobox'}">andOr</th>
+							type:'combobox',options:{
+								valueField:'andOrVal',
+								textField:'andOrText',
+								method:'get',
+								dataType:'json',
+								url:'/interfaceDataBrowsingController/andOr'
+							}}">连接</th>
 						</tr>
 					</thead> 
 				</table>
@@ -77,7 +93,7 @@
 	</div>
 	<div id="setTool" style="background-color:#fafafa">
 		<span id="set_class"></span><select class="easyui-combobox" id="queryModalSelect" style="width:35%"></select>
-		<span>切换模板：</span><select class="easyui-combobox" id="switchTemplate" style="width:30%"></select>
+		<span>切换模板：</span><select class="easyui-combobox" id="switchTemplate" style="width:35%"></select>
 	</div>
 </body>
 <script type="text/javascript"
@@ -93,7 +109,6 @@ var $interface_code;
 var $template=[{"valueField":"query","textField":"查询"},{"valueField":"input","textField":"导入"},{"valueField":"output","textField":"导出"},{"valueField":"手机端","textField":"手机端"}];
 var $templateTable;
 var $leftCol;
-var andOr=[{"andOr":"and","text":"and"},{"andOr":"or","text":"or"}];
 var date=new Date();
 //获取当前年
 var year=date.getFullYear();
@@ -102,6 +117,7 @@ var month=date.getMonth()+1;
 //获取当前日
 var date=date.getDate(); 
 var selectIndex=0;
+var countRow=0;
 </script>
 <script type="text/javascript">//接口数据分类
 	$(function() {
@@ -150,11 +166,11 @@ var selectIndex=0;
 			"title":"id",
 			"width":100
 		},{
-			"field":"data_code",
+			"field":"table_code",
 			"title":"表名称",
 			"width":100
 		},{
-			"field":"data_name",
+			"field":"table_name",
 			"title":"元数据名称",
 			"width":100
 		}]);
@@ -177,7 +193,7 @@ var selectIndex=0;
 			},
 			onCheck : function(rowIndex, rowData) {
 				$interface_id=rowData.id;
-				$interface_code=rowData.data_code;
+				$interface_code=rowData.table_code;
 				queryInterfaceColumn("/interfaceDataBrowsingController/queryInterfaceFields/"+$interface_id);
 				queryInterface("queryTemplate","/interfaceDataBrowsingController/queryInterface/"+$interface_code+"-"+$interface_id);
 			}
@@ -302,6 +318,7 @@ var selectIndex=0;
 		$("#setModal").dialog("open",true);
 		clearTable("right");
 		selectIndex=0;
+		countRow=0;
 		$("#set_class").html(text);
 		$.ajax({
 			url:"/interfaceDataBrowsingController/queryClassTable/"+val,
@@ -312,7 +329,7 @@ var selectIndex=0;
 				$("#queryModalSelect").combobox({ 
 					data:data,
 					valueField:'id', 
-					textField:'data_name',
+					textField:'table_name',
 					//value:"数据", // 未测试过当selectId不在数据集合中有何情况
 					onLoadSuccess: function () {
 						$templateTable=data[0].id;
@@ -326,12 +343,17 @@ var selectIndex=0;
 							onLoadSuccess: function () {
 								$("#switchTemplate").combo({"editable":false});
 								$("#switchTemplate").combobox("select",$template[0].valueField);
+							},
+							onSelect:function(record){
+								clearTable("right");
+								countRow=0;
 							}
 						});
 					},
 					onSelect:function(record){
 						$templateTable=record.id;
 						initLeft();
+						clearTable("right");
 					}
 				});
 			}
@@ -348,7 +370,7 @@ var selectIndex=0;
 			idField : "id",
 			height : 390,
 			pagination : true,
-			singleSelect : false,
+			singleSelect : true,
 			rownumbers : true,
 			onLoadSuccess : function(data) {
 				$leftCol=data;
@@ -361,8 +383,18 @@ var selectIndex=0;
 			}
 		});
 }
-var varible_rowIndex=0;
 $("#insertRight").click(function(){
+	if(countRow==10){
+		$.messager.show({
+			title:'操作提示',
+			msg:'最多支持10条查询列',
+			timeout:1000,
+			width:260,
+			height:100,
+			showType:'slide'
+		});
+		return;
+	}
 	var currentRows=$("#left").datagrid("getSelections");
 	var template=$("#switchTemplate").combobox("getValue");
 	var tempStr;
@@ -388,16 +420,29 @@ $("#insertRight").click(function(){
 		$.messager.show({
 			title:'操作提示',
 			msg:tempStr,
-			timeout:1000,
+			timeout:1000, 
 			width:260,
 			height:100,
 			showType:'slide'
 		});
 		return;
 	}
+	if(template=="input"||template=="output"){
+		if(countRow==4){
+			$.messager.show({
+				title:'操作提示',
+				msg:"导入导出列不能大于查询列数",
+				timeout:1000, 
+				width:260,
+				height:100,
+				showType:'slide'
+			});
+			return;
+		}
+	}
 	var whereFields=[];
 	for(var i=0;i<$leftCol.rows.length;i++){
-		whereFields.push({"valueField":(selectIndex)+""+$leftCol.rows[i].col_code,"textField":$leftCol.rows[i].col_name});
+		whereFields.push({"where_col_value":(selectIndex)+""+$leftCol.rows[i].col_code,"where_col_name":$leftCol.rows[i].col_name});
 	}
 	var fieldHeaders=[{"valueField":"and","textField":"and"},{"valueField":"or","textField":"or"}];
 	var index=$('#right').datagrid('appendRow', {    
@@ -408,44 +453,37 @@ $("#insertRight").click(function(){
     }).datagrid('getRows').length-1;
 	$('#right').datagrid('beginEdit',index);
 	var id = $('#right').datagrid('getEditor', {index:index,field:'id'});
-	var andOr= $('#right').datagrid('getEditor', {index:index,field:'andOr'});
 	var time=year+"-"+month+"-"+date;
-	var value_= $('#right').datagrid('getEditor', {index:index,field:'value_'});
-	var value2 = $(value_.target).textbox() ;
+	
 	var rowIndex=0;
 	var id2 = $(id.target).combobox({
-		 editable:false,
          data:whereFields,
-         valueField:"valueField",
-         textField:"textField",
+         valueField:"where_col_value",
+         textField:"where_col_name",
          onSelect:function(record){
         	 var input_type="";
-        	 var index=record.valueField.substring(0,1);
-        	 var variable_type=record.valueField;
+        	 var index=record.where_col_value.substring(0,1);
+        	 var variable_type=record.where_col_value;
 	     	for(var i=0;i<$leftCol.rows.length;i++){
 	     		if($leftCol.rows[i].col_code==variable_type.substring(1,variable_type.length+1)){
 	     			input_type=$leftCol.rows[i].input_type;
 	     			if(input_type=="date"){
-	     				var date= $('#right').datagrid('getEditor', {index:index,field:'value_'});
-	     				var date2 = $(date.target).datebox({editable:false});
+	     				var date= $('#right').datagrid('getEditor', {index:index,field:'value'});
+	     				var date2 = $(date.target).datebox();
 	     				$(date2.target).datebox("setValue",time);
 	     			}else if(input_type=="text"){
-	     				var text= $('#right').datagrid('getEditor', {index:index,field:'value_'});
-	     				$(text.target).numberbox({
-	     					formatter:function(value){
-	     						return value;
-	     					},
-	     					parser:function(s){
-	     						return s;
-	     					}
+	     				var text= $('#right').datagrid('getEditor', {index:index,field:'value'});
+	     				$(text.target).passwordbox({
+	     					revealed:true,
+	     					showEye:false
 	     				});
 	     			}else if(input_type=="number"){
-	     				var number= $('#right').datagrid('getEditor', {index:index,field:'value_'});
+	     				var number= $('#right').datagrid('getEditor', {index:index,field:'value'});
 	     				var number2 = $(number.target).numberspinner();
 	     				$(number.target).numberspinner({precision:3});
 	     				$(number.target).numberspinner("fix");
 	     			}else{
-	     				var search= $('#right').datagrid('getEditor', {index:index,field:'value_'});
+	     				var search= $('#right').datagrid('getEditor', {index:index,field:'value'});
 	     				var search2 = $(search.target).searchbox({
 	     					searcher:function(value,name){
 	     						
@@ -456,18 +494,93 @@ $("#insertRight").click(function(){
 	     	}
          }
 	})
-	var andOr2 = $(andOr.target).combobox({
-		 editable:false,
-         data:fieldHeaders,
-         valueField:"valueField",
-         textField:"textField"
-	})
+	countRow++;
 	selectIndex++;
 })
-function onAfterEdit(rowIndex, rowData, changes){
-	varible_rowIndex=rowIndex;
-	console.info(varible_rowIndex);
-}
+$("#queryWhere").click(function(){
+	var query_fields=[];
+	var finalFields=[];
+	var countRowIndex=$("#right").datagrid("getRows").length;
+	var brackets_field="";
+	var id_field="";
+	var expression_field="";
+	var value_field="";
+	var andOr_field="";
+	for(var i=0;i<countRowIndex;i++){
+		var brackets=$('#right').datagrid('getEditor', {index:i,field:'brackets'});
+		var brackets2=$(brackets.target).combobox("getValue");
+		var id=$('#right').datagrid('getEditor', {index:i,field:'id'});
+		var id2=$(id.target).combobox("getValue");
+		var expression=$('#right').datagrid('getEditor', {index:i,field:'expression'});
+		var expression2=$(expression.target).combobox("getValue");
+		var value=$('#right').datagrid('getEditor', {index:i,field:'value'});
+		var value2=$(value.target).textbox("getValue");
+		var andOr=$('#right').datagrid('getEditor', {index:i,field:'andOr'});
+		var andOr2=$(andOr.target).combobox("getValue");
+		if(brackets2.length<1||brackets2==""){
+			brackets_field=" ";
+		}else{
+			brackets_field=brackets2;
+		}
+		if(id2.length<1||id2==""){
+			id_field=" ";
+		}else{
+			id_field=id2;
+		}
+		if(expression2.length<1||expression2==""){
+			expression_field=" ";
+		}else{
+			expression_field=expression2;
+		}
+		if(value2.length<1||value2==""){
+			value_field=" ";
+		}else{
+			value_field=value2;
+		}
+		if(andOr2.length<1||andOr2==""){
+			andOr_field=" ";
+		}else{
+			andOr_field=andOr2;
+		}
+		finalFields.push({"field":id2.substring(1,id2.length),"title":$(id.target).combobox("getText"),"width":100});
+		query_fields.push({"brackets":brackets_field,"field":id_field,"expression":expression_field,"value":value_field,"andOr":andOr_field});
+	}
+	
+	$("#queryTemplate").datagrid({
+		url : "/interfaceDataBrowsingController/queryWhere",
+		columns:[finalFields],
+		fitColumns : true,
+		striped : true,
+		height : 390,
+		queryParams:{
+			"arr":JSON.stringify(query_fields),
+			"tableCode":$("#queryModalSelect").combobox("getValue")
+		},
+		pagination : true,
+		singleSelect : true,
+		rownumbers : true,
+		onLoadSuccess : function(data) {
+			$('#setModal').dialog("close");
+		},
+		onCheck : function(rowIndex, rowData) {
+			
+		},
+		onLoadError:function(){
+			//clearTable("left");
+			$.messager.show({
+				title:'操作提示',
+				msg:"sql拼接有误，请确认sql",
+				timeout:1000, 
+				width:260,
+				height:100,
+				showType:'slide'
+			});
+		}
+	});
+})
+$("#saveHistory").click(function(){
+	
+})
 
 </script>
 <script type="text/javascript">//清除table数据
@@ -480,67 +593,13 @@ function clearTable(tableCode){
         }
     }
 }
-</script>
-<script type="text/javascript">
-function addEditors(){
-	$("#right").datagrid('addEditor', {    
-        field : 'id',    
-        editor : {    
-            type : 'combobox',
-            options : {
-            	data:whereFields,
-                valueField:"valueField",
-                textField:"textField"
-            }
-        }
-    });
-	$("#right").datagrid('addEditor', {    
-        field : 'expression',    
-        editor : {    
-            type : 'combobox',    
-            options : {
-            	url:'/interfaceDataBrowsingController/expression',
-                valueField:"expression_id",
-                textField:"expression_name",
-            }
-        }    
-    });
-	$("#right").datagrid('addEditor', {    
-        field : 'andOr',    
-        editor : {    
-            type : 'combobox',    
-            options : {
-            	data:andOr,
-                valueField:"andOr",
-                textField:"text",
-            }
-        }    
-    });
+function clearRowOne(tableCode){
+	var item = $('#'+tableCode).datagrid('getRows');
+    if (item.length>0) {
+        $('#'+tableCode).datagrid('deleteRow', item.length-1);
+        selectIndex--;
+        countRow--;
+    }
 }
-$.extend($.fn.datagrid.methods, {    
-    addEditor : function(jq, param) {    
-        if (param instanceof Array) {    
-            $.each(param, function(index, item) {    
-                var e = $(jq).datagrid('getColumnOption', item.field);    
-                e.editor = item.editor;    
-            });    
-        } else {    
-            var e = $(jq).datagrid('getColumnOption', param.field);    
-            e.editor = param.editor;    
-        }    
-    },    
-    removeEditor : function(jq, param) {    
-        if (param instanceof Array) {    
-            $.each(param, function(index, item) {    
-                var e = $(jq).datagrid('getColumnOption', item);    
-                e.editor = {};    
-            });    
-        } else {    
-            var e = $(jq).datagrid('getColumnOption', param);    
-            e.editor = {};    
-        }    
-    }    
-});
-
 </script>
 </html>

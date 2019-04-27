@@ -4,6 +4,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.eova.common.base.BaseController;
 import com.eova.common.utils.xx;
 import com.jfinal.plugin.activerecord.Db;
@@ -49,7 +51,7 @@ public class InterfaceDataBrowsingController extends BaseController{
 	 */
 	public void queryClassTable() {
 		String classId=getPara(0);
-		List<Record> list=Db.use(xx.DS_EOVA).find("select id,data_code,data_name from bs_metadata where syregeist_id='"+classId+"'");
+		List<Record> list=Db.use(xx.DS_EOVA).find("select id,table_code,table_name from bs_metadata where syregeist_id='"+classId+"'");
 		renderJson(list);
 	}
 	/*
@@ -65,7 +67,7 @@ public class InterfaceDataBrowsingController extends BaseController{
 	 */
 	public String queryTemplateIsInit(String smeta) {
 		
-		String bs_metadata_is="select id,data_code,data_name from bs_metadata where id='"+metadata_id+"'";
+		String bs_metadata_is="select id,table_code,table_name from bs_metadata where id='"+metadata_id+"'";
 		Record queryData=Db.use(xx.DS_EOVA).findFirst(bs_metadata_is);
 		
 		if(queryData==null) 
@@ -73,7 +75,7 @@ public class InterfaceDataBrowsingController extends BaseController{
 		
 		String bs_style_is="select count(1) from bs_style"
 				+ " where sid='"+queryData.getStr("id")+"' and "
-				+ " md_table='"+queryData.getStr("data_code")+"' and "
+				+ " md_table='"+queryData.getStr("table_code")+"' and "
 				+ " smeta='"+smeta+"'";
 		
 		int isTrue=Db.use(xx.DS_EOVA).queryInt(bs_style_is);
@@ -83,7 +85,7 @@ public class InterfaceDataBrowsingController extends BaseController{
 		re=new Record();
 		re.set("dr", 0);
 		re.set("sid", queryData.getStr("id"));
-		re.set("md_table", queryData.getStr("data_code"));
+		re.set("md_table", queryData.getStr("table_code"));
 		re.set("smeta", smeta);
 		
 		//控制事务提交
@@ -195,6 +197,117 @@ public class InterfaceDataBrowsingController extends BaseController{
 		List<Record> re=Db.use(xx.DS_MAIN).find(sql);
 		renderJson(re);
 	}
+	/*
+	 * 界面right datagrid条件查询
+	 */
+	public void queryWhere() {
+		String tableCode=getPara("tableCode");
+		String[] jsonArr=getParaValues("arr");
+		JSONArray jsonArrary=JSONArray.parseArray(jsonArr[0].toString());
+		StringBuffer sb=new StringBuffer();
+		sb.append("select ");
+		String fields="";
+		for(int i=0;i<jsonArrary.size();i++) {
+			JSONObject jsonObj=(JSONObject)jsonArrary.get(i);
+			if(jsonObj.getString("field").length()<1||" ".equals(jsonObj.getString("field"))) {
+				continue;
+			}
+			fields+=jsonObj.getString("field").substring(1,jsonObj.getString("field").length())+",";
+			
+		}
+		sb.append(fields.substring(0,fields.lastIndexOf(",")));
+		
+		String table_sql="select table_code from bs_metadata where id='"+tableCode+"'";
+		String table_code=Db.use(xx.DS_EOVA).queryStr(table_sql);
+		sb.append(" from "+table_code);
+		
+		boolean isWhereBrackets=false;
+		boolean isWhereField=false;
+		boolean isWhereExpression=false;
+		boolean isWhereValue=false;
+		boolean isWhereAndOr=false;
+		for(int i=0;i<jsonArrary.size();i++) {
+			JSONObject jsonObj=(JSONObject)jsonArrary.get(i);
+			String brackets=jsonObj.getString("brackets");
+			String field=jsonObj.getString("field");
+			String expression=jsonObj.getString("expression");
+			String value=jsonObj.getString("value");
+			String andOr=jsonObj.getString("andOr");
+			if(brackets.length()<1||brackets==null) {
+				isWhereBrackets=true;
+			}else {
+				isWhereBrackets=false;
+			}
+			if(field.length()<1||field==null) {
+				isWhereField=true;
+			}else {
+				isWhereField=false;
+			}
+			if(expression.length()<1||expression==null) {
+				isWhereExpression=true;
+			}else {
+				isWhereExpression=false;
+			}
+			if(value.length()<1||value==null) {
+				isWhereValue=true;
+			}else {
+				isWhereValue=false;
+			}
+			if(andOr.length()<1||andOr==null) {
+				isWhereAndOr=true;
+			}else {
+				isWhereAndOr=false;
+			}
+		}
+		try {
+			if (isWhereField && isWhereBrackets && isWhereExpression && isWhereAndOr) {
+				if (!isWhereValue) {
+					List<Record> talbe = Db.use(xx.DS_MAIN).find(sb.toString());
+					renderJson(talbe);
+				} else {
+					sb.append(" where ");
+					for (int i = 0; i < jsonArrary.size(); i++) {
+						JSONObject jsonObj = (JSONObject) jsonArrary.get(i);
+						String brackets = jsonObj.getString("brackets");
+						String field = jsonObj.getString("field").substring(1, jsonObj.getString("field").length());
+						String expression = jsonObj.getString("expression");
+						String value = jsonObj.getString("value");
+						String andOr = jsonObj.getString("andOr");
+						if(" ".equals(value)) {
+							sb.append(brackets + " " + field + " " + expression + " " + value + " " + andOr);
+						}else {
+							sb.append(brackets + " " + field + " " + expression + " '" + value + "' " + andOr);
+						}
+					}
+					List<Record> appendSql = Db.use(xx.DS_MAIN).find(sb.toString());
+					renderJson(appendSql);
+				}
+			} else {
+				sb.append(" where ");
+				for (int i = 0; i < jsonArrary.size(); i++) {
+					JSONObject jsonObj = (JSONObject) jsonArrary.get(i);
+					String brackets = jsonObj.getString("brackets");
+					String field = jsonObj.getString("field").substring(1, jsonObj.getString("field").length());
+					String expression = jsonObj.getString("expression");
+					String value = jsonObj.getString("value");
+					String andOr = jsonObj.getString("andOr");
+					if(" ".equals(value)) {
+						sb.append(brackets + " " + field + " " + expression + " " + value + " " + andOr);
+					}else {
+						sb.append(brackets + " " + field + " " + expression + " '" + value + "' " + andOr);
+					}
+				}
+				List<Record> appendSql = Db.use(xx.DS_MAIN).find(sb.toString());
+				renderJson(appendSql);
+			} 
+		} catch (Exception e) {
+			// TODO: handle exception
+			renderJson(e.getMessage());
+		}
+	}
+	/*
+	 * 界面常量
+	 */
 	public void expression() {
 		renderJson("["
 				+ "{\"expression_id\":\">\",\"expression_name\":\"大于\"},"
@@ -203,6 +316,18 @@ public class InterfaceDataBrowsingController extends BaseController{
 				+ "{\"expression_id\":\"!=\",\"expression_name\":\"不等于\"},"
 				+ "{\"expression_id\":\"in\",\"expression_name\":\"包含\"},"
 				+ "{\"expression_id\":\"not in\",\"expression_name\":\"不包含\"}"
+				+ "]");
+	}
+	public void brackets() {
+		renderJson("["
+				+ "{\"bracketsVal\":\"(\",\"bracketsText\":\"(\"},"
+				+ "{\"bracketsVal\":\")\",\"bracketsText\":\")\"}"
+				+ "]");
+	}
+	public void andOr() {
+		renderJson("["
+				+ "{\"andOrVal\":\"and\",\"andOrText\":\"and\"},"
+				+ "{\"andOrVal\":\"or\",\"andOrText\":\"or\"}"
 				+ "]");
 	}
 }

@@ -1,5 +1,5 @@
 $(document).ready(function(){
-	var $flow_id=$("#flow_id");
+	/*var $flow_id=$("#flow_id");
 	$flow_id.eovafind({
 		onChange: function (oldValue, newValue) {
 			$.ajax({
@@ -15,6 +15,13 @@ $(document).ready(function(){
 				}
 			})
 		}
+	})*/
+	$("#findGrid").datagrid({
+		onSelect:function(record){
+			console.info(record);
+		}
 	})
-	
+	$("#find_ok").bind("click",function(){
+		alert(1)
+	})
 })
